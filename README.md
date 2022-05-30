@@ -1,75 +1,40 @@
-Android Architecture Components samples
-===================================
+# 前言 #
 
-A collection of samples using the [Architecture Components](https://developer.android.com/arch):
+>2018年面试华米，当时人家问我可知道aac，或者对它涉及的源码有一定了解，因为对方的一句话灰溜溜的走了~
 
-- [Room](https://developer.android.com/topic/libraries/architecture/room)
-- [Lifecycle-aware components](https://developer.android.com/topic/libraries/architecture/lifecycle)
-- [ViewModels](https://developer.android.com/topic/libraries/architecture/viewmodel)
-- [LiveData](https://developer.android.com/topic/libraries/architecture/livedata)
-- [Paging](https://developer.android.com/topic/libraries/architecture/paging/)
-- [Navigation](https://developer.android.com/topic/libraries/architecture/navigation/)
-- [ViewBinding](https://developer.android.com/topic/libraries/view-binding)
-- [WorkManager](https://developer.android.com/topic/libraries/architecture/workmanager/)
+来说说aac（android architecture component）和androidx、jetpack的关系。
 
-### Samples
+以下抄袭！！完完全全的抄袭，[来源](https://blog.csdn.net/vitaviva/article/details/104139034)：
 
-* **[BasicSample](https://github.com/googlesamples/android-architecture-components/blob/master/BasicSample)** - Shows how to persist data using a SQLite database and Room. Also uses ViewModels and LiveData.
+google公司一开始推出的就是android architecture component，用于给开发者提供合理的架构，核心的三大组件lifecycle、lievedata和viewmodel。在2018年google I/O开发者年会首次提出了androidx，androidx是基于aac和一些基础工具并且独立于androidsdk的一个库类。androdx对外的品牌名称是jetpack。
 
-* **[PersistenceContentProviderSample](https://github.com/googlesamples/android-architecture-components/blob/master/PersistenceContentProviderSample)** - Shows how to expose data via a Content Provider using Room.
+**目的：旨在指导开发者构建出架构合理的Android 应用。**
 
-* **[GithubBrowserSample](https://github.com/googlesamples/android-architecture-components/blob/master/GithubBrowserSample)** - An **advanced**  sample that uses the Architecture components, Dagger and the Github API, in Kotlin.
+# AAC学习梳理 #
 
-* **[BasicRxJavaSample](https://github.com/googlesamples/android-architecture-components/blob/master/BasicRxJavaSample)** - Shows how to use Room with RxJava 2. Also uses ViewModels.
+[aac demo源码](https://github.com/android/architecture-components-samples)大家可以自行下载查看，我这里主要对aac demo理解以及涉及源码和设计模式还有更生层次的androidx源码系统来学习，但是学习需要有一个好的思路（我这里的思路不一定是好的，但是必须要有）：
 
-* **[PersistenceMigrationsSample](https://github.com/googlesamples/android-architecture-components/blob/master/PersistenceMigrationsSample)** - Shows how to implement migrations in Room.
+1. 把当前aac涉及到的几个demo运行并且有个基本的认识，代码层面能理解多少理解多少；
 
-* **[BasicRxJavaKotlinSample](https://github.com/googlesamples/android-architecture-components/blob/master/BasicRxJavaSampleKotlin)** - Shows
-how to use ViewModels and Room together with RxJava, in Kotlin.
+ - 当前[github上的源码](https://github.com/hellogaod/aac)就是可以运行的，可自行下载去运行并且简单理解
 
- * **[PagingSample](https://github.com/googlesamples/android-architecture-components/tree/master/PagingSample)** - Shows
-  how to use the Paging library with Room, in Kotlin.
+2. aac核心组件：Lifecycle、LiveData和ViewModel源码理解；
 
- * **[PagingNetworkSample](https://github.com/googlesamples/android-architecture-components/tree/master/PagingWithNetworkSample)** - Shows
-  how to use the Paging library with a backend API via Retrofit, in Kotlin.
+3. aac demo 一个个去理解，具体思路如下：
 
-* **[NavigationBasicSample](https://github.com/googlesamples/android-architecture-components/tree/master/NavigationBasicSample)** - Shows
-  how to use Navigation to perform navigation and deep linking in Kotlin.
+ - （1）几个demo尽量从Lifecycle、LiveData和ViewModel入手，因为2已经理解过了，代入感更强；
 
-* **[NavigationAdvancedSample](https://github.com/googlesamples/android-architecture-components/tree/master/NavigationAdvancedSample)** - Shows
-  how to handle multiple back stacks with Navigation and a BottomNavigationView.
+ - （2）aac的组织架构、设计模式简单理解；
 
-* **[LiveDataSample](https://github.com/googlesamples/android-architecture-components/tree/master/LiveDataSample)** - Shows
-  how to integrate Kotlin coroutines with Architecture Components such as `LiveData`.
+ - （3）设计到的aac源码理解并且扣到demo中（比较麻烦）
 
-* **[ViewBindingSample](https://github.com/googlesamples/android-architecture-components/tree/master/ViewBindingSample)** - Shows how to use view bindings in an activity and in fragments.
+4. androidx在本地调试（ubuntu系统上运行）；
 
-* **[WorkManagerSample](https://github.com/googlesamples/android-architecture-components/tree/master/WorkManagerSample)** - Shows
-  how to use WorkManager to do background work, in Kotlin.
+5. androidx源码系列理解；
 
-* **[WorkManagerMultiprocessSample](https://github.com/googlesamples/android-architecture-components/tree/master/WorkManagerMultiprocessSample)** - Shows how to use WorkManager in apps that manage multiple processes.
+根据以上步骤去学习androidx源码，说的好像挺轻巧！！！下面就等着呵呵吧。
 
+# 结束 #
 
-### Reporting Issues
+QQ学习交流群：575306647
 
-You can report an [Issue](https://github.com/googlesamples/android-architecture-components/issues) on the samples using this repository. If you find an issue with the Architecture Components, report it using the [Architecture Components Issue Tracker](https://issuetracker.google.com/issues/new?component=197448&template=878802)
-
-License
--------
-
-Copyright 2018 The Android Open Source Project, Inc.
-
-Licensed to the Apache Software Foundation (ASF) under one or more contributor
-license agreements.  See the NOTICE file distributed with this work for
-additional information regarding copyright ownership.  The ASF licenses this
-file to you under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy of
-the License at
-
-http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
