@@ -21,13 +21,13 @@ android {
     buildToolsVersion build_versions.build_tools
 
     defaultConfig {
-        applicationId 'com.example.android.persistence'
+        applicationId 'com.aac.core'
         minSdkVersion build_versions.min_sdk
         targetSdkVersion build_versions.target_sdk
         versionCode 1
         
         versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         vectorDrawables {
             useSupportLibrary = true
@@ -47,9 +47,9 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    dataBinding {
-        enabled = true
-    }
+//    dataBinding {
+//        enabled = true
+//    }
     productFlavors {
     }
 
@@ -64,32 +64,12 @@ android {
 }
 
 dependencies {
-    implementation deps.app_compat
-    implementation deps.fragment.runtime
-//    implementation deps.material
-//    implementation deps.cardview
-//
-//    // Architecture components
-//    implementation deps.lifecycle.runtime
-//    annotationProcessor deps.lifecycle.compiler
-//    implementation deps.room.runtime
-//    annotationProcessor deps.room.compiler
-//
-//    // Android Testing Support Library's runner and rules
-//    androidTestImplementation deps.atsl.core
-//    androidTestImplementation deps.atsl.ext_junit
-//    androidTestImplementation deps.atsl.runner
-//    androidTestImplementation deps.atsl.rules
-//    androidTestImplementation deps.room.testing
-//    androidTestImplementation deps.arch_core.testing
-//
-//    // Espresso UI Testing
-//    androidTestImplementation deps.espresso.core
-//    androidTestImplementation deps.espresso.contrib
-//    androidTestImplementation deps.espresso.intents
-//
-//    // Resolve conflicts between main and test APK:
-//    androidTestImplementation deps.annotations
-//    androidTestImplementation deps.app_compat
-//    androidTestImplementation deps.material
+    // Timber
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
+    // Leak Canary
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
+
+//    implementation project(path: ':lifecycle')
+
 }

@@ -25,6 +25,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.android.persistence.R;
@@ -68,6 +70,16 @@ public class ProductFragment extends Fragment {
         mBinding.setProductViewModel(model);
 
         subscribeToModel(model);
+
+        MutableLiveData<String> liveString = new MutableLiveData<>();
+        liveString.observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable final String s) {
+//                Log.d(TAG, "onChanged() called with: s = [" + s + "]");
+            }
+        });
+
+        liveString.setValue("LiveData使用案例");
     }
 
     private void subscribeToModel(final ProductViewModel model) {

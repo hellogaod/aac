@@ -15,7 +15,7 @@
   -->
 
 <resources>
-    <string name="app_name">3Persistence sample</string>
+    <string name="app_name">aac-core</string>
     <string name="no_comments">No comments</string>
     <string name="loading_comments">Loading comments…</string>
     <string name="loading_products">Loading products…</string>

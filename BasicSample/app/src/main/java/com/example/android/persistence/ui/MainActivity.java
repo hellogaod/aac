@@ -19,8 +19,11 @@ package com.example.android.persistence.ui;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.OnLifecycleEvent;
 
 import com.example.android.persistence.R;
 import com.example.android.persistence.model.Product;
@@ -39,15 +42,30 @@ public class MainActivity extends AppCompatActivity {
                     .add(R.id.fragment_container, fragment, ProductListFragment.TAG).commit();
         }
 
-//        MutableLiveData<String> liveString = new MutableLiveData<>();
-//        liveString.observe(this, new Observer<String>() {
-//            @Override
-//            public void onChanged(@Nullable final String s) {
-////                Log.d(TAG, "onChanged() called with: s = [" + s + "]");
-//            }
-//        });
+        MutableLiveData<String> liveString = new MutableLiveData<>();
+        liveString.observe(this, new Observer<String>() {
+            @Override
+            public void onChanged(@Nullable final String s) {
+//                Log.d(TAG, "onChanged() called with: s = [" + s + "]");
+            }
+        });
 
-//        liveString.setValue("LiveData使用案例");
+        liveString.setValue("LiveData使用案例");
+
+        this.getLifecycle().addObserver(new MyObserver());
+
+    }
+
+    class MyObserver implements LifecycleObserver {
+        @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        public void connectListener() {
+
+        }
+
+        @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+        public void disconnectListener() {
+
+        }
     }
 
     /** Shows the product detail fragment */

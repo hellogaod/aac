@@ -1,63 +1,65 @@
-/*
- * Copyright 2017, The Android Open Source Project
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package com.example;
 
+import android.app.Activity;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.Observer;
+import android.view.View;
+import android.widget.TextView;
 
 import com.example.android.persistence.R;
 
-public class MainActivity extends AppCompatActivity {
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.Observer;
+import timber.log.Timber;
+
+/**
+ * Copyright (C), 2019-2022, 佛生
+ * FileName: MainActivity
+ * Author: 佛学徒
+ * Date: 2022/6/2 11:11
+ * Description:
+ * History:
+ */
+public class MainActivity extends Activity {
+
+    private TextView tvShow;
+    private LiveData<String> liveData;
+
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        tvShow = findViewById(R.id.tv_show);
 
-        // Add product list fragment if this is first creation
-//        if (savedInstanceState == null) {
-//            ProductListFragment fragment = new ProductListFragment();
-//
-//            getSupportFragmentManager().beginTransaction()
-//                    .add(R.id.fragment_container, fragment, ProductListFragment.TAG).commit();
-//        }
+        liveData = new LiveData<>();
+        liveData.observe(this, new Observer<String>() {
+            @Override
+            public void onChange(String s) {
+                tvShow.setText(s != null ? s : "数据错误！");
+            }
+        });
 
-//        MutableLiveData<String> liveString = new MutableLiveData<>();
-//        liveString.observe(this, new Observer<String>() {
-//            @Override
-//            public void onChanged(@Nullable final String s) {
-////                Log.d(TAG, "onChanged() called with: s = [" + s + "]");
-//            }
-//        });
+        liveData.setValue("我是小可爱！");
 
-//        liveString.setValue("LiveData使用案例");
+        findViewById(R.id.btn_ok).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                liveData.setValue("一板脚踢死你个萌币！");
+            }
+        });
+
+        liveData.observe(this, new Observer<String>() {
+            @Override
+            public void onChange(String s) {
+                Timber.i(s + "可爱你个头！！！");
+            }
+        });
+
+        Timber.e("error world！");
     }
 
-    /** Shows the product detail fragment */
-//    public void show(Product product) {
-//
-//        ProductFragment productFragment = ProductFragment.forProduct(product.getId());
-//
-//        getSupportFragmentManager()
-//                .beginTransaction()
-//                .addToBackStack("product")
-//                .replace(R.id.fragment_container,
-//                        productFragment, null).commit();
-//    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

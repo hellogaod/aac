@@ -15,3 +15,5 @@
  */
 
 include ':app'
+//include ':lifecycle'
+include ':lifecycle'
