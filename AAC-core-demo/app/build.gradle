@@ -66,10 +66,11 @@ android {
 dependencies {
     // Timber
     implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation project(path: ':activity:activity')
 
     // Leak Canary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
 
-//    implementation project(path: ':lifecycle')
-
+    implementation project(path: ':lifecycle:common')
+    implementation project(path: ':lifecycle:runtime')
 }

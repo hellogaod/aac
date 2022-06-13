@@ -15,5 +15,17 @@
  */
 
 include ':app'
-//include ':lifecycle'
+include ':annotation'
+include ':appcompat'
+include ':fragment'
+include ':activity'
+include ':core'
 include ':lifecycle'
+include ':lifecycle:common'
+include ':lifecycle:runtime'
+include ':annotation:annotation'
+include ':arch'
+include ':arch:core'
+include ':arch:core:core-common'
+include ':arch:core:core-runtime'
+include ':activity:activity'
