@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.library'
+    //Java调用Kotlin代码插件
+    id 'kotlin-android'
 }
 
 android {
@@ -33,4 +35,7 @@ dependencies {
     implementation project(path: ':lifecycle:common')
     implementation project(path: ':lifecycle:runtime')
     implementation project(path: ':annotation:annotation')
+    implementation project(path: ':lifecycle:viewmodel')
+    implementation project(path: ':savedstate:savedstate')
+    implementation project(path: ':lifecycle:viewmodel-savedstate')
 }
