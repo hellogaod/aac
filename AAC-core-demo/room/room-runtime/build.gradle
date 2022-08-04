@@ -1,0 +1,52 @@
+plugins {
+    id 'com.android.library'
+    //Java调用Kotlin代码插件
+    id 'kotlin-android'
+}
+
+android {
+    compileSdk build_versions.compile_sdk
+
+    defaultConfig {
+        minSdk build_versions.min_sdk
+        targetSdk build_versions.target_sdk
+        versionCode 1
+        versionName "1.0"
+
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+//        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    //解决问题：一个模块的kotlin引用另外一个模块的kotlin报错Unresolved reference
+//    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:1.2.71"
+    implementation deps.kotlinCoroutinesCore
+    implementation deps.kotlin.stdlib
+
+    implementation project(path: ':annotation:annotation')
+    implementation project(path: ':annotation:annotation-experimental')
+
+    implementation project(path: ':arch:core:core-runtime')
+    implementation project(path: ':arch:core:core-common')
+
+    implementation project(path: ':lifecycle:livedata-core')
+    implementation project(path: ':room:room-common')
+
+    implementation project(path: ':sqlite:sqlite')
+    implementation project(path: ':sqlite:sqlite-framework')
+
+    implementation project(path: ':paging:paging-common')
+
+}

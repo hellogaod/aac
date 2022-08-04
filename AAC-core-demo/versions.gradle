@@ -43,7 +43,7 @@ versions.fragment = "1.2.0"
 versions.glide = "4.8.0"
 versions.hamcrest = "1.3"
 versions.junit = "4.12"
-versions.kotlin = "1.6.10"
+versions.kotlin = "1.6.21"
 versions.lifecycle = "2.2.0"
 versions.material = "1.0.0"
 versions.mockito = "2.25.0"
@@ -63,16 +63,51 @@ versions.timber = "4.7.1"
 versions.transition = "1.3.0"
 versions.truth = "1.0.1"
 versions.work = "2.6.0"
-ext.versions = versions
+versions.javapoet = "1.13.0"
+versions.ksp = "1.6.21-1.0.5"
+versions.autoValue = "1.6.3"
+versions.kotlinCoroutines = "1.6.1"
+versions.ksp = "1.6.21-1.0.5"
 
+ext.versions = versions
 def build_versions = [:]
 build_versions.min_sdk = 14
-build_versions.compile_sdk = 29
-build_versions.target_sdk = 29
-build_versions.build_tools = "29.0.3"
+build_versions.compile_sdk = 31
+build_versions.target_sdk = 31
+build_versions.build_tools = "31.0.0"
 ext.build_versions = build_versions
 
 def deps = [:]
+
+
+deps.reactiveStreams = "org.reactivestreams:reactive-streams:1.0.2"
+
+deps.squareup = "com.squareup:javapoet:$versions.javapoet"
+deps.ksp = "com.google.devtools.ksp:symbol-processing:$versions.ksp"
+deps.kspApi = "com.google.devtools.ksp:symbol-processing-api:$versions.ksp"
+deps.kotlinPoet = "com.squareup:kotlinpoet:1.8.0"
+
+deps.kotlinMetadataJvm = "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.4.2"
+deps.kotlinCoroutinesAndroid = "org.jetbrains.kotlinx:kotlinx-coroutines-android:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesSwing = "org.jetbrains.kotlinx:kotlinx-coroutines-swing:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesCore = "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesGuava = "org.jetbrains.kotlinx:kotlinx-coroutines-guava:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesPlayServices = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesTest = "org.jetbrains.kotlinx:kotlinx-coroutines-test:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesRx2 = "org.jetbrains.kotlinx:kotlinx-coroutines-rx2:$versions.kotlinCoroutines"
+deps.kotlinCoroutinesRx3 = "org.jetbrains.kotlinx:kotlinx-coroutines-rx3:$versions.kotlinCoroutines"
+deps.sqliteJdbc = "org.xerial:sqlite-jdbc:3.36.0"
+deps.apacheCommonsCodec = "commons-codec:commons-codec:1.15"
+deps.kspGradlePluginz = "com.google.devtools.ksp:symbol-processing-gradle-plugin:$versions.ksp"
+deps.ksp = "com.google.devtools.ksp:symbol-processing:$versions.ksp"
+deps.kspApi = "com.google.devtools.ksp:symbol-processing-api:$versions.ksp"
+
+
+deps.google_collect = "com.google.collections:google-collections:1.0-rc5"
+deps.autoCommon = "com.google.auto:auto-common:0.11"
+deps.antlr4 = "org.antlr:antlr4:4.7.1"
+deps.autoValueAnnotations = "com.google.auto.value:auto-value-annotations:$versions.autoValue"
+deps.gson = "com.google.code.gson:gson:2.9.0"
 
 def activity = [:]
 activity.activity_ktx = "androidx.activity:activity-ktx:$versions.activity"
@@ -143,10 +178,14 @@ deps.hamcrest = "org.hamcrest:hamcrest-all:$versions.hamcrest"
 deps.junit = "junit:junit:$versions.junit"
 
 def kotlin = [:]
-kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+kotlin.stdlibjdk7 = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+kotlin.stdlibjdk8 = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
+
 kotlin.test = "org.jetbrains.kotlin:kotlin-test-junit:$versions.kotlin"
 kotlin.plugin = "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
 kotlin.allopen = "org.jetbrains.kotlin:kotlin-allopen:$versions.kotlin"
+kotlin.kotlinAndroidExtensions = "org.jetbrains.kotlin:kotlin-android-extensions:$versions.kotlin"
 deps.kotlin = kotlin
 
 def lifecycle = [:]
@@ -226,4 +265,5 @@ def addRepos(RepositoryHandler handler) {
     handler.jcenter()
     handler.maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
+
 ext.addRepos = this.&addRepos

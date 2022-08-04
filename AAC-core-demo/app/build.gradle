@@ -21,15 +21,14 @@ plugins {
 }
 
 android {
-    compileSdkVersion build_versions.compile_sdk
-    buildToolsVersion build_versions.build_tools
+    compileSdk build_versions.compile_sdk
 
     defaultConfig {
         applicationId 'com.aac.core'
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
-        versionCode 1
+        minSdk build_versions.min_sdk
+        targetSdk build_versions.target_sdk
 
+        versionCode 1
         versionName "1.0"
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -37,12 +36,6 @@ android {
             useSupportLibrary = true
         }
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments = ["room.schemaLocation":
-                                     "$projectDir/schemas".toString()]
-            }
-        }
     }
 
     buildTypes {
@@ -73,20 +66,33 @@ dependencies {
     // Leak Canary
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.7'
 
+    //appcompat
     implementation "androidx.appcompat:appcompat:1.2.0-alpha02"
+
+    //fragment
     implementation "androidx.fragment:fragment:1.2.0"
+
     implementation "com.google.android.material:material:1.0.0"
-    // Architecture components
+
+    // lifecycle
     implementation "androidx.lifecycle:lifecycle-runtime:2.2.0"
+
     annotationProcessor "androidx.lifecycle:lifecycle-compiler:2.2.0"
 
     //Room
-    implementation "androidx.room:room-runtime:2.2.0"
-    annotationProcessor "androidx.room:room-compiler:2.2.0"
-    implementation("androidx.room:room-rxjava2:2.2.0")
-            {
-                exclude group: 'io.reactivex.rxjava2'
-            }
+//    implementation "androidx.room:room-runtime:2.2.6"
+//    implementation 'androidx.room:room-compiler:2.2.6'
+//    annotationProcessor 'androidx.room:room-compiler:2.2.6'
+//    implementation("androidx.room:room-rxjava2:2.2.6")
+//            {
+//                exclude group: 'io.reactivex.rxjava2'
+//            }
+
+    implementation project(':room:room-runtime')
+    implementation project(':room:room-rxjava2')
+    implementation project(':room:room-common')
+
+    annotationProcessor project(':room:room-compiler')
 
     // RxJava
     implementation project(':rxjava:rxandroid')

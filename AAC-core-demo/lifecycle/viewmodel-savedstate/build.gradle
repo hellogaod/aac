@@ -5,17 +5,16 @@ plugins {
 }
 
 android {
-    compileSdkVersion build_versions.compile_sdk
-    buildToolsVersion build_versions.build_tools
+    compileSdk build_versions.compile_sdk
 
     defaultConfig {
-        minSdkVersion build_versions.min_sdk
-        targetSdkVersion build_versions.target_sdk
+        minSdk build_versions.min_sdk
+        targetSdk build_versions.target_sdk
         versionCode 1
         versionName "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+//        consumerProguardFiles "consumer-rules.pro"
     }
 
     buildTypes {
@@ -31,8 +30,10 @@ android {
 }
 
 dependencies {
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    //一个模块的kotlin调用另外一个模块的kotlin，那么这两个kotlin必须是android lib。否则调用会报错
+    implementation deps.kotlinCoroutinesCore
+    implementation deps.kotlin.stdlib
+
     implementation project(path: ':savedstate:savedstate')
     implementation project(path: ':lifecycle:livedata-core')
     implementation project(path: ':annotation:annotation')

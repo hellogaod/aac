@@ -1,0 +1,23 @@
+plugins {
+    id 'java-library'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+
+    implementation deps.squareup
+
+    implementation deps.ksp
+    implementation deps.kspApi
+
+    implementation deps.kotlinMetadataJvm
+
+    implementation deps.autoCommon
+
+    implementation deps.kotlin.plugin
+    implementation deps.kotlinPoet
+}

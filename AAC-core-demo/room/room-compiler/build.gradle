@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation project(path: ':room:room-compiler-processing')
+    implementation project(path: ':room:room-common')
+    implementation project(path: ':room:room-migration')
+
+    implementation project(path: ':annotation:annotation')
+
+    implementation deps.squareup
+    implementation deps.antlr4
+
+    implementation deps.autoCommon
+
+    implementation deps.sqliteJdbc
+
+    implementation deps.apacheCommonsCodec
+
+    implementation deps.google_collect
+
+    implementation deps.kspApi
+}

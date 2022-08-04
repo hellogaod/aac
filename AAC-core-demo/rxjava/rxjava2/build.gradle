@@ -7,12 +7,9 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-def reactiveStreamsVersion = "1.0.2"
-
-
 dependencies {
 
-    api "org.reactivestreams:reactive-streams:$reactiveStreamsVersion"
-    implementation "org.reactivestreams:reactive-streams:$reactiveStreamsVersion"
+    api deps.reactiveStreams
+    implementation deps.reactiveStreams
 
 }

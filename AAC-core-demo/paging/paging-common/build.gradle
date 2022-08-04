@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+    //确保java-library中的kotlin文件可以被其他module使用
+    id 'kotlin'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation project(path: ':annotation:annotation')
+
+    implementation project(path: ':arch:core:core-common')
+
+
+    implementation deps.kotlinCoroutinesCore
+
+}
