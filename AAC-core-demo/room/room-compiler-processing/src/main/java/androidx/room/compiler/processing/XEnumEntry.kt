@@ -16,6 +16,7 @@
 
 package androidx.room.compiler.processing
 
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 /**
@@ -42,6 +43,7 @@ interface XEnumEntry : XElement {
         get() = enclosingElement
 }
 
+@ExperimentalContracts
 fun XElement.isEnumEntry(): Boolean {
     contract {
         returns(true) implies (this@isEnumEntry is XEnumEntry)

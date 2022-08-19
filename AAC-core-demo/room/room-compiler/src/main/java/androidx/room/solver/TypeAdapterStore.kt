@@ -113,6 +113,7 @@ import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.ImmutableSetMultimap
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.TypeName
+import kotlin.contracts.ExperimentalContracts
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 /**
@@ -349,6 +350,7 @@ class TypeAdapterStore private constructor(
         return null
     }
 
+    @OptIn(ExperimentalContracts::class)
     private fun createDefaultTypeAdapter(type: XType): ColumnTypeAdapter? {
         val typeElement = type.typeElement
         return when {

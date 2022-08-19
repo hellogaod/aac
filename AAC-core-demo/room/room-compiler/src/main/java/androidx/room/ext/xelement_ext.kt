@@ -19,7 +19,9 @@ package androidx.room.ext
 import kotlin.contracts.contract
 import androidx.room.compiler.processing.XElement
 import androidx.room.compiler.processing.XTypeElement
+import kotlin.contracts.ExperimentalContracts
 
+@OptIn(ExperimentalContracts::class)
 fun XElement.isEntityElement(): Boolean {
     contract {
         returns(true) implies (this@isEntityElement is XTypeElement)

@@ -10,6 +10,6 @@ java {
 dependencies {
 
     api deps.reactiveStreams
-    implementation deps.reactiveStreams
+//    implementation deps.reactiveStreams
 
 }

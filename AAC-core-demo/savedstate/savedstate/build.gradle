@@ -32,7 +32,7 @@ android {
 dependencies {
     implementation deps.kotlin.stdlib
 
-    implementation project(path: ':lifecycle:common')
+    api project(path: ':lifecycle:common')
     implementation project(path: ':arch:core:core-common')
     implementation project(path: ':annotation:annotation')
 }

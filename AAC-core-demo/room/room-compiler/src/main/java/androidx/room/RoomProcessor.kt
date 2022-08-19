@@ -22,6 +22,8 @@ import androidx.room.processor.Context
 import androidx.room.processor.ProcessorErrors
 import androidx.room.util.SimpleJavaVersion
 import androidx.room.vo.Warning
+import com.google.auto.service.AutoService
+import javax.annotation.processing.Processor
 import javax.lang.model.SourceVersion
 
 /**
@@ -33,6 +35,7 @@ private const val ISOLATING_ANNOTATION_PROCESSORS_INDICATOR =
 /**
  * The annotation processor for Room.
  */
+@AutoService(Processor::class)
 class RoomProcessor : JavacBasicAnnotationProcessor({
     ENV_CONFIG
 }) {

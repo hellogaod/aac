@@ -29,7 +29,7 @@ import kotlin.reflect.KClass
 /**
  * API for a Processor that is either backed by Java's Annotation Processing API or KSP.
  */
-@ExperimentalProcessingApi
+//@ExperimentalProcessingApi
 interface XProcessingEnv {
 
     val backend: Backend

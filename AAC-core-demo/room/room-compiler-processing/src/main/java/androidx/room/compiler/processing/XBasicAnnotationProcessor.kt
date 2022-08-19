@@ -17,6 +17,7 @@
 package androidx.room.compiler.processing
 
 import javax.tools.Diagnostic
+import kotlin.contracts.ExperimentalContracts
 
 /**
  * Common interface for basic annotation processors.
@@ -78,6 +79,7 @@ internal class CommonProcessorDelegate(
     // Type element names containing deferred elements from processing steps.
     private val elementsDeferredBySteps = mutableMapOf<XProcessingStep, Set<String>>()
 
+    @ExperimentalContracts
     fun processRound(roundEnv: XRoundEnv) {
         val previousRoundDeferredElementNames = deferredElementNames.toMutableSet()
         deferredElementNames.clear()
@@ -132,6 +134,7 @@ internal class CommonProcessorDelegate(
         elementsDeferredBySteps.putAll(currentElementsDeferredByStep)
     }
 
+    @ExperimentalContracts
     fun processLastRound(): List<String> {
         steps.forEach { step ->
             val stepDeferredElementsByAnnotation = getStepElementsByAnnotation(
@@ -172,6 +175,7 @@ internal class CommonProcessorDelegate(
      * }
      * ```
      */
+    @ExperimentalContracts
     private fun getStepElementsByAnnotation(
         step: XProcessingStep,
         typeElementNames: Set<String>

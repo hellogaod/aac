@@ -22,7 +22,7 @@
 ext.deps = [:]
 def versions = [:]
 versions.activity = '1.1.0'
-versions.android_gradle_plugin = '7.0.1'
+versions.android_gradle_plugin = "7.0.1"
 versions.annotations = "1.0.0"
 versions.apache_commons = "2.5"
 versions.appcompat = "1.2.0-alpha02"
@@ -64,14 +64,15 @@ versions.transition = "1.3.0"
 versions.truth = "1.0.1"
 versions.work = "2.6.0"
 versions.javapoet = "1.13.0"
-versions.ksp = "1.6.21-1.0.5"
 versions.autoValue = "1.6.3"
 versions.kotlinCoroutines = "1.6.1"
 versions.ksp = "1.6.21-1.0.5"
+versions.autoService = "1.0-rc6"
+versions.guavaJre = "31.1-jre"
 
 ext.versions = versions
 def build_versions = [:]
-build_versions.min_sdk = 14
+build_versions.min_sdk = 26
 build_versions.compile_sdk = 31
 build_versions.target_sdk = 31
 build_versions.build_tools = "31.0.0"
@@ -79,10 +80,12 @@ ext.build_versions = build_versions
 
 def deps = [:]
 
+deps.autoService = "com.google.auto.service:auto-service:$versions.autoService"
+deps.autoServiceAnnotations = "com.google.auto.service:auto-service-annotations:$versions.autoService"
 
 deps.reactiveStreams = "org.reactivestreams:reactive-streams:1.0.2"
 
-deps.squareup = "com.squareup:javapoet:$versions.javapoet"
+deps.javapoet = "com.squareup:javapoet:$versions.javapoet"
 deps.ksp = "com.google.devtools.ksp:symbol-processing:$versions.ksp"
 deps.kspApi = "com.google.devtools.ksp:symbol-processing-api:$versions.ksp"
 deps.kotlinPoet = "com.squareup:kotlinpoet:1.8.0"
@@ -101,9 +104,9 @@ deps.apacheCommonsCodec = "commons-codec:commons-codec:1.15"
 deps.kspGradlePluginz = "com.google.devtools.ksp:symbol-processing-gradle-plugin:$versions.ksp"
 deps.ksp = "com.google.devtools.ksp:symbol-processing:$versions.ksp"
 deps.kspApi = "com.google.devtools.ksp:symbol-processing-api:$versions.ksp"
+deps.guava = "com.google.guava:guava:$versions.guavaJre"
 
 
-deps.google_collect = "com.google.collections:google-collections:1.0-rc5"
 deps.autoCommon = "com.google.auto:auto-common:0.11"
 deps.antlr4 = "org.antlr:antlr4:4.7.1"
 deps.autoValueAnnotations = "com.google.auto.value:auto-value-annotations:$versions.autoValue"
@@ -178,6 +181,8 @@ deps.hamcrest = "org.hamcrest:hamcrest-all:$versions.hamcrest"
 deps.junit = "junit:junit:$versions.junit"
 
 def kotlin = [:]
+kotlin.kotlinStdlibCommon  = "org.jetbrains.kotlin:kotlin-stdlib-common:$versions.kotlin"
+
 kotlin.stdlib = "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
 kotlin.stdlibjdk7 = "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
 kotlin.stdlibjdk8 = "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
@@ -260,9 +265,10 @@ deps.work = work
 ext.deps = deps
 
 def addRepos(RepositoryHandler handler) {
-    handler.mavenCentral()
+
     handler.google()
-    handler.jcenter()
+    handler.mavenCentral()
+//    handler.jcenter()
     handler.maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
 }
 

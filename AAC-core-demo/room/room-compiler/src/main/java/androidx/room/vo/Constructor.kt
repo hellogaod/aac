@@ -22,6 +22,7 @@ import androidx.room.compiler.processing.XExecutableElement
 import androidx.room.compiler.processing.isConstructor
 import androidx.room.compiler.processing.isMethod
 import com.squareup.javapoet.CodeBlock
+import kotlin.contracts.ExperimentalContracts
 
 /**
  * For each Entity / Pojo we process has a constructor. It might be the empty constructor or a
@@ -40,6 +41,7 @@ data class Constructor(val element: XExecutableElement, val params: List<Param>)
         }
     }
 
+    @OptIn(ExperimentalContracts::class)
     fun writeConstructor(outVar: String, args: String, builder: CodeBlock.Builder) {
         when {
             element.isConstructor() -> {

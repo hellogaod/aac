@@ -1,5 +1,7 @@
 plugins {
     id 'java-library'
+    id 'kotlin'
+    id 'kotlin-kapt'
 }
 
 java {
@@ -9,7 +11,7 @@ java {
 
 dependencies {
 
-    implementation deps.squareup
+    implementation deps.javapoet
 
     implementation deps.ksp
     implementation deps.kspApi
@@ -18,6 +20,11 @@ dependencies {
 
     implementation deps.autoCommon
 
-    implementation deps.kotlin.plugin
-    implementation deps.kotlinPoet
+    implementation(deps.kotlinPoet) {
+        exclude group: 'org.jetbrains.kotlin'
+    }
+
+    //生成class类的关键代码
+    implementation deps.autoService
+    kapt deps.autoService
 }

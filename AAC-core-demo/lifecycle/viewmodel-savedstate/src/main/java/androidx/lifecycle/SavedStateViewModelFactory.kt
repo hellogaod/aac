@@ -90,42 +90,42 @@ class SavedStateViewModelFactory : ViewModelProvider.OnRequeryFactory, ViewModel
      * @throws IllegalStateException if the provided extras do not provide a
      * [ViewModelProvider.NewInstanceFactory.VIEW_MODEL_KEY]
      */
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-        val key = extras[ViewModelProvider.NewInstanceFactory.VIEW_MODEL_KEY]
-            ?: throw IllegalStateException(
-                "VIEW_MODEL_KEY must always be provided by ViewModelProvider"
-            )
-
-        return if (extras[SAVED_STATE_REGISTRY_OWNER_KEY] != null &&
-            extras[VIEW_MODEL_STORE_OWNER_KEY] != null) {
-            val application = extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
-            val isAndroidViewModel = AndroidViewModel::class.java.isAssignableFrom(modelClass)
-            val constructor: Constructor<T>? = if (isAndroidViewModel && application != null) {
-                findMatchingConstructor(modelClass, ANDROID_VIEWMODEL_SIGNATURE)
-            } else {
-                findMatchingConstructor(modelClass, VIEWMODEL_SIGNATURE)
-            }
-            // doesn't need SavedStateHandle
-            if (constructor == null) {
-                return factory.create(modelClass, extras)
-            }
-            val viewModel = if (isAndroidViewModel && application != null) {
-                newInstance(modelClass, constructor, application, extras.createSavedStateHandle())
-            } else {
-                newInstance(modelClass, constructor, extras.createSavedStateHandle())
-            }
-            viewModel
-        } else {
-            val viewModel = if (lifecycle != null) {
-                create(key, modelClass)
-            } else {
-                throw IllegalStateException("SAVED_STATE_REGISTRY_OWNER_KEY and" +
-                        "VIEW_MODEL_STORE_OWNER_KEY must be provided in the creation extras to" +
-                        "successfully create a ViewModel.")
-            }
-            viewModel
-        }
-    }
+//    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+//        val key = extras[ViewModelProvider.NewInstanceFactory.VIEW_MODEL_KEY]
+//            ?: throw IllegalStateException(
+//                "VIEW_MODEL_KEY must always be provided by ViewModelProvider"
+//            )
+//
+//        return if (extras[SAVED_STATE_REGISTRY_OWNER_KEY] != null &&
+//            extras[VIEW_MODEL_STORE_OWNER_KEY] != null) {
+//            val application = extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]
+//            val isAndroidViewModel = AndroidViewModel::class.java.isAssignableFrom(modelClass)
+//            val constructor: Constructor<T>? = if (isAndroidViewModel && application != null) {
+//                findMatchingConstructor(modelClass, ANDROID_VIEWMODEL_SIGNATURE)
+//            } else {
+//                findMatchingConstructor(modelClass, VIEWMODEL_SIGNATURE)
+//            }
+//            // doesn't need SavedStateHandle
+//            if (constructor == null) {
+//                return factory.create(modelClass, extras)
+//            }
+//            val viewModel = if (isAndroidViewModel && application != null) {
+//                newInstance(modelClass, constructor, application, extras.createSavedStateHandle())
+//            } else {
+//                newInstance(modelClass, constructor, extras.createSavedStateHandle())
+//            }
+//            viewModel
+//        } else {
+//            val viewModel = if (lifecycle != null) {
+//                create(key, modelClass)
+//            } else {
+//                throw IllegalStateException("SAVED_STATE_REGISTRY_OWNER_KEY and" +
+//                        "VIEW_MODEL_STORE_OWNER_KEY must be provided in the creation extras to" +
+//                        "successfully create a ViewModel.")
+//            }
+//            viewModel
+//        }
+//    }
 
     /**
      * Creates a new instance of the given `Class`.

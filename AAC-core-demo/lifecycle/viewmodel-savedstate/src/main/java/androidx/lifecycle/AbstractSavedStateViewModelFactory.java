@@ -12,7 +12,7 @@ import androidx.savedstate.SavedStateRegistryOwner;
 
 import static androidx.lifecycle.ViewModelProvider.NewInstanceFactory.VIEW_MODEL_KEY;
 import static androidx.lifecycle.LegacySavedStateHandleController.attachHandleIfNeeded;
-import static androidx.lifecycle.SavedStateHandleSupportKt.createSavedStateHandle;
+import static androidx.lifecycle.SavedStateHandleSupport.createSavedStateHandle;
 
 /**
  * Skeleton of androidx.lifecycle.ViewModelProvider.KeyedFactory
@@ -58,22 +58,22 @@ public abstract class AbstractSavedStateViewModelFactory extends ViewModelProvid
         mDefaultArgs = defaultArgs;
     }
 
-    @NonNull
-    @Override
-    public final <T extends ViewModel> T create(@NonNull Class<T> modelClass,
-                                                @NonNull CreationExtras extras) {
-        String key = extras.get(VIEW_MODEL_KEY);
-        if (key == null) {
-            throw new IllegalStateException(
-                    "VIEW_MODEL_KEY must always be provided by ViewModelProvider");
-        }
-        // if a factory constructed in the old way use the old infra to create SavedStateHandle
-        if (mSavedStateRegistry != null) {
-            return create(key, modelClass);
-        } else {
-            return create(key, modelClass, createSavedStateHandle(extras));
-        }
-    }
+//    @NonNull
+//    @Override
+//    public final <T extends ViewModel> T create(@NonNull Class<T> modelClass,
+//                                                @NonNull CreationExtras extras) {
+//        String key = extras.get(VIEW_MODEL_KEY);
+//        if (key == null) {
+//            throw new IllegalStateException(
+//                    "VIEW_MODEL_KEY must always be provided by ViewModelProvider");
+//        }
+//        // if a factory constructed in the old way use the old infra to create SavedStateHandle
+//        if (mSavedStateRegistry != null) {
+//            return create(key, modelClass);
+//        } else {
+//            return create(key, modelClass, createSavedStateHandle(extras));
+//        }
+//    }
 
     @NonNull
     private <T extends ViewModel> T create(@NonNull String key, @NonNull Class<T> modelClass) {

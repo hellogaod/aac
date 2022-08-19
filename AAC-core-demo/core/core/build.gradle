@@ -1,5 +1,7 @@
 plugins {
     id 'com.android.library'
+    //Java调用Kotlin代码插件
+    id 'kotlin-android'
 }
 
 android {
@@ -29,5 +31,10 @@ android {
 
 dependencies {
 
+    api project(path: ':annotation:annotation-experimental')
 
+    api project(path: ':annotation:annotation')
+    api project(path: ':collection:collection')
+    api project(path: ':lifecycle:common')
+    api project(path: ':lifecycle:runtime')
 }

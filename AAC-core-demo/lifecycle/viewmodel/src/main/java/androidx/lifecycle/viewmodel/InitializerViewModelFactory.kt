@@ -84,16 +84,16 @@ internal class InitializerViewModelFactory(
      *
      * @throws IllegalArgumentException if no initializer has been set for the given class.
      */
-    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-        var viewModel: T? = null
-        @Suppress("UNCHECKED_CAST")
-        initializers.forEach {
-            if (it.clazz == modelClass) {
-                viewModel = it.initializer.invoke(extras) as? T
-            }
-        }
-        return viewModel ?: throw IllegalArgumentException(
-            "No initializer set for given class ${modelClass.name}"
-        )
-    }
+//    override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+//        var viewModel: T? = null
+//        @Suppress("UNCHECKED_CAST")
+//        initializers.forEach {
+//            if (it.clazz == modelClass) {
+//                viewModel = it.initializer.invoke(extras) as? T
+//            }
+//        }
+//        return viewModel ?: throw IllegalArgumentException(
+//            "No initializer set for given class ${modelClass.name}"
+//        )
+//    }
 }

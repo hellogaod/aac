@@ -55,8 +55,8 @@ constructor(
          * @param extras an additional information for this creation request
          * @return a newly created ViewModel
          */
-        public fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
-            create(modelClass)
+//         fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T =
+//            create(modelClass)
 
         companion object {
             /**
@@ -100,6 +100,12 @@ constructor(
         owner.viewModelStore,
         factory,
         defaultCreationExtras(owner)
+    )
+
+    public constructor(viewModelStore: ViewModelStore, factory: Factory) : this(
+        viewModelStore,
+        factory,
+        CreationExtras.Empty
     )
 
     /**
@@ -152,8 +158,8 @@ constructor(
         val extras = MutableCreationExtras(defaultCreationExtras)
         extras[VIEW_MODEL_KEY] = key
         return factory.create(
-            modelClass,
-            extras
+            modelClass
+//            ,extras
         ).also { store.put(key, it) }
     }
 
@@ -240,25 +246,25 @@ constructor(
         @Suppress("SingletonConstructor")
         public constructor(application: Application) : this(application, 0)
 
-        @Suppress("DocumentExceptions")
-        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
-            return if (application != null) {
-                create(modelClass, application)
-            } else {
-                val application = extras[APPLICATION_KEY]
-                if (application != null){
-                    create(modelClass,application)
-                }else{
-                    // For AndroidViewModels, CreationExtras must have an application set
-                    if (AndroidViewModel::class.java.isAssignableFrom(modelClass)) {
-                        throw IllegalArgumentException(
-                            "CreationExtras must have an application by `APPLICATION_KEY`"
-                        )
-                    }
-                    super.create(modelClass)
-                }
-            }
-        }
+//        @Suppress("DocumentExceptions")
+//        override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
+//            return if (application != null) {
+//                create(modelClass, application)
+//            } else {
+//                val application = extras[APPLICATION_KEY]
+//                if (application != null){
+//                    create(modelClass,application)
+//                }else{
+//                    // For AndroidViewModels, CreationExtras must have an application set
+//                    if (AndroidViewModel::class.java.isAssignableFrom(modelClass)) {
+//                        throw IllegalArgumentException(
+//                            "CreationExtras must have an application by `APPLICATION_KEY`"
+//                        )
+//                    }
+//                    super.create(modelClass)
+//                }
+//            }
+//        }
 
         @Suppress("DocumentExceptions")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

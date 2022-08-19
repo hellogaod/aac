@@ -17,6 +17,7 @@
 package androidx.room.compiler.processing
 
 import com.squareup.javapoet.TypeVariableName
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 /**
@@ -39,6 +40,7 @@ interface XMethodType : XExecutableType {
 /**
  * Returns `true` if this method type represents a suspend function
  */
+@OptIn(ExperimentalContracts::class)
 fun XMethodType.isSuspendFunction(): Boolean {
     contract {
         returns(true) implies (this@isSuspendFunction is XSuspendMethodType)

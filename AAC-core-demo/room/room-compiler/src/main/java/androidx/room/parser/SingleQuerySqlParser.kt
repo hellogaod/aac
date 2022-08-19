@@ -16,6 +16,7 @@
 
 package androidx.room.parser
 
+import androidx.room.parser.SQLiteParser
 import org.antlr.v4.runtime.BaseErrorListener
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream

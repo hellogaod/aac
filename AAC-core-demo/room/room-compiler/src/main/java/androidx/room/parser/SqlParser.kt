@@ -71,8 +71,9 @@ class QueryVisitor(
         val bindParameter = ctx.BIND_PARAMETER()
         if (bindParameter != null) {
             val parentContext = ctx.parent
-            val isMultiple = parentContext is SQLiteParser.Comma_separated_exprContext &&
-                !isFixedParamFunctionExpr(parentContext)
+//            val isMultiple = parentContext is SQLiteParser.Comma_separated_exprContext &&
+//                !isFixedParamFunctionExpr(parentContext)
+            val isMultiple = false
             bindingExpressions.add(
                 BindParameterNode(
                     node = bindParameter,
@@ -97,17 +98,17 @@ class QueryVisitor(
      * into a binding parameters and specifically if the function takes a fixed number of
      * parameter, the collection should not be expanded.
      */
-    private fun isFixedParamFunctionExpr(
-        ctx: SQLiteParser.Comma_separated_exprContext
-    ): Boolean {
-        if (ctx.parent is SQLiteParser.ExprContext) {
-            val parentExpr = ctx.parent as SQLiteParser.ExprContext
-            val functionName = parentExpr.function_name() ?: return false
-            return fixedParamFunctions.contains(functionName.text.lowercase(Locale.US))
-        } else {
-            return false
-        }
-    }
+//    private fun isFixedParamFunctionExpr(
+//        ctx: SQLiteParser.Comma_separated_exprContext
+//    ): Boolean {
+//        if (ctx.parent is SQLiteParser.ExprContext) {
+//            val parentExpr = ctx.parent as SQLiteParser.ExprContext
+//            val functionName = parentExpr.function_name() ?: return false
+//            return fixedParamFunctions.contains(functionName.text.lowercase(Locale.US))
+//        } else {
+//            return false
+//        }
+//    }
 
     fun createParsedQuery(): ParsedQuery {
         return ParsedQuery(

@@ -33,6 +33,7 @@ dependencies {
     //解决问题：一个模块的kotlin引用另外一个模块的kotlin报错Unresolved reference
 //    implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:1.2.71"
     implementation deps.kotlinCoroutinesCore
+
     implementation deps.kotlin.stdlib
 
     implementation project(path: ':annotation:annotation')
@@ -50,3 +51,4 @@ dependencies {
     implementation project(path: ':paging:paging-common')
 
 }
+

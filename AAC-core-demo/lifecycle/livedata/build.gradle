@@ -29,8 +29,8 @@ android {
 
 dependencies {
 
-    implementation project(path: ':annotation:annotation')
-    implementation project(path: ':lifecycle:livedata-core')
-    implementation project(path: ':arch:core:core-runtime')
-    implementation project(path: ':arch:core:core-common')
+    api project(path: ':annotation:annotation')
+    api project(path: ':lifecycle:livedata-core')
+    api project(path: ':arch:core:core-runtime')
+    api project(path: ':arch:core:core-common')
 }

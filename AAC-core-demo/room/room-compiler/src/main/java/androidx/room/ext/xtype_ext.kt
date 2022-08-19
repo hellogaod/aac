@@ -25,6 +25,7 @@ import androidx.room.compiler.processing.isVoid
 import androidx.room.compiler.processing.isVoidObject
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.TypeName
+import kotlin.contracts.ExperimentalContracts
 
 /**
  * Returns `true` if this type is not the `void` type.
@@ -102,6 +103,7 @@ fun XType.implementsEqualsAndHashcode(): Boolean {
  * Checks if the class of the provided type is one of the types supported in Dao functions with a
  * Map or Multimap return type.
  */
+@OptIn(ExperimentalContracts::class)
 fun XType.isSupportedMapTypeArg(): Boolean {
     if (this.typeName.isPrimitive) return true
     if (this.typeName.isBoxedPrimitive) return true

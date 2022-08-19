@@ -24,6 +24,8 @@ import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.TypeElement
+import javax.tools.Diagnostic
+import kotlin.contracts.ExperimentalContracts
 
 /**
  * Javac implementation of a [XBasicAnnotationProcessor] with built-in support for validating and
@@ -47,12 +49,15 @@ abstract class JavacBasicAnnotationProcessor @JvmOverloads constructor(
         get() = xEnv
 
     final override fun init(processingEnv: ProcessingEnvironment?) {
+
         super.init(processingEnv)
         initialize(xEnv)
+//        xEnv.delegate.messager.printMessage(Diagnostic.Kind.ERROR,"到底指向了没！")
     }
 
     final override fun getSupportedAnnotationTypes() = steps.flatMap { it.annotations() }.toSet()
 
+    @OptIn(ExperimentalContracts::class)
     final override fun process(
         annotations: MutableSet<out TypeElement>,
         roundEnv: RoundEnvironment

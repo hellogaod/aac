@@ -1,0 +1,22 @@
+plugins {
+    id 'java-library'
+    id 'kotlin'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    api project(path: ':lifecycle:common')
+    implementation deps.autoCommon
+
+    implementation deps.javapoet
+
+    implementation deps.guava
+
+    //生成class类的关键代码
+    implementation deps.autoService
+    annotationProcessor deps.autoService
+}

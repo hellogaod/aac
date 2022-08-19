@@ -15,6 +15,8 @@ dependencies {
     implementation project(path: ':arch:core:core-common')
 
 
-    implementation deps.kotlinCoroutinesCore
+    implementation(deps.kotlinCoroutinesCore) {
+        exclude group: 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    }
 
 }

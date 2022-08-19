@@ -89,7 +89,6 @@ import androidx.room.parser.SQLiteParser.Upsert_clauseContext;
 import androidx.room.parser.SQLiteParser.Vacuum_stmtContext;
 import androidx.room.parser.SQLiteParser.View_nameContext;
 import androidx.room.parser.SQLiteParser.With_clauseContext;
-
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
 public class SQLiteBaseVisitor<T> extends AbstractParseTreeVisitor<T> implements SQLiteVisitor<T> {

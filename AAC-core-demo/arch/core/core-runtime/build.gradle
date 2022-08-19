@@ -29,5 +29,5 @@ android {
 
 dependencies {
 
-    implementation project(path: ':annotation:annotation')
+    api project(path: ':annotation:annotation')
 }

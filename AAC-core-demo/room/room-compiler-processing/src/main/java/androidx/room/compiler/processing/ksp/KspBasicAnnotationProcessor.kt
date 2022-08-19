@@ -26,6 +26,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSNode
+import kotlin.contracts.ExperimentalContracts
 
 /**
  * KSP implementation of a [XBasicAnnotationProcessor] with built-in support for validating and
@@ -53,6 +54,7 @@ abstract class KspBasicAnnotationProcessor @JvmOverloads constructor(
 
     final override val xProcessingEnv: XProcessingEnv get() = xEnv
 
+    @OptIn(ExperimentalContracts::class)
     final override fun process(resolver: Resolver): List<KSAnnotated> {
         xEnv.resolver = resolver // Set the resolver at the beginning of each round
         if (!initialized) {
@@ -71,6 +73,7 @@ abstract class KspBasicAnnotationProcessor @JvmOverloads constructor(
         return emptyList()
     }
 
+    @OptIn(ExperimentalContracts::class)
     final override fun finish() {
         val xRoundEnv = KspRoundEnv(xEnv, true)
         val missingElements = commonDelegate.processLastRound()

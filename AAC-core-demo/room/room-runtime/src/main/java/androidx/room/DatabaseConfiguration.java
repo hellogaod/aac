@@ -22,7 +22,7 @@ import android.content.Intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-//import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo;
 import androidx.room.migration.AutoMigrationSpec;
 import androidx.sqlite.db.SupportSQLiteOpenHelper;
 
@@ -109,7 +109,7 @@ public class DatabaseConfiguration {
      * @see {@link #multiInstanceInvalidation}
      * @hide
      */
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public final Intent multiInstanceInvalidationServiceIntent;
 
     /**
@@ -171,7 +171,7 @@ public class DatabaseConfiguration {
      * @hide
      */
     @Deprecated
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -214,7 +214,7 @@ public class DatabaseConfiguration {
      * @hide
      */
     @Deprecated
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -262,7 +262,7 @@ public class DatabaseConfiguration {
      * @hide
      */
     @Deprecated
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -314,7 +314,7 @@ public class DatabaseConfiguration {
      * @hide
      */
     @Deprecated
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -370,7 +370,7 @@ public class DatabaseConfiguration {
      */
     @Deprecated
     @SuppressLint("LambdaLast")
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -428,7 +428,7 @@ public class DatabaseConfiguration {
      */
     @Deprecated
     @SuppressLint("LambdaLast")
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -488,7 +488,7 @@ public class DatabaseConfiguration {
      */
     @Deprecated
     @SuppressLint("LambdaLast")
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
@@ -547,7 +547,7 @@ public class DatabaseConfiguration {
      * @hide
      */
     @SuppressLint("LambdaLast")
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,

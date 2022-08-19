@@ -20,7 +20,7 @@ import android.view.View
  * saved state for the given view
  */
 @JvmName("set")
-fun View.setViewTreeSavedStateRegistryOwner(owner: SavedStateRegistryOwner?) {
+public fun View.setViewTreeSavedStateRegistryOwner(owner: SavedStateRegistryOwner?) {
     setTag(R.id.view_tree_saved_state_registry_owner, owner)
 }
 
@@ -36,7 +36,7 @@ fun View.setViewTreeSavedStateRegistryOwner(owner: SavedStateRegistryOwner?) {
  * this view and/or some subset of its ancestors
  */
 @JvmName("get")
-fun View.findViewTreeSavedStateRegistryOwner(): SavedStateRegistryOwner? {
+public fun View.findViewTreeSavedStateRegistryOwner(): SavedStateRegistryOwner? {
     return generateSequence(this) { view ->
         view.parent as? View
     }.mapNotNull { view ->

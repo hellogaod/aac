@@ -1,29 +1,30 @@
 plugins {
     id 'java-library'
+    id 'kotlin'
+    id 'kotlin-kapt'
 }
-
+//通过执行SQLite.g4生成一些类
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
 dependencies {
-    implementation project(path: ':room:room-compiler-processing')
-    implementation project(path: ':room:room-common')
-    implementation project(path: ':room:room-migration')
+    api project(path: ':room:room-compiler-processing')
+    api project(path: ':room:room-common')
+    api project(path: ':room:room-migration')
+    api project(path: ':annotation:annotation')
 
-    implementation project(path: ':annotation:annotation')
-
-    implementation deps.squareup
     implementation deps.antlr4
-
     implementation deps.autoCommon
-
     implementation deps.sqliteJdbc
-
     implementation deps.apacheCommonsCodec
-
-    implementation deps.google_collect
-
+    implementation deps.javapoet
+    implementation deps.guava
     implementation deps.kspApi
+    implementation deps.autoValueAnnotations
+    
+    //生成class类的关键代码
+    implementation deps.autoService
+    kapt deps.autoService
 }

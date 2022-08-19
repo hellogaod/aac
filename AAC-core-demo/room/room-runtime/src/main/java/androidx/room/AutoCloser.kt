@@ -19,7 +19,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import androidx.annotation.GuardedBy
-//import androidx.annotation.RestrictTo
+import androidx.annotation.RestrictTo
 import androidx.annotation.VisibleForTesting
 import androidx.room.util.SneakyThrow
 import androidx.sqlite.db.SupportSQLiteDatabase
@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit
  * @hide
  */
 // TODO: (b/218894771) Make internal once RoomDatabase is converted to Kotlin.
-//@RestrictTo(RestrictTo.Scope.LIBRARY)
+@RestrictTo(RestrictTo.Scope.LIBRARY)
 class AutoCloser(
     autoCloseTimeoutAmount: Long,
     autoCloseTimeUnit: TimeUnit,

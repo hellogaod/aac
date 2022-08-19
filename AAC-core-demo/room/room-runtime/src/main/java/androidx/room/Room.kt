@@ -16,7 +16,7 @@
 package androidx.room
 
 import android.content.Context
-//import androidx.annotation.RestrictTo
+import androidx.annotation.RestrictTo
 
 /**
  * Utility functions for Room.
@@ -38,7 +38,7 @@ open class Room {
         private const val CURSOR_CONV_SUFFIX = "_CursorConverter"
 
         @Suppress("UNCHECKED_CAST")
-//        @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+        @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
         @JvmStatic
         fun <T, C> getGeneratedImplementation(
             klass: Class<C>,

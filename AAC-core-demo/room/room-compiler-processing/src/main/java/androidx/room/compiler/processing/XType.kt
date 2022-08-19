@@ -18,6 +18,7 @@ package androidx.room.compiler.processing
 
 import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.TypeName
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.reflect.KClass
 
@@ -149,6 +150,7 @@ interface XType {
 /**
  * Returns true if this is an [XArrayType].
  */
+@OptIn(ExperimentalContracts::class)
 fun XType.isArray(): Boolean {
     contract {
         returns(true) implies (this@isArray is XArrayType)

@@ -16,6 +16,7 @@
 
 package androidx.room.compiler.processing
 
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 /**
@@ -29,6 +30,7 @@ interface XEnumTypeElement : XTypeElement {
     }
 }
 
+@ExperimentalContracts
 fun XTypeElement.isEnum(): Boolean {
     contract {
         returns(true) implies (this@isEnum is XEnumTypeElement)

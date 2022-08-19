@@ -31,7 +31,7 @@ import androidx.annotation.IntRange;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-//import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo;
 import androidx.annotation.WorkerThread;
 import androidx.arch.core.executor.ArchTaskExecutor;
 import androidx.room.migration.AutoMigrationSpec;
@@ -78,7 +78,7 @@ public abstract class RoomDatabase {
      *
      * @hide
      */
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public static final int MAX_BIND_PARAMETER_CNT = 999;
     /**
      * Set by the generated open helper.
@@ -97,7 +97,7 @@ public abstract class RoomDatabase {
     /**
      * @hide
      */
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     @Nullable
     @Deprecated
     protected List<Callback> mCallbacks;
@@ -107,7 +107,7 @@ public abstract class RoomDatabase {
      *
      * @hide
      */
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     @NonNull
     protected Map<Class<? extends AutoMigrationSpec>, AutoMigrationSpec> mAutoMigrationSpecs;
 
@@ -141,7 +141,7 @@ public abstract class RoomDatabase {
      *
      * @hide
      */
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     ThreadLocal<Integer> getSuspendingTransactionId() {
         return mSuspendingTransactionId;
     }
@@ -154,7 +154,7 @@ public abstract class RoomDatabase {
      *
      * @hide
      */
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     Map<String, Object> getBackingFieldMap() {
         return mBackingFieldMap;
     }
@@ -318,7 +318,7 @@ public abstract class RoomDatabase {
      * @hide
      */
     @NonNull
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     public List<Migration> getAutoMigrations(
             @NonNull Map<Class<? extends AutoMigrationSpec>, AutoMigrationSpec> autoMigrationSpecs
     ) {
@@ -386,7 +386,7 @@ public abstract class RoomDatabase {
      * @return Creates a map that will include all required type converters for this database.
      */
     @NonNull
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     protected Map<Class<?>, List<Class<?>>> getRequiredTypeConverters() {
         return Collections.emptyMap();
     }
@@ -401,7 +401,7 @@ public abstract class RoomDatabase {
      * @hide
      */
     @NonNull
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     public Set<Class<? extends AutoMigrationSpec>> getRequiredAutoMigrationSpecs() {
         return Collections.emptySet();
     }
@@ -459,7 +459,7 @@ public abstract class RoomDatabase {
      * @hide
      */
     @SuppressWarnings("WeakerAccess")
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     // used in generated code
     public void assertNotMainThread() {
         if (mAllowMainThreadQueries) {
@@ -477,7 +477,7 @@ public abstract class RoomDatabase {
      * @hide
      */
     @SuppressWarnings("WeakerAccess")
-//    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+    @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
     // used in generated code
     public void assertNotSuspendingTransaction() {
         if (!inTransaction() && mSuspendingTransactionId.get() != null) {

@@ -23,6 +23,7 @@ import androidx.room.compiler.processing.ksp.KspMemberContainer
 import androidx.room.compiler.processing.ksp.wrapAsOriginatingElement
 import androidx.room.compiler.processing.ksp.synthetic.KspSyntheticPropertyMethodElement
 import javax.lang.model.element.Element
+import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
 /**
@@ -75,6 +76,7 @@ interface XElement : XAnnotated {
  * Checks whether this element represents an [XTypeElement].
  */
 // we keep these as extension methods to be able to use contracts
+@OptIn(ExperimentalContracts::class)
 fun XElement.isTypeElement(): Boolean {
     contract {
         returns(true) implies (this@isTypeElement is XTypeElement)
@@ -85,6 +87,7 @@ fun XElement.isTypeElement(): Boolean {
 /**
  * Checks whether this element represents an [XEnumTypeElement].
  */
+@ExperimentalContracts
 fun XElement.isEnum(): Boolean {
     contract {
         returns(true) implies (this@isEnum is XEnumTypeElement)
@@ -95,6 +98,7 @@ fun XElement.isEnum(): Boolean {
 /**
  * Checks whether this element represents an [XVariableElement].
  */
+@ExperimentalContracts
 fun XElement.isVariableElement(): Boolean {
     contract {
         returns(true) implies (this@isVariableElement is XVariableElement)
@@ -105,6 +109,7 @@ fun XElement.isVariableElement(): Boolean {
 /**
  * Checks whether this element represents an [XFieldElement].
  */
+@ExperimentalContracts
 fun XElement.isField(): Boolean {
     contract {
         returns(true) implies (this@isField is XFieldElement)
@@ -115,6 +120,7 @@ fun XElement.isField(): Boolean {
 /**
  * Checks whether this element represents an [XMethodElement].
  */
+@ExperimentalContracts
 fun XElement.isMethod(): Boolean {
     contract {
         returns(true) implies (this@isMethod is XMethodElement)
@@ -125,6 +131,7 @@ fun XElement.isMethod(): Boolean {
 /**
  * Checks whether this element represents an [XExecutableParameterElement].
  */
+@ExperimentalContracts
 fun XElement.isMethodParameter(): Boolean {
     contract {
         returns(true) implies (this@isMethodParameter is XExecutableParameterElement)
@@ -135,6 +142,7 @@ fun XElement.isMethodParameter(): Boolean {
 /**
  * Checks whether this element represents an [XConstructorElement].
  */
+@ExperimentalContracts
 fun XElement.isConstructor(): Boolean {
     contract {
         returns(true) implies (this@isConstructor is XConstructorElement)
