@@ -42,6 +42,7 @@ constructor(
          * @return a newly created ViewModel
          */
         fun <T : ViewModel> create(modelClass: Class<T>): T {
+
             throw UnsupportedOperationException(
                 "Factory.create(String) is unsupported.  This Factory requires " +
                         "`CreationExtras` to be passed into `create` method."
