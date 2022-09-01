@@ -45,11 +45,13 @@ public class DatabaseConfiguration {
      */
     @NonNull
     public final SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory;
+
     /**
      * The context to use while connecting to the database.
      */
     @NonNull
     public final Context context;
+
     /**
      * The name of the database file or null if it is an in-memory database.
      */
@@ -106,8 +108,8 @@ public class DatabaseConfiguration {
     /**
      * Intent that should be bound to acquire the invalidation service or {@code null} if not used.
      *
-     * @see {@link #multiInstanceInvalidation}
      * @hide
+     * @see {@link #multiInstanceInvalidation}
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public final Intent multiInstanceInvalidationServiceIntent;
@@ -150,37 +152,35 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                  The application context.
+     * @param name                     Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory  The open helper factory to use.
+     * @param migrationContainer       The migration container for migrations.
+     * @param callbacks                The list of callbacks for database events.
+     * @param allowMainThreadQueries   Whether to allow main thread reads/writes or not.
+     * @param journalMode              The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor            The Executor used to execute asynchronous queries.
+     * @param requireMigration         True if Room should require a valid migration if version changes,
+     *                                 instead of recreating the tables.
+     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
+     *                                 aren't required.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     *                        instead of recreating the tables.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     *
-     * @hide
      */
     @Deprecated
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            boolean requireMigration,
-            @Nullable Set<Integer> migrationNotRequiredFrom) {
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 boolean requireMigration,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, queryExecutor, false,
                 requireMigration, false, migrationNotRequiredFrom, null, null, null, null, null,
@@ -190,43 +190,41 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                              The application context.
+     * @param name                                 Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory              The open helper factory to use.
+     * @param migrationContainer                   The migration container for migrations.
+     * @param callbacks                            The list of callbacks for database events.
+     * @param allowMainThreadQueries               Whether to allow main thread reads/writes or not.
+     * @param journalMode                          The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                        The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                  The Executor used to execute asynchronous transactions.
+     * @param multiInstanceInvalidation            True if Room should perform multi-instance invalidation.
+     * @param requireMigration                     True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
+     *                                             migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom             The collection of schema versions from which migrations
+     *                                             aren't required.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
-     * @param multiInstanceInvalidation True if Room should perform multi-instance invalidation.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     *
-     * @hide
      */
     @Deprecated
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            @NonNull Executor transactionExecutor,
-            boolean multiInstanceInvalidation,
-            boolean requireMigration,
-            boolean allowDestructiveMigrationOnDowngrade,
-            @Nullable Set<Integer> migrationNotRequiredFrom) {
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 @NonNull Executor transactionExecutor,
+                                 boolean multiInstanceInvalidation,
+                                 boolean requireMigration,
+                                 boolean allowDestructiveMigrationOnDowngrade,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, transactionExecutor,
                 multiInstanceInvalidation, requireMigration, allowDestructiveMigrationOnDowngrade,
@@ -236,47 +234,46 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                              The application context.
+     * @param name                                 Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory              The open helper factory to use.
+     * @param migrationContainer                   The migration container for migrations.
+     * @param callbacks                            The list of callbacks for database events.
+     * @param allowMainThreadQueries               Whether to allow main thread reads/writes or not.
+     * @param journalMode                          The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                        The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                  The Executor used to execute asynchronous transactions.
+     * @param multiInstanceInvalidation            True if Room should perform multi-instance invalidation.
+     * @param requireMigration                     True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
+     *                                             migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom             The collection of schema versions from which migrations
+     *                                             aren't required.
+     * @param copyFromAssetPath                    The assets path to the pre-packaged database.
+     * @param copyFromFile                         The pre-packaged database file.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
-     * @param multiInstanceInvalidation True if Room should perform multi-instance invalidation.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     * @param copyFromAssetPath The assets path to the pre-packaged database.
-     * @param copyFromFile The pre-packaged database file.
-     *
-     * @hide
      */
     @Deprecated
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
-    public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            @NonNull Executor transactionExecutor,
-            boolean multiInstanceInvalidation,
-            boolean requireMigration,
-            boolean allowDestructiveMigrationOnDowngrade,
-            @Nullable Set<Integer> migrationNotRequiredFrom,
-            @Nullable String copyFromAssetPath,
-            @Nullable File copyFromFile) {
+    public DatabaseConfiguration(@NonNull Context context,
+                                 @Nullable String name,
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 @NonNull Executor transactionExecutor,
+                                 boolean multiInstanceInvalidation,
+                                 boolean requireMigration,
+                                 boolean allowDestructiveMigrationOnDowngrade,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom,
+                                 @Nullable String copyFromAssetPath,
+                                 @Nullable File copyFromFile) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, transactionExecutor,
                 multiInstanceInvalidation, requireMigration, allowDestructiveMigrationOnDowngrade,
@@ -286,50 +283,48 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                              The application context.
+     * @param name                                 Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory              The open helper factory to use.
+     * @param migrationContainer                   The migration container for migrations.
+     * @param callbacks                            The list of callbacks for database events.
+     * @param allowMainThreadQueries               Whether to allow main thread reads/writes or not.
+     * @param journalMode                          The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                        The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                  The Executor used to execute asynchronous transactions.
+     * @param multiInstanceInvalidation            True if Room should perform multi-instance invalidation.
+     * @param requireMigration                     True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
+     *                                             migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom             The collection of schema versions from which migrations
+     *                                             aren't required.
+     * @param copyFromAssetPath                    The assets path to the pre-packaged database.
+     * @param copyFromFile                         The pre-packaged database file.
+     * @param copyFromInputStream                  The callable to get the input stream from which a
+     *                                             pre-package database file will be copied from.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
-     * @param multiInstanceInvalidation True if Room should perform multi-instance invalidation.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     * @param copyFromAssetPath The assets path to the pre-packaged database.
-     * @param copyFromFile The pre-packaged database file.
-     * @param copyFromInputStream The callable to get the input stream from which a
-     *                            pre-package database file will be copied from.
-     *
-     * @hide
      */
     @Deprecated
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            @NonNull RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            @NonNull Executor transactionExecutor,
-            boolean multiInstanceInvalidation,
-            boolean requireMigration,
-            boolean allowDestructiveMigrationOnDowngrade,
-            @Nullable Set<Integer> migrationNotRequiredFrom,
-            @Nullable String copyFromAssetPath,
-            @Nullable File copyFromFile,
-            @Nullable Callable<InputStream> copyFromInputStream) {
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 @NonNull RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 @NonNull Executor transactionExecutor,
+                                 boolean multiInstanceInvalidation,
+                                 boolean requireMigration,
+                                 boolean allowDestructiveMigrationOnDowngrade,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom,
+                                 @Nullable String copyFromAssetPath,
+                                 @Nullable File copyFromFile,
+                                 @Nullable Callable<InputStream> copyFromInputStream) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, transactionExecutor,
                 multiInstanceInvalidation, requireMigration, allowDestructiveMigrationOnDowngrade,
@@ -340,53 +335,51 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                              The application context.
+     * @param name                                 Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory              The open helper factory to use.
+     * @param migrationContainer                   The migration container for migrations.
+     * @param callbacks                            The list of callbacks for database events.
+     * @param allowMainThreadQueries               Whether to allow main thread reads/writes or not.
+     * @param journalMode                          The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                        The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                  The Executor used to execute asynchronous transactions.
+     * @param multiInstanceInvalidation            True if Room should perform multi-instance invalidation.
+     * @param requireMigration                     True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
+     *                                             migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom             The collection of schema versions from which migrations
+     *                                             aren't required.
+     * @param copyFromAssetPath                    The assets path to the pre-packaged database.
+     * @param copyFromFile                         The pre-packaged database file.
+     * @param copyFromInputStream                  The callable to get the input stream from which a
+     *                                             pre-package database file will be copied from.
+     * @param prepackagedDatabaseCallback          The pre-packaged callback.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
-     * @param multiInstanceInvalidation True if Room should perform multi-instance invalidation.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     * @param copyFromAssetPath The assets path to the pre-packaged database.
-     * @param copyFromFile The pre-packaged database file.
-     * @param copyFromInputStream The callable to get the input stream from which a
-     *                            pre-package database file will be copied from.
-     * @param prepackagedDatabaseCallback The pre-packaged callback.
-     *
-     * @hide
      */
     @Deprecated
     @SuppressLint("LambdaLast")
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            @NonNull RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            @NonNull Executor transactionExecutor,
-            boolean multiInstanceInvalidation,
-            boolean requireMigration,
-            boolean allowDestructiveMigrationOnDowngrade,
-            @Nullable Set<Integer> migrationNotRequiredFrom,
-            @Nullable String copyFromAssetPath,
-            @Nullable File copyFromFile,
-            @Nullable Callable<InputStream> copyFromInputStream,
-            @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback) {
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 @NonNull RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 @NonNull Executor transactionExecutor,
+                                 boolean multiInstanceInvalidation,
+                                 boolean requireMigration,
+                                 boolean allowDestructiveMigrationOnDowngrade,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom,
+                                 @Nullable String copyFromAssetPath,
+                                 @Nullable File copyFromFile,
+                                 @Nullable Callable<InputStream> copyFromInputStream,
+                                 @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, transactionExecutor,
                 multiInstanceInvalidation, requireMigration, allowDestructiveMigrationOnDowngrade,
@@ -397,55 +390,53 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                              The application context.
+     * @param name                                 Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory              The open helper factory to use.
+     * @param migrationContainer                   The migration container for migrations.
+     * @param callbacks                            The list of callbacks for database events.
+     * @param allowMainThreadQueries               Whether to allow main thread reads/writes or not.
+     * @param journalMode                          The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                        The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                  The Executor used to execute asynchronous transactions.
+     * @param multiInstanceInvalidation            True if Room should perform multi-instance invalidation.
+     * @param requireMigration                     True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
+     *                                             migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom             The collection of schema versions from which migrations
+     *                                             aren't required.
+     * @param copyFromAssetPath                    The assets path to the pre-packaged database.
+     * @param copyFromFile                         The pre-packaged database file.
+     * @param copyFromInputStream                  The callable to get the input stream from which a
+     *                                             pre-package database file will be copied from.
+     * @param prepackagedDatabaseCallback          The pre-packaged callback.
+     * @param typeConverters                       The type converters.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
-     * @param multiInstanceInvalidation True if Room should perform multi-instance invalidation.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     * @param copyFromAssetPath The assets path to the pre-packaged database.
-     * @param copyFromFile The pre-packaged database file.
-     * @param copyFromInputStream The callable to get the input stream from which a
-     *                            pre-package database file will be copied from.
-     * @param prepackagedDatabaseCallback The pre-packaged callback.
-     * @param typeConverters The type converters.
-     *
-     * @hide
      */
     @Deprecated
     @SuppressLint("LambdaLast")
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            @NonNull RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            @NonNull Executor transactionExecutor,
-            boolean multiInstanceInvalidation,
-            boolean requireMigration,
-            boolean allowDestructiveMigrationOnDowngrade,
-            @Nullable Set<Integer> migrationNotRequiredFrom,
-            @Nullable String copyFromAssetPath,
-            @Nullable File copyFromFile,
-            @Nullable Callable<InputStream> copyFromInputStream,
-            @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback,
-            @Nullable List<Object> typeConverters) {
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 @NonNull RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 @NonNull Executor transactionExecutor,
+                                 boolean multiInstanceInvalidation,
+                                 boolean requireMigration,
+                                 boolean allowDestructiveMigrationOnDowngrade,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom,
+                                 @Nullable String copyFromAssetPath,
+                                 @Nullable File copyFromFile,
+                                 @Nullable Callable<InputStream> copyFromInputStream,
+                                 @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback,
+                                 @Nullable List<Object> typeConverters) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, transactionExecutor,
                 multiInstanceInvalidation, requireMigration, allowDestructiveMigrationOnDowngrade,
@@ -456,61 +447,59 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
+     * @param context                              The application context.
+     * @param name                                 Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory              The open helper factory to use.
+     * @param migrationContainer                   The migration container for migrations.
+     * @param callbacks                            The list of callbacks for database events.
+     * @param allowMainThreadQueries               Whether to allow main thread reads/writes or not.
+     * @param journalMode                          The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                        The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                  The Executor used to execute asynchronous transactions.
+     * @param multiInstanceInvalidation            True if Room should perform multi-instance invalidation.
+     * @param requireMigration                     True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
+     *                                             migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom             The collection of schema versions from which migrations
+     *                                             aren't required.
+     * @param copyFromAssetPath                    The assets path to the pre-packaged database.
+     * @param copyFromFile                         The pre-packaged database file.
+     * @param copyFromInputStream                  The callable to get the input stream from which a
+     *                                             pre-package database file will be copied from.
+     * @param prepackagedDatabaseCallback          The pre-packaged callback.
+     * @param typeConverters                       The type converters.
+     * @param autoMigrationSpecs                   The auto migration specs.
+     * @hide
      * @deprecated Use {@link #DatabaseConfiguration(Context, String,
      * SupportSQLiteOpenHelper.Factory, RoomDatabase.MigrationContainer, List, boolean,
      * RoomDatabase.JournalMode, Executor, Executor, Intent, boolean, boolean, Set, String, File,
      * Callable, RoomDatabase.PrepackagedDatabaseCallback, List, List)}
-     *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
-     * @param multiInstanceInvalidation True if Room should perform multi-instance invalidation.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     * @param copyFromAssetPath The assets path to the pre-packaged database.
-     * @param copyFromFile The pre-packaged database file.
-     * @param copyFromInputStream The callable to get the input stream from which a
-     *                            pre-package database file will be copied from.
-     * @param prepackagedDatabaseCallback The pre-packaged callback.
-     * @param typeConverters The type converters.
-     * @param autoMigrationSpecs The auto migration specs.
-     *
-     * @hide
      */
     @Deprecated
     @SuppressLint("LambdaLast")
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
-            @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
-            @NonNull RoomDatabase.MigrationContainer migrationContainer,
-            @Nullable List<RoomDatabase.Callback> callbacks,
-            boolean allowMainThreadQueries,
-            @NonNull RoomDatabase.JournalMode journalMode,
-            @NonNull Executor queryExecutor,
-            @NonNull Executor transactionExecutor,
-            boolean multiInstanceInvalidation,
-            boolean requireMigration,
-            boolean allowDestructiveMigrationOnDowngrade,
-            @Nullable Set<Integer> migrationNotRequiredFrom,
-            @Nullable String copyFromAssetPath,
-            @Nullable File copyFromFile,
-            @Nullable Callable<InputStream> copyFromInputStream,
-            @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback,
-            @Nullable List<Object> typeConverters,
-            @Nullable List<AutoMigrationSpec> autoMigrationSpecs) {
+                                 @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
+                                 @NonNull RoomDatabase.MigrationContainer migrationContainer,
+                                 @Nullable List<RoomDatabase.Callback> callbacks,
+                                 boolean allowMainThreadQueries,
+                                 @NonNull RoomDatabase.JournalMode journalMode,
+                                 @NonNull Executor queryExecutor,
+                                 @NonNull Executor transactionExecutor,
+                                 boolean multiInstanceInvalidation,
+                                 boolean requireMigration,
+                                 boolean allowDestructiveMigrationOnDowngrade,
+                                 @Nullable Set<Integer> migrationNotRequiredFrom,
+                                 @Nullable String copyFromAssetPath,
+                                 @Nullable File copyFromFile,
+                                 @Nullable Callable<InputStream> copyFromInputStream,
+                                 @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback,
+                                 @Nullable List<Object> typeConverters,
+                                 @Nullable List<AutoMigrationSpec> autoMigrationSpecs) {
         this(context, name, sqliteOpenHelperFactory, migrationContainer, callbacks,
                 allowMainThreadQueries, journalMode, queryExecutor, transactionExecutor,
                 multiInstanceInvalidation ? new Intent(context,
-                MultiInstanceInvalidationService.class) : null,
+                        MultiInstanceInvalidationService.class) : null,
                 requireMigration, allowDestructiveMigrationOnDowngrade, migrationNotRequiredFrom,
                 copyFromAssetPath, copyFromFile, copyFromInputStream, prepackagedDatabaseCallback,
                 typeConverters, autoMigrationSpecs);
@@ -519,36 +508,37 @@ public class DatabaseConfiguration {
     /**
      * Creates a database configuration with the given values.
      *
-     * @param context The application context.
-     * @param name Name of the database, can be null if it is in memory.
-     * @param sqliteOpenHelperFactory The open helper factory to use.
-     * @param migrationContainer The migration container for migrations.
-     * @param callbacks The list of callbacks for database events.
-     * @param allowMainThreadQueries Whether to allow main thread reads/writes or not.
-     * @param journalMode The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
-     * @param queryExecutor The Executor used to execute asynchronous queries.
-     * @param transactionExecutor The Executor used to execute asynchronous transactions.
+     * @param context                                The application context.
+     * @param name                                   Name of the database, can be null if it is in memory.
+     * @param sqliteOpenHelperFactory                The open helper factory to use.
+     * @param migrationContainer                     The migration container for migrations.
+     * @param callbacks                              The list of callbacks for database events.
+     * @param allowMainThreadQueries                 Whether to allow main thread reads/writes or not.
+     * @param journalMode                            The journal mode. This has to be either TRUNCATE or WRITE_AHEAD_LOGGING.
+     * @param queryExecutor                          The Executor used to execute asynchronous queries.
+     * @param transactionExecutor                    The Executor used to execute asynchronous transactions.
      * @param multiInstanceInvalidationServiceIntent The intent to use to bind to the
      *                                               invalidation service or {@code null} if not
      *                                               used.
-     * @param requireMigration True if Room should require a valid migration if version changes,
-     * @param allowDestructiveMigrationOnDowngrade True if Room should recreate tables if no
-     *                                             migration is supplied during a downgrade.
-     * @param migrationNotRequiredFrom The collection of schema versions from which migrations
-     *                                 aren't required.
-     * @param copyFromAssetPath The assets path to the pre-packaged database.
-     * @param copyFromFile The pre-packaged database file.
-     * @param copyFromInputStream The callable to get the input stream from which a
-     *                            pre-package database file will be copied from.
-     * @param prepackagedDatabaseCallback The pre-packaged callback.
-     * @param typeConverters The type converters.
-     * @param autoMigrationSpecs The auto migration specs.
-     *
+     * @param requireMigration                       True if Room should require a valid migration if version changes,
+     * @param allowDestructiveMigrationOnDowngrade   True if Room should recreate tables if no
+     *                                               migration is supplied during a downgrade.
+     * @param migrationNotRequiredFrom               The collection of schema versions from which migrations
+     *                                               aren't required.
+     * @param copyFromAssetPath                      The assets path to the pre-packaged database.
+     * @param copyFromFile                           The pre-packaged database file.
+     * @param copyFromInputStream                    The callable to get the input stream from which a
+     *                                               pre-package database file will be copied from.
+     * @param prepackagedDatabaseCallback            The pre-packaged callback.
+     * @param typeConverters                         The type converters.
+     * @param autoMigrationSpecs                     The auto migration specs.
      * @hide
      */
     @SuppressLint("LambdaLast")
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
-    public DatabaseConfiguration(@NonNull Context context, @Nullable String name,
+    public DatabaseConfiguration(
+            @NonNull Context context,
+            @Nullable String name,
             @NonNull SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory,
             @NonNull RoomDatabase.MigrationContainer migrationContainer,
             @Nullable List<RoomDatabase.Callback> callbacks,
@@ -565,7 +555,8 @@ public class DatabaseConfiguration {
             @Nullable Callable<InputStream> copyFromInputStream,
             @Nullable RoomDatabase.PrepackagedDatabaseCallback prepackagedDatabaseCallback,
             @Nullable List<Object> typeConverters,
-            @Nullable List<AutoMigrationSpec> autoMigrationSpecs) {
+            @Nullable List<AutoMigrationSpec> autoMigrationSpecs
+    ) {
         this.sqliteOpenHelperFactory = sqliteOpenHelperFactory;
         this.context = context;
         this.name = name;
@@ -593,9 +584,8 @@ public class DatabaseConfiguration {
     /**
      * Returns whether a migration is required from the specified version.
      *
-     * @param version  The schema version.
+     * @param version The schema version.
      * @return True if a valid migration is required, false otherwise.
-     *
      * @deprecated Use {@link #isMigrationRequired(int, int)} which takes
      * {@link #allowDestructiveMigrationOnDowngrade} into account.
      */

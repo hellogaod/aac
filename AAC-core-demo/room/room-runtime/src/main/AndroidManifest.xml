@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="androidx.room.runtime">
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <application>
+        <service
+            android:name="androidx.room.MultiInstanceInvalidationService"
+            android:directBootAware="true"
+            android:exported="false"
+            tools:ignore="MissingServiceExportedEqualsTrue" />
+    </application>
 </manifest>

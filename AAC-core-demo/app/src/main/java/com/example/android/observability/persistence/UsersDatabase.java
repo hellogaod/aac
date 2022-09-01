@@ -19,6 +19,7 @@ package com.example.android.observability.persistence;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+
 import android.content.Context;
 
 /**
@@ -35,9 +36,12 @@ public abstract class UsersDatabase extends RoomDatabase {
         if (INSTANCE == null) {
             synchronized (UsersDatabase.class) {
                 if (INSTANCE == null) {
-                    INSTANCE = Room.databaseBuilder(context.getApplicationContext(),
-                            UsersDatabase.class, "Sample.db")
-                            .build();
+                    INSTANCE =
+                            Room.databaseBuilder(
+                                    context.getApplicationContext(),
+                                    UsersDatabase.class,
+                                    "Sample.db")
+                                    .build();
                 }
             }
         }

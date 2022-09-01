@@ -17,14 +17,14 @@
 package androidx.sqlite.util;
 
 import androidx.annotation.NonNull;
-//import androidx.annotation.RestrictTo;
+import androidx.annotation.RestrictTo;
 
 /**
  * Java 8 Sneaky Throw technique.
  *
  * @hide
  */
-//@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
+@RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
 public class SneakyThrow {
 
     /**

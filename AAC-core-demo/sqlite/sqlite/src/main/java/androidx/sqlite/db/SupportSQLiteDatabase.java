@@ -38,6 +38,8 @@ import java.util.Locale;
 /**
  * A database abstraction which removes the framework dependency and allows swapping underlying
  * sql versions. It mimics the behavior of {@link SQLiteDatabase}
+ *
+ * sqlite数据库的实际操作类，但是该类必须通过openHelper辅助类获取才能执行
  */
 @SuppressWarnings("unused")
 public interface SupportSQLiteDatabase extends Closeable {

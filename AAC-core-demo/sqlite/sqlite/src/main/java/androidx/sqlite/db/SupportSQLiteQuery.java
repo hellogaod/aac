@@ -20,6 +20,8 @@ package androidx.sqlite.db;
  * A query with typed bindings. It is better to use this API instead of
  * {@link android.database.sqlite.SQLiteDatabase#rawQuery(String, String[])} because it allows
  * binding type safe parameters.
+ * <p>
+ * 带有类型绑定的查询。
  */
 public interface SupportSQLiteQuery {
     /**

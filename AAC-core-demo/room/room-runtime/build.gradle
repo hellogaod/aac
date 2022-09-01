@@ -12,6 +12,7 @@ android {
         targetSdk build_versions.target_sdk
         versionCode 1
         versionName "1.0"
+        namespace "androidx.room.runtime"
 
 //        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 //        consumerProguardFiles "consumer-rules.pro"

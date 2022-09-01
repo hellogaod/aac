@@ -65,6 +65,7 @@ class FrameworkSQLiteDatabase implements SupportSQLiteDatabase {
 
     @Override
     public SupportSQLiteStatement compileStatement(String sql) {
+        //compileStatement方法获取SQLiteStatement对象并重用，而不是让系统每次insert都构造一个对应的SQLiteStatement对象，这样能够提高内存的使用率。
         return new FrameworkSQLiteStatement(mDelegate.compileStatement(sql));
     }
 
@@ -180,6 +181,7 @@ class FrameworkSQLiteDatabase implements SupportSQLiteDatabase {
 
     @Override
     public Cursor query(final SupportSQLiteQuery supportQuery) {
+        //不使用rawQuery方法，而是用rawQueryWithFactory的目的在于CursorFactory中调用supportQulite的bindTo方法
         return mDelegate.rawQueryWithFactory(new SQLiteDatabase.CursorFactory() {
             @Override
             public Cursor newCursor(SQLiteDatabase db, SQLiteCursorDriver masterQuery,

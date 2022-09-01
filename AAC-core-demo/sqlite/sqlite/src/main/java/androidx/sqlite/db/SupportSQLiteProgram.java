@@ -20,8 +20,9 @@ import java.io.Closeable;
 
 /**
  * An interface to map the behavior of {@link android.database.sqlite.SQLiteProgram}.
+ * <p>
+ * ？？？ sqlite设置绑定参数
  */
-
 @SuppressWarnings("unused")
 public interface SupportSQLiteProgram extends Closeable {
     /**
@@ -35,7 +36,8 @@ public interface SupportSQLiteProgram extends Closeable {
     /**
      * Bind a long value to this statement. The value remains bound until
      * {@link #clearBindings} is called.
-     *addToBindArgs
+     * addToBindArgs
+     *
      * @param index The 1-based index to the parameter to bind
      * @param value The value to bind
      */

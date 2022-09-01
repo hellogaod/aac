@@ -48,3 +48,17 @@ gradlew app:dependencies
 
     查看具体报错问题如下：
     !()[https://img-blog.csdn.net/20180604131814582?watermark/2/text/aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L2NzZG5fbW0=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70]
+
+# demo涉及到知识点
+
+1. room及系列
+
+ - (1)完成sqlit①sqlit；②sqlit-framework,其他也不要放过 - 字面意思的理解已完成
+
+ - (2)room：①common；②compiler；③compiler-processing；④migration；⑤runtime；⑥rxjava2
+
+2. lifecycle及系列
+
+3. rxjava2
+
+4.appcompat及系列

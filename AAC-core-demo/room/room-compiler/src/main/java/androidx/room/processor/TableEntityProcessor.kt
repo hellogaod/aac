@@ -123,6 +123,7 @@ class TableEntityProcessor internal constructor(
                     )
                 }
             }
+
         val superIndices = loadSuperIndices(element.superClass, tableName, inheritSuperIndices)
         val indexInputs = entityIndices + fieldIndices + superIndices
         val indices = validateAndCreateIndices(indexInputs, pojo)

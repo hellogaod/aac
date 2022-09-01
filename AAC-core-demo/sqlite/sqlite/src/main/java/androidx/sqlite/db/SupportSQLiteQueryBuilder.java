@@ -20,6 +20,8 @@ import java.util.regex.Pattern;
 
 /**
  * A simple query builder to create SQL SELECT queries.
+ * <p>
+ * 用于创建一个select sql查询语句
  */
 @SuppressWarnings("unused")
 public final class SupportSQLiteQueryBuilder {
@@ -40,7 +42,6 @@ public final class SupportSQLiteQueryBuilder {
      * Creates a query for the given table name.
      *
      * @param tableName The table name(s) to query.
-     *
      * @return A builder to create a query.
      */
     public static SupportSQLiteQueryBuilder builder(String tableName) {
@@ -65,7 +66,6 @@ public final class SupportSQLiteQueryBuilder {
      * Sets the given list of columns as the columns that will be returned.
      *
      * @param columns The list of column names that should be returned.
-     *
      * @return this
      */
     public SupportSQLiteQueryBuilder columns(String[] columns) {
@@ -77,8 +77,7 @@ public final class SupportSQLiteQueryBuilder {
      * Sets the arguments for the WHERE clause.
      *
      * @param selection The list of selection columns
-     * @param bindArgs The list of bind arguments to match against these columns
-     *
+     * @param bindArgs  The list of bind arguments to match against these columns
      * @return this
      */
     public SupportSQLiteQueryBuilder selection(String selection, Object[] bindArgs) {
@@ -91,7 +90,6 @@ public final class SupportSQLiteQueryBuilder {
      * Adds a GROUP BY statement.
      *
      * @param groupBy The value of the GROUP BY statement.
-     *
      * @return this
      */
     @SuppressWarnings("WeakerAccess")
@@ -104,7 +102,6 @@ public final class SupportSQLiteQueryBuilder {
      * Adds a HAVING statement. You must also provide {@link #groupBy(String)} for this to work.
      *
      * @param having The having clause.
-     *
      * @return this
      */
     public SupportSQLiteQueryBuilder having(String having) {
@@ -116,7 +113,6 @@ public final class SupportSQLiteQueryBuilder {
      * Adds an ORDER BY statement.
      *
      * @param orderBy The order clause.
-     *
      * @return this
      */
     public SupportSQLiteQueryBuilder orderBy(String orderBy) {
@@ -128,7 +124,6 @@ public final class SupportSQLiteQueryBuilder {
      * Adds a LIMIT statement.
      *
      * @param limit The limit value.
-     *
      * @return this
      */
     public SupportSQLiteQueryBuilder limit(String limit) {

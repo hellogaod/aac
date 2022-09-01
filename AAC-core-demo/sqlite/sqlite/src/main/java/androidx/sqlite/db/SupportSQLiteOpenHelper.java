@@ -38,6 +38,8 @@ import java.util.List;
  * Note that since that class requires overriding certain methods, support implementation
  * uses {@link Factory#create(Configuration)} to create this and {@link Callback} to implement
  * the methods that should be overridden.
+ * <p>
+ * 操作sqlitedatabase辅助类，必须通过这个类获取database，才可以去执行database
  */
 @SuppressWarnings("unused")
 public interface SupportSQLiteOpenHelper extends Closeable {
@@ -50,7 +52,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
 
     /**
      * Enables or disables the use of write-ahead logging for the database.
-     *
+     * <p>
      * Write-ahead logging cannot be used with read-only databases so the value of
      * this flag is ignored if the database is opened read-only.
      *
@@ -105,11 +107,14 @@ public interface SupportSQLiteOpenHelper extends Closeable {
     /**
      * Close any open database object.
      */
-    @Override void close();
+    @Override
+    void close();
 
     /**
      * Handles various lifecycle events for the SQLite connection, similar to
      * {@link SQLiteOpenHelper}.
+     * <p>
+     * 处理 SQLite 连接的各种生命周期事件
      */
     @SuppressWarnings({"unused", "WeakerAccess"})
     abstract class Callback {
@@ -125,6 +130,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
 
         /**
          * Creates a new Callback to get database lifecycle events.
+         *
          * @param version The version for the database instance. See {@link #version}.
          */
         public Callback(int version) {
@@ -134,6 +140,8 @@ public interface SupportSQLiteOpenHelper extends Closeable {
         /**
          * Called when the database connection is being configured, to enable features such as
          * write-ahead logging or foreign key support.
+         *
+         * 在配置数据库连接时调用，以启用预写日志记录或外键支持等功能。
          * <p>
          * This method is called before {@link #onCreate}, {@link #onUpgrade}, {@link #onDowngrade},
          * or {@link #onOpen} are called. It should not modify the database except to configure the
@@ -182,7 +190,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
          * @param newVersion The new database version.
          */
         public abstract void onUpgrade(@NonNull SupportSQLiteDatabase db, int oldVersion,
-                int newVersion);
+                                       int newVersion);
 
         /**
          * Called when the database needs to be downgraded. This is strictly similar to
@@ -253,12 +261,12 @@ public interface SupportSQLiteOpenHelper extends Closeable {
                 try {
                     attachedDbs = db.getAttachedDbs();
                 } catch (SQLiteException e) {
-                /* ignore */
+                    /* ignore */
                 }
                 try {
                     db.close();
                 } catch (IOException e) {
-                /* ignore */
+                    /* ignore */
                 }
             } finally {
                 // Delete all files of this corrupt database and/or attached databases
@@ -293,7 +301,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
                     }
                 }
             } catch (Exception e) {
-            /* print warning and ignore exception */
+                /* print warning and ignore exception */
                 Log.w(TAG, "delete failed: ", e);
             }
         }
@@ -301,6 +309,8 @@ public interface SupportSQLiteOpenHelper extends Closeable {
 
     /**
      * The configuration to create an SQLite open helper object using {@link Factory}.
+     * <p>
+     * 设置配置参数，用于创建sqliteOpenHelper类
      */
     class Configuration {
         /**
@@ -432,6 +442,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
 
             /**
              * Sets whether to use a no backup directory or not.
+             *
              * @param useNoBackupDirectory If {@code true} the database file will be stored in the
              *                             no-backup directory.
              * @return this
@@ -445,6 +456,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
             /**
              * Sets whether to delete and recreate the database file in situations when the
              * database file cannot be opened, thus allowing for its data to be lost.
+             *
              * @param allowDataLossOnRecovery If {@code true} the database file might be recreated
              *                                in the case that it cannot be opened.
              * @return this
@@ -466,7 +478,6 @@ public interface SupportSQLiteOpenHelper extends Closeable {
          * Creates an instance of {@link SupportSQLiteOpenHelper} using the given configuration.
          *
          * @param configuration The configuration to use while creating the open helper.
-         *
          * @return A SupportSQLiteOpenHelper which can be used to open a database.
          */
         @NonNull

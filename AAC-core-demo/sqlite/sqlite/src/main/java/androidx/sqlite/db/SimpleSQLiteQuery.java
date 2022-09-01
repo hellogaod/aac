@@ -21,6 +21,8 @@ import androidx.annotation.Nullable;
 /**
  * A basic implementation of {@link SupportSQLiteQuery} which receives a query and its args and
  * binds args based on the passed in Object type.
+ *
+ * 1. 收集sql查询语句；2.根据传递的参数类型执行不同类型的参数绑定
  */
 public final class SimpleSQLiteQuery implements SupportSQLiteQuery {
     private final String mQuery;
