@@ -29,6 +29,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * database drive [androidx.lifecycle.LiveData] queries that are strongly hold as long
  * as they are active.
  *
+ * 其实是将RoomDatabase中的数值部分使用当前RoomTrackingLiveData来操作有生命的数据。
+ *
  * We need this extra handling for [androidx.lifecycle.LiveData] because when they are
  * observed forever, there is no [androidx.lifecycle.Lifecycle] that will keep them in
  * memory but they should stay. We cannot add-remove observer in [LiveData.onActive],
@@ -39,7 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * strongly by the [InvalidationTracker] as long as it is active.
  */
 @SuppressLint("RestrictedApi")
-internal class RoomTrackingLiveData<T> (
+internal class RoomTrackingLiveData<T>(
     val database: RoomDatabase,
     private val container: InvalidationLiveDataContainer,
     val inTransaction: Boolean,

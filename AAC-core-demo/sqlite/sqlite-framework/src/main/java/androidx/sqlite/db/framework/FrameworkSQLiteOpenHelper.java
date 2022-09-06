@@ -79,6 +79,7 @@ class FrameworkSQLiteOpenHelper implements SupportSQLiteOpenHelper {
         mLock = new Object();
     }
 
+    //实际用于创建SQLiteOpenHelper类
     private OpenHelper getDelegate() {
         // getDelegate() is lazy because we don't want to File I/O until the call to
         // getReadableDatabase() or getWritableDatabase(). This is better because the call to
@@ -160,7 +161,7 @@ class FrameworkSQLiteOpenHelper implements SupportSQLiteOpenHelper {
         private boolean mOpened;
 
         OpenHelper(Context context, String name, final FrameworkSQLiteDatabase[] dbRef,
-                final Callback callback, boolean allowDataLossOnRecovery) {
+                   final Callback callback, boolean allowDataLossOnRecovery) {
             super(context, name, null, callback.version,
                     new DatabaseErrorHandler() {
                         @Override
@@ -195,6 +196,7 @@ class FrameworkSQLiteOpenHelper implements SupportSQLiteOpenHelper {
         private SQLiteDatabase innerGetDatabase(boolean writable) {
             String name = getDatabaseName();
             if (name != null) {
+                //数据库文件如果不存在，那么新建
                 File databaseFile = mContext.getDatabasePath(name);
                 File parentFile = databaseFile.getParentFile();
                 if (parentFile != null) {
@@ -268,6 +270,7 @@ class FrameworkSQLiteOpenHelper implements SupportSQLiteOpenHelper {
             }
         }
 
+        //获取可写权限的SQLiteDatabase和可读权限的SQLiteDatabase的入口
         private SQLiteDatabase getWritableOrReadableDatabase(boolean writable) {
             if (writable) {
                 return super.getWritableDatabase();
@@ -344,8 +347,9 @@ class FrameworkSQLiteOpenHelper implements SupportSQLiteOpenHelper {
             }
         }
 
+        //把SQLiteDatabase塞入到数组的第一个item中（第一个item不存在），并且返回该数组的第一个item
         static FrameworkSQLiteDatabase getWrappedDb(FrameworkSQLiteDatabase[] refHolder,
-                SQLiteDatabase sqLiteDatabase) {
+                                                    SQLiteDatabase sqLiteDatabase) {
             FrameworkSQLiteDatabase dbRef = refHolder[0];
             if (dbRef == null || !dbRef.isDelegate(sqLiteDatabase)) {
                 refHolder[0] = new FrameworkSQLiteDatabase(sqLiteDatabase);

@@ -47,6 +47,9 @@ import java.util.concurrent.locks.ReentrantLock;
  *   <li>
  *     Multi-process locking is done via a lock file whose name contains the key and FileLock
  *     objects.
+ * <p>
+ * <p>
+ *     一个正常的双重锁（这个锁根据key还可以存储在集合中，方便下次获取），和另外一个文件锁：主要用于锁住和关闭
  *
  * @hide
  */
@@ -66,8 +69,9 @@ public final class ProcessLock {
     /**
      * Creates a lock with {@code name} and using {@code lockDir} as the directory for the
      * lock files.
-     * @param name the name of this lock.
-     * @param lockDir the directory where the lock files will be located.
+     *
+     * @param name        the name of this lock.
+     * @param lockDir     the directory where the lock files will be located.
      * @param processLock whether to use file for process level locking or not by default. The
      *                    behaviour can be overridden via the {@link #lock(boolean)}} method.
      */
@@ -115,7 +119,8 @@ public final class ProcessLock {
         if (mLockChannel != null) {
             try {
                 mLockChannel.close();
-            } catch (IOException ignored) { }
+            } catch (IOException ignored) {
+            }
         }
         mThreadLock.unlock();
     }

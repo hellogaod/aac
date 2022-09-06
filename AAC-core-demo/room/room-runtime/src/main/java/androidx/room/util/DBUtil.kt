@@ -56,6 +56,8 @@ fun query(db: RoomDatabase, sqLiteQuery: SupportSQLiteQuery, maybeCopy: Boolean)
 /**
  * Performs the SQLiteQuery on the given database.
  *
+ * 执行数据库查询任务
+ *
  * This util method encapsulates copying the cursor if the `maybeCopy` parameter is
  * `true` and either the api level is below a certain threshold or the full result of the
  * query does not fit in a single window.

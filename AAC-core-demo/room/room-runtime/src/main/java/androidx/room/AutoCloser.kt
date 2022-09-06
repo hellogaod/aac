@@ -35,6 +35,8 @@ import java.util.concurrent.TimeUnit
  *
  * It is important to ensure that the ref count is incremented when using a returned database.
  *
+ * 用于打开或关闭SupportSQLiteOpenHelper（其实就是database数据库）
+ *
  * @param autoCloseTimeoutAmount time for auto close timer
  * @param autoCloseTimeUnit      time unit for autoCloseTimeoutAmount
  * @param autoCloseExecutor      the executor on which the auto close operation will happen
@@ -73,6 +75,7 @@ class AutoCloser(
 
     private val executeAutoCloser = Runnable { executor.execute(autoCloser) }
 
+    //根据时间判断，是否将当前SupportSQLiteDatabase关闭
     private val autoCloser = Runnable {
         synchronized(lock) {
             if (SystemClock.uptimeMillis() - lastDecrementRefCountTimeStamp

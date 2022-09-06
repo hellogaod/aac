@@ -36,12 +36,16 @@ import java.util.concurrent.Executor;
 
 /**
  * Configuration class for a {@link RoomDatabase}.
+ * <p>
+ * 创建RoomDataBase配置的参数
  */
 @SuppressWarnings("WeakerAccess")
 public class DatabaseConfiguration {
 
     /**
      * The factory to use to access the database.
+     * <p>
+     * 用于创建SuppotSqliteOpenHelper，SupportSQLiteOpenHelper用于操作supportSqlitedatabase
      */
     @NonNull
     public final SupportSQLiteOpenHelper.Factory sqliteOpenHelperFactory;

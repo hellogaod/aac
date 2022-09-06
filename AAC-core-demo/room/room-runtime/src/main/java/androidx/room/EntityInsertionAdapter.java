@@ -25,6 +25,8 @@ import java.util.List;
 
 /**
  * Implementations of this class knows how to insert a particular entity.
+ *
+ * 插入特定的实体
  * <p>
  * This is an internal library class and all of its implementations are auto-generated.
  *

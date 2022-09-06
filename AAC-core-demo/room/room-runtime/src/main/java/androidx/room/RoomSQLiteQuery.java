@@ -33,6 +33,8 @@ import java.util.TreeMap;
  * This class is used as an intermediate place to keep binding arguments so that we can run
  * Cursor queries with correct types rather than passing everything as a string.
  * <p>
+ * 此类用作保留绑定参数的中间位置，以便我们可以使用正确的类型运行游标查询，而不是将所有内容都作为字符串传递。
+ * <p>
  * Because it is relatively a big object, they are pooled and must be released after each use.
  *
  * @hide
@@ -130,6 +132,8 @@ public class RoomSQLiteQuery implements SupportSQLiteQuery, SupportSQLiteProgram
     /**
      * Returns a new RoomSQLiteQuery that can accept the given number of arguments and holds the
      * given query.
+     * <p>
+     * 核心入口方法
      *
      * @param query         The query to prepare
      * @param argumentCount The number of query arguments

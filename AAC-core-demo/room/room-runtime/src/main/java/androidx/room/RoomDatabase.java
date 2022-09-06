@@ -66,6 +66,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * Base class for all Room databases. All classes that are annotated with {@link Database} must
  * extend this class.
  * <p>
+ * Room组件处理数据库的核心类，也是入口类
+ * <p>
  * RoomDatabase provides direct access to the underlying database implementation but you should
  * prefer using {@link Dao} classes.
  *
@@ -166,7 +168,7 @@ public abstract class RoomDatabase {
      * Gets the instance of the given Type Converter.
      *
      * @param klass The Type Converter class.
-     * @param <T> The type of the expected Type Converter subclass.
+     * @param <T>   The type of the expected Type Converter subclass.
      * @return An instance of T if it is provided in the builder.
      */
     @SuppressWarnings("unchecked")
@@ -202,7 +204,7 @@ public abstract class RoomDatabase {
         for (Class<? extends AutoMigrationSpec> spec : requiredAutoMigrationSpecs) {
             int foundIndex = -1;
             for (int providedIndex = configuration.autoMigrationSpecs.size() - 1;
-                    providedIndex >= 0; providedIndex--
+                 providedIndex >= 0; providedIndex--
             ) {
                 Object provided = configuration.autoMigrationSpecs.get(providedIndex);
                 if (spec.isAssignableFrom(provided.getClass())) {
@@ -220,7 +222,7 @@ public abstract class RoomDatabase {
         }
 
         for (int providedIndex = configuration.autoMigrationSpecs.size() - 1;
-                providedIndex >= 0; providedIndex--) {
+             providedIndex >= 0; providedIndex--) {
             if (!usedSpecs.get(providedIndex)) {
                 throw new IllegalArgumentException("Unexpected auto migration specs found. "
                         + "Annotate AutoMigrationSpec implementation with "
@@ -232,7 +234,7 @@ public abstract class RoomDatabase {
         List<Migration> autoMigrations = getAutoMigrations(mAutoMigrationSpecs);
         for (Migration autoMigration : autoMigrations) {
             boolean migrationExists = configuration.migrationContainer.getMigrations()
-                            .containsKey(autoMigration.startVersion);
+                    .containsKey(autoMigration.startVersion);
             if (!migrationExists) {
                 configuration.migrationContainer.addMigrations(autoMigration);
             }
@@ -280,7 +282,7 @@ public abstract class RoomDatabase {
                 int foundIndex = -1;
                 // traverse provided converters in reverse so that newer one overrides
                 for (int providedIndex = configuration.typeConverters.size() - 1;
-                        providedIndex >= 0; providedIndex--) {
+                     providedIndex >= 0; providedIndex--) {
                     Object provided = configuration.typeConverters.get(providedIndex);
                     if (converter.isAssignableFrom(provided.getClass())) {
                         foundIndex = providedIndex;
@@ -299,7 +301,7 @@ public abstract class RoomDatabase {
         }
         // now, make sure all provided factories are used
         for (int providedIndex = configuration.typeConverters.size() - 1;
-                providedIndex >= 0; providedIndex--) {
+             providedIndex >= 0; providedIndex--) {
             if (!used.get(providedIndex)) {
                 Object converter = configuration.typeConverters.get(providedIndex);
                 throw new IllegalArgumentException("Unexpected type converter " + converter + ". "
@@ -312,9 +314,8 @@ public abstract class RoomDatabase {
     /**
      * Returns a list of {@link Migration} of a database that have been automatically generated.
      *
-     * @return A list of migration instances each of which is a generated autoMigration
      * @param autoMigrationSpecs
-     *
+     * @return A list of migration instances each of which is a generated autoMigration
      * @hide
      */
     @NonNull
@@ -328,9 +329,9 @@ public abstract class RoomDatabase {
     /**
      * Unwraps (delegating) open helpers until it finds clazz, otherwise returns null.
      *
-     * @param clazz the open helper type to search for
+     * @param clazz      the open helper type to search for
      * @param openHelper the open helper to search through
-     * @param <T> the type of clazz
+     * @param <T>        the type of clazz
      * @return the instance of clazz, otherwise null
      */
     @Nullable
@@ -397,7 +398,6 @@ public abstract class RoomDatabase {
      * This is implemented by the generated code.
      *
      * @return Creates a set that will include all required auto migration specs for this database.
-     *
      * @hide
      */
     @NonNull
@@ -516,7 +516,7 @@ public abstract class RoomDatabase {
     /**
      * Wrapper for {@link SupportSQLiteDatabase#query(SupportSQLiteQuery)}.
      *
-     * @param query The Query which includes the SQL and a bind callback for bind arguments.
+     * @param query  The Query which includes the SQL and a bind callback for bind arguments.
      * @param signal The cancellation signal to be attached to the query.
      * @return Result of the query.
      */
@@ -775,9 +775,13 @@ public abstract class RoomDatabase {
         private List<Object> mTypeConverters;
         private List<AutoMigrationSpec> mAutoMigrationSpecs;
 
-        /** The Executor used to run database queries. This should be background-threaded. */
+        /**
+         * The Executor used to run database queries. This should be background-threaded.
+         */
         private Executor mQueryExecutor;
-        /** The Executor used to run database transactions. This should be background-threaded. */
+        /**
+         * The Executor used to run database transactions. This should be background-threaded.
+         */
         private Executor mTransactionExecutor;
         private SupportSQLiteOpenHelper.Factory mFactory;
         private boolean mAllowMainThreadQueries;
@@ -831,7 +835,6 @@ public abstract class RoomDatabase {
          *
          * @param databaseFilePath The file path within the 'assets/' directory of where the
          *                         database file is located.
-         *
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -857,8 +860,7 @@ public abstract class RoomDatabase {
          *
          * @param databaseFilePath The file path within the 'assets/' directory of where the
          *                         database file is located.
-         * @param callback The pre-packaged callback.
-         *
+         * @param callback         The pre-packaged callback.
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -888,7 +890,6 @@ public abstract class RoomDatabase {
          * This method is not supported for an in memory database {@link Builder}.
          *
          * @param databaseFile The database file.
-         *
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -914,8 +915,7 @@ public abstract class RoomDatabase {
          * This method is not supported for an in memory database {@link Builder}.
          *
          * @param databaseFile The database file.
-         * @param callback The pre-packaged callback.
-         *
+         * @param callback     The pre-packaged callback.
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -951,7 +951,6 @@ public abstract class RoomDatabase {
          *                            callable is only invoked if Room needs to create and open the
          *                            database from the pre-package database, usually the first time
          *                            it is created or during a destructive migration.
-         *
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -985,8 +984,7 @@ public abstract class RoomDatabase {
          *                            callable is only invoked if Room needs to create and open the
          *                            database from the pre-package database, usually the first time
          *                            it is created or during a destructive migration.
-         * @param callback The pre-packaged callback.
-         *
+         * @param callback            The pre-packaged callback.
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -1049,7 +1047,7 @@ public abstract class RoomDatabase {
          * Adds an auto migration spec to the builder.
          *
          * @param autoMigrationSpec The auto migration object that is annotated with
-         * {@link AutoMigrationSpec} and is declared in an {@link AutoMigration} annotation.
+         *                          {@link AutoMigrationSpec} and is declared in an {@link AutoMigration} annotation.
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -1115,9 +1113,9 @@ public abstract class RoomDatabase {
          * is limited).
          * <p>
          * The input {@code Executor} cannot run tasks on the UI thread.
-         **
-         * @return This {@link Builder} instance.
+         * *
          *
+         * @return This {@link Builder} instance.
          * @see #setTransactionExecutor(Executor)
          */
         @NonNull
@@ -1144,7 +1142,6 @@ public abstract class RoomDatabase {
          * The input {@code Executor} cannot run tasks on the UI thread.
          *
          * @return This {@link Builder} instance.
-         *
          * @see #setQueryExecutor(Executor)
          */
         @NonNull
@@ -1185,9 +1182,9 @@ public abstract class RoomDatabase {
          * This does not work for in-memory databases. This does not work between database instances
          * targeting different database files.
          *
-         * @return This {@link Builder} instance.
          * @param invalidationServiceIntent Intent to bind to the
-         * {@link MultiInstanceInvalidationService}.
+         *                                  {@link MultiInstanceInvalidationService}.
+         * @return This {@link Builder} instance.
          */
         @SuppressWarnings("MissingGetterMatchingBuilder")
         @NonNull
@@ -1219,7 +1216,6 @@ public abstract class RoomDatabase {
          * {@link #fallbackToDestructiveMigrationOnDowngrade()}.
          *
          * @return This {@link Builder} instance.
-         *
          * @see #fallbackToDestructiveMigrationOnDowngrade()
          */
         @NonNull
@@ -1234,7 +1230,6 @@ public abstract class RoomDatabase {
          * available when downgrading to old schema versions.
          *
          * @return This {@link Builder} instance.
-         *
          * @see Builder#fallbackToDestructiveMigration()
          */
         @NonNull
@@ -1301,12 +1296,12 @@ public abstract class RoomDatabase {
          * callback implementation logs then it is recommended to use an immediate executor.
          *
          * @param queryCallback The query callback.
-         * @param executor The executor on which the query callback will be invoked.
+         * @param executor      The executor on which the query callback will be invoked.
          */
         @SuppressWarnings("MissingGetterMatchingBuilder")
         @NonNull
         public Builder<T> setQueryCallback(@NonNull QueryCallback queryCallback,
-                @NonNull Executor executor) {
+                                           @NonNull Executor executor) {
             mQueryCallback = queryCallback;
             mQueryCallbackExecutor = executor;
             return this;
@@ -1316,7 +1311,7 @@ public abstract class RoomDatabase {
          * Adds a type converter instance to this database.
          *
          * @param typeConverter The converter. It must be an instance of a class annotated with
-         * {@link ProvidedTypeConverter} otherwise Room will throw an exception.
+         *                      {@link ProvidedTypeConverter} otherwise Room will throw an exception.
          * @return This {@link Builder} instance.
          */
         @NonNull
@@ -1495,6 +1490,8 @@ public abstract class RoomDatabase {
     /**
      * A container to hold migrations. It also allows querying its contents to find migrations
      * between two versions.
+     * <p>
+     * 用于存储数据迁移的容器。
      */
     public static class MigrationContainer {
         private HashMap<Integer, TreeMap<Integer, Migration>> mMigrations = new HashMap<>();
@@ -1569,8 +1566,9 @@ public abstract class RoomDatabase {
             return findUpMigrationPath(result, migrateUp, start, end);
         }
 
+        //获取多个不同版本信息，如果存在的话。
         private List<Migration> findUpMigrationPath(List<Migration> result, boolean upgrade,
-                int start, int end) {
+                                                    int start, int end) {
             while (upgrade ? start < end : start > end) {
                 TreeMap<Integer, Migration> targetNodes = mMigrations.get(start);
                 if (targetNodes == null) {
@@ -1606,13 +1604,17 @@ public abstract class RoomDatabase {
         }
     }
 
-    /** Returns true if the calling thread is the main thread. */
+    /**
+     * Returns true if the calling thread is the main thread.
+     */
     private static boolean isMainThread() {
         return Looper.getMainLooper().getThread() == Thread.currentThread();
     }
 
     /**
      * Callback for {@link RoomDatabase}.
+     * <p>
+     * 具体操作当前RoomDataBase时，针对数据库的创建、打开、文件破坏 回调处理。
      */
     public abstract static class Callback {
 
@@ -1638,7 +1640,7 @@ public abstract class RoomDatabase {
          *
          * @param db The database.
          */
-        public void onDestructiveMigration(@NonNull SupportSQLiteDatabase db){
+        public void onDestructiveMigration(@NonNull SupportSQLiteDatabase db) {
         }
     }
 
@@ -1650,6 +1652,8 @@ public abstract class RoomDatabase {
      * a chance to open it and therefore before the {@link Callback} methods are
      * invoked. This callback can be useful for updating the pre-package DB schema to satisfy
      * Room's schema validation.
+     * <p>
+     * 在roomDataBase打开db之前对db进行复制
      */
     public abstract static class PrepackagedDatabaseCallback {
 
@@ -1664,6 +1668,8 @@ public abstract class RoomDatabase {
 
     /**
      * Callback interface for when SQLite queries are executed.
+     * <p>
+     * 当前roomDataBase执行查询的回调
      *
      * @see Builder#setQueryCallback
      */

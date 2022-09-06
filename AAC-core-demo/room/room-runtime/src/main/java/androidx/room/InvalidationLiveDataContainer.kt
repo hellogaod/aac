@@ -25,6 +25,8 @@ import java.util.concurrent.Callable
  * A helper class that maintains [RoomTrackingLiveData] instances for an
  * [InvalidationTracker].
  *
+ * 操作Room追踪LiveData类的类
+ *
  * We keep a strong reference to active LiveData instances to avoid garbage collection in case
  * developer does not hold onto the returned LiveData.
  */

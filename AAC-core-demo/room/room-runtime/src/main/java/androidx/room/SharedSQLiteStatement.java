@@ -23,6 +23,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Represents a prepared SQLite state that can be re-used multiple times.
  * <p>
+ * 表示可以多次重复使用的准备好的 SQLite 状态。
+ * <p>
  * This class is used by generated code. After it is used, {@code release} must be called so that
  * it can be used by other threads.
  * <p>

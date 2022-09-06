@@ -53,6 +53,8 @@ public interface SupportSQLiteOpenHelper extends Closeable {
     /**
      * Enables or disables the use of write-ahead logging for the database.
      * <p>
+     * 启用或禁用数据库的预写日志记录。
+     * <p>
      * Write-ahead logging cannot be used with read-only databases so the value of
      * this flag is ignored if the database is opened read-only.
      *
@@ -78,6 +80,8 @@ public interface SupportSQLiteOpenHelper extends Closeable {
      * <p class="caution">Database upgrade may take a long time, you
      * should not call this method from the application main thread, including
      * from {@link android.content.ContentProvider#onCreate ContentProvider.onCreate()}.
+     * <p>
+     * 获取拥有写入权限的数据库
      *
      * @return a read/write database object valid until {@link #close} is called
      * @throws SQLiteException if the database cannot be opened for writing
@@ -97,6 +101,8 @@ public interface SupportSQLiteOpenHelper extends Closeable {
      * take a long time to return, so you should not call it from the
      * application main thread, including from
      * {@link android.content.ContentProvider#onCreate ContentProvider.onCreate()}.
+     * <p>
+     * 获取拥有读取权限的数据库
      *
      * @return a database object valid until {@link #getWritableDatabase}
      * or {@link #close} is called.
@@ -114,7 +120,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
      * Handles various lifecycle events for the SQLite connection, similar to
      * {@link SQLiteOpenHelper}.
      * <p>
-     * 处理 SQLite 连接的各种生命周期事件
+     * 传入当前数据库版本，数据库的创建、升级、降级等操作，还有database数据库文件出现损坏是处理
      */
     @SuppressWarnings({"unused", "WeakerAccess"})
     abstract class Callback {
@@ -140,7 +146,7 @@ public interface SupportSQLiteOpenHelper extends Closeable {
         /**
          * Called when the database connection is being configured, to enable features such as
          * write-ahead logging or foreign key support.
-         *
+         * <p>
          * 在配置数据库连接时调用，以启用预写日志记录或外键支持等功能。
          * <p>
          * This method is called before {@link #onCreate}, {@link #onUpgrade}, {@link #onDowngrade},
@@ -234,6 +240,8 @@ public interface SupportSQLiteOpenHelper extends Closeable {
         /**
          * The method invoked when database corruption is detected. Default implementation will
          * delete the database file.
+         * <p>
+         * 数据库文件损坏处理。
          *
          * @param db the {@link SupportSQLiteDatabase} object representing the database on which
          *           corruption is detected.
@@ -325,16 +333,22 @@ public interface SupportSQLiteOpenHelper extends Closeable {
         public final String name;
         /**
          * The callback class to handle creation, upgrade and downgrade.
+         * <p>
+         * 回调类，处理创建、升级和降级等
          */
         @NonNull
         public final Callback callback;
         /**
          * If {@code true} the database will be stored in the no-backup directory.
+         * <p>
+         * 如果 {@code true} 数据库将存储在 没有备份 目录中。
          */
         public final boolean useNoBackupDirectory;
         /**
          * If {@code true} the database will be delete and its data loss in the case that it
          * cannot be opened.
+         * <p>
+         * 如果 {@code true} 数据库将被删除，并且在无法打开的情况下其数据丢失。
          */
         public final boolean allowDataLossOnRecovery;
 

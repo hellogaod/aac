@@ -30,6 +30,10 @@ import java.util.TreeMap
 /**
  * A data class that holds the information about a table.
  *
+ *保存有关表的信息的数据类。
+ *
+ * 入口方法：readTableInfo - 方便理解
+ *
  * It directly maps to the result of `PRAGMA table_info(<table_name>)`. Check the
  * [PRAGMA table_info](http://www.sqlite.org/pragma.html#pragma_table_info)
  * documentation for more details.
@@ -97,7 +101,7 @@ class TableInfo(
 
     override fun toString(): String {
         return ("TableInfo{name='$name', columns=$columns, foreignKeys=$foreignKeys, " +
-            "indices=$indices}")
+                "indices=$indices}")
     }
 
     companion object {
@@ -136,6 +140,8 @@ class TableInfo(
 
     /**
      * Holds the information about a database column.
+     *
+     * 数据库列信息，还涉及当前字段是否是主键
      */
     class Column(
         /**
@@ -184,6 +190,8 @@ class TableInfo(
 
         /**
          * Implements https://www.sqlite.org/datatype3.html section 3.1
+         *
+         * 判断数据类型
          *
          * @param type The type that was given to the sqlite
          * @return The normalized type which is one of the 5 known affinities
@@ -243,6 +251,8 @@ class TableInfo(
              * Checks for potential surrounding parenthesis, if found, removes them and checks if
              * remaining paranthesis are balanced. If so, the surrounding parenthesis are redundant,
              * and returns true.
+             *
+             * 取括号里面的信息，如果有成对的括号，返回true
              */
             private fun containsSurroundingParenthesis(current: String): Boolean {
                 if (current.isEmpty()) {
@@ -281,9 +291,9 @@ class TableInfo(
             // from the compiler itself has it. b/136019383
             if (
                 createdFrom == CREATED_FROM_ENTITY &&
-                    other.createdFrom == CREATED_FROM_DATABASE &&
-                    defaultValue != null &&
-                    !defaultValueEquals(defaultValue, other.defaultValue)
+                other.createdFrom == CREATED_FROM_DATABASE &&
+                defaultValue != null &&
+                !defaultValueEquals(defaultValue, other.defaultValue)
             ) {
                 return false
             } else if (
@@ -326,13 +336,15 @@ class TableInfo(
 
         override fun toString(): String {
             return ("Column{name='$name', type='$type', affinity='$affinity', " +
-                "notNull=notNull, primaryKeyPosition=$primaryKeyPosition, " +
-                "defaultValue='$defaultValue'}")
+                    "notNull=notNull, primaryKeyPosition=$primaryKeyPosition, " +
+                    "defaultValue='$defaultValue'}")
         }
     }
 
     /**
      * Holds the information about an SQLite foreign key
+     *
+     * 表外键
      *
      * @hide
      */
@@ -356,7 +368,7 @@ class TableInfo(
             if (onDelete != other.onDelete) return false
             if (onUpdate != other.onUpdate) return false
             return if (columnNames != other.columnNames) false else referenceColumnNames ==
-                other.referenceColumnNames
+                    other.referenceColumnNames
         }
 
         override fun hashCode(): Int {
@@ -370,14 +382,16 @@ class TableInfo(
 
         override fun toString(): String {
             return ("ForeignKey{referenceTable='$referenceTable', onDelete='$onDelete +', " +
-                "onUpdate='$onUpdate', columnNames=$columnNames, " +
-                "referenceColumnNames=$referenceColumnNames}")
+                    "onUpdate='$onUpdate', columnNames=$columnNames, " +
+                    "referenceColumnNames=$referenceColumnNames}")
         }
     }
 
     /**
      * Temporary data holder for a foreign key row in the pragma result. We need this to ensure
      * sorting in the generated foreign key object.
+     *
+     * 杂注结果中外键行的临时数据持有者。 我们需要这个来确保对生成的外键对象进行排序。
      */
     internal class ForeignKeyWithSequence(
         val id: Int,
@@ -397,6 +411,8 @@ class TableInfo(
 
     /**
      * Holds the information about an SQLite index
+     *
+     * 保存有关 SQLite 索引的信息。
      *
      * @hide
      */
@@ -467,9 +483,13 @@ class TableInfo(
     }
 }
 
+//入口
 internal fun readTableInfo(database: SupportSQLiteDatabase, tableName: String): TableInfo {
+    //读取表字段
     val columns = readColumns(database, tableName)
+    //读取外键
     val foreignKeys = readForeignKeys(database, tableName)
+    //索引信息
     val indices = readIndices(database, tableName)
     return TableInfo(tableName, columns, foreignKeys, indices)
 }
@@ -520,6 +540,7 @@ private fun readForeignKeys(
     }
 }
 
+//外键涉及的关联表信息
 private fun readForeignKeyFieldMappings(cursor: Cursor): List<TableInfo.ForeignKeyWithSequence> {
     val idColumnIndex = cursor.getColumnIndex("id")
     val seqColumnIndex = cursor.getColumnIndex("seq")
@@ -580,6 +601,8 @@ private fun readColumns(
 
 /**
  * @return null if we cannot read the indices due to older sqlite implementations.
+ *
+ * @return null 如果我们由于旧的 sqlite 实现而无法读取索引。
  */
 private fun readIndices(database: SupportSQLiteDatabase, tableName: String): Set<TableInfo.Index>? {
     database.query("PRAGMA index_list(`$tableName`)").useCursor { cursor ->

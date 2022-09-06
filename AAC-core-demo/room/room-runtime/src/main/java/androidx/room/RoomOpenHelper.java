@@ -30,6 +30,10 @@ import java.util.List;
 
 /**
  * An open helper that holds a reference to the configuration until the database is opened.
+ * <p>
+ * 1. SupportSQLiteOpenHelper.Callback 传入当前数据库版本，数据库的创建、升级、降级等操作，还有database数据库文件出现损坏是处理
+ * 2. RoomOpenHelper继承SupportSQLiteOpenHelper.Callback；
+ * 3. 当前实际操作的是Delegate对象，所以核心类是Delegate
  *
  * @hide
  */
@@ -50,7 +54,7 @@ public class RoomOpenHelper extends SupportSQLiteOpenHelper.Callback {
     private final String mLegacyHash;
 
     public RoomOpenHelper(@NonNull DatabaseConfiguration configuration, @NonNull Delegate delegate,
-            @NonNull String identityHash, @NonNull String legacyHash) {
+                          @NonNull String identityHash, @NonNull String legacyHash) {
         super(delegate.version);
         mConfiguration = configuration;
         mDelegate = delegate;
@@ -59,7 +63,7 @@ public class RoomOpenHelper extends SupportSQLiteOpenHelper.Callback {
     }
 
     public RoomOpenHelper(@NonNull DatabaseConfiguration configuration, @NonNull Delegate delegate,
-            @NonNull String legacyHash) {
+                          @NonNull String legacyHash) {
         this(configuration, delegate, "", legacyHash);
     }
 
@@ -223,7 +227,6 @@ public class RoomOpenHelper extends SupportSQLiteOpenHelper.Callback {
          * Called after a migration run to validate database integrity.
          *
          * @param db The SQLite database.
-         *
          * @deprecated Use {@link #onValidateSchema(SupportSQLiteDatabase)}
          */
         @Deprecated
@@ -245,6 +248,7 @@ public class RoomOpenHelper extends SupportSQLiteOpenHelper.Callback {
 
         /**
          * Called before migrations execute to perform preliminary work.
+         *
          * @param database The SQLite database.
          */
         protected void onPreMigrate(SupportSQLiteDatabase database) {
@@ -253,6 +257,7 @@ public class RoomOpenHelper extends SupportSQLiteOpenHelper.Callback {
 
         /**
          * Called after migrations execute to perform additional work.
+         *
          * @param database The SQLite database.
          */
         protected void onPostMigrate(SupportSQLiteDatabase database) {

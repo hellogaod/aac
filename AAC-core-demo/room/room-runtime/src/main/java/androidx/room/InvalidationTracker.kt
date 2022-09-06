@@ -41,6 +41,8 @@ import java.util.concurrent.atomic.AtomicBoolean
 /**
  * InvalidationTracker keeps a list of tables modified by queries and notifies its callbacks about
  * these tables.
+ *
+ * 添加一个操作日志
  */
 // Some details on how the InvalidationTracker works:
 // * An in memory table is created with (table_id, invalidated) table_id is a hardcoded int from
@@ -128,12 +130,12 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
      */
     @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
     constructor(database: RoomDatabase, vararg tableNames: String) :
-        this(
-            database = database,
-            shadowTablesMap = emptyMap(),
-            viewTables = emptyMap(),
-            tableNames = tableNames
-        )
+            this(
+                database = database,
+                shadowTablesMap = emptyMap(),
+                viewTables = emptyMap(),
+                tableNames = tableNames
+            )
 
     /**
      * Sets the auto closer for this invalidation tracker so that the invalidation tracker can
@@ -739,6 +741,7 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
         var needsSync = false
 
         /**
+         * 当前数组项做了+1操作，而且原先数组项为0，那么设置需要同步，也需要触发同步
          * @return true if # of triggers is affected.
          */
         fun onAdded(vararg tableIds: Int): Boolean {
@@ -757,6 +760,7 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
         }
 
         /**
+         * 当前数组项做了-1操作，而且原先数组项是1，那么设置需要同步，也需要触发同步
          * @return true if # of triggers is affected.
          */
         fun onRemoved(vararg tableIds: Int): Boolean {
@@ -777,6 +781,8 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
         /**
          * If we are re-opening the db we'll need to add all the triggers that we need so change
          * the current state to false for all.
+         *
+         * 重置所有触发器状态为false
          */
         fun resetTriggerState() {
             synchronized(this) {
@@ -840,6 +846,7 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
         }
     }
 
+    //1. 操作room_table_modification_log表；2.数据库操作begin事务
     companion object {
         private val TRIGGERS = arrayOf("UPDATE", "DELETE", "INSERT")
         private const val UPDATE_TABLE_NAME = "room_table_modification_log"
@@ -847,13 +854,13 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
         private const val INVALIDATED_COLUMN_NAME = "invalidated"
         private const val CREATE_TRACKING_TABLE_SQL =
             "CREATE TEMP TABLE $UPDATE_TABLE_NAME ($TABLE_ID_COLUMN_NAME INTEGER PRIMARY KEY, " +
-                "$INVALIDATED_COLUMN_NAME INTEGER NOT NULL DEFAULT 0)"
+                    "$INVALIDATED_COLUMN_NAME INTEGER NOT NULL DEFAULT 0)"
 
         @VisibleForTesting
         @RestrictTo(RestrictTo.Scope.LIBRARY)
         const val RESET_UPDATED_TABLES_SQL =
             "UPDATE $UPDATE_TABLE_NAME SET $INVALIDATED_COLUMN_NAME = 0 " +
-                "WHERE $INVALIDATED_COLUMN_NAME = 1"
+                    "WHERE $INVALIDATED_COLUMN_NAME = 1"
 
         @VisibleForTesting
         @RestrictTo(RestrictTo.Scope.LIBRARY)
@@ -867,7 +874,7 @@ open class InvalidationTracker @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX
 
         internal fun beginTransactionInternal(database: SupportSQLiteDatabase) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN &&
-                database.isWriteAheadLoggingEnabled
+                database.isWriteAheadLoggingEnabled//启动预写日志
             ) {
                 database.beginTransactionNonExclusive()
             } else {

@@ -33,6 +33,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase;
  * If there are not enough migrations provided to move from the current version to the latest
  * version, Room will clear the database and recreate so even if you have no changes between 2
  * versions, you should still provide a Migration object to the builder.
+ * <p>
+ * 数据库迁移的基类
  */
 public abstract class Migration {
     public final int startVersion;
@@ -42,7 +44,7 @@ public abstract class Migration {
      * Creates a new migration between {@code startVersion} and {@code endVersion}.
      *
      * @param startVersion The start version of the database.
-     * @param endVersion The end version of the database after this migration is applied.
+     * @param endVersion   The end version of the database after this migration is applied.
      */
     public Migration(int startVersion, int endVersion) {
         this.startVersion = startVersion;
@@ -51,6 +53,8 @@ public abstract class Migration {
 
     /**
      * Should run the necessary migrations.
+     * <p>
+     * 数据发生迁移，需要运行当前方法
      * <p>
      * This class cannot access any generated Dao in this method.
      * <p>
