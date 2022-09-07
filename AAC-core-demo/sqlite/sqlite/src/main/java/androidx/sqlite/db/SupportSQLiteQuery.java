@@ -34,6 +34,8 @@ public interface SupportSQLiteQuery {
     /**
      * Callback to bind the query parameters to the compiled statement.
      *
+     * 查询具体字段
+     *
      * @param statement The compiled statement
      */
     void bindTo(SupportSQLiteProgram statement);

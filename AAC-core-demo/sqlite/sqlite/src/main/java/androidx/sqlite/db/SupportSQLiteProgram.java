@@ -21,7 +21,7 @@ import java.io.Closeable;
 /**
  * An interface to map the behavior of {@link android.database.sqlite.SQLiteProgram}.
  * <p>
- * ？？？ sqlite设置绑定参数
+ * sqlite数据库字段绑定
  */
 @SuppressWarnings("unused")
 public interface SupportSQLiteProgram extends Closeable {
