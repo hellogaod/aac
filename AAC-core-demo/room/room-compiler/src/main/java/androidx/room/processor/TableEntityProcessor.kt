@@ -55,6 +55,7 @@ class TableEntityProcessor internal constructor(
     }
 
     private fun doProcess(): Entity {
+        // @Database entities属性中的类必须使用@Entity注解修饰
         context.checker.hasAnnotation(
             element, androidx.room.Entity::class,
             ProcessorErrors.ENTITY_MUST_BE_ANNOTATED_WITH_ENTITY
@@ -75,22 +76,26 @@ class TableEntityProcessor internal constructor(
             entityIndices = emptyList()
             inheritSuperIndices = false
         }
+        //@Entity修饰的类表示表名，表名要么通过@Entity的tableName属性获取，如果不存在，那么将当前修饰的类名作为表名
         context.checker.notBlank(
             tableName, element,
             ProcessorErrors.ENTITY_TABLE_NAME_CANNOT_BE_EMPTY
         )
+        //@Entity修饰的类生成的表名，不允许使用“sqlite_”前缀
         context.checker.check(
             !tableName.startsWith("sqlite_", true), element,
             ProcessorErrors.ENTITY_TABLE_NAME_CANNOT_START_WITH_SQLITE
         )
 
+        //@Entity修饰的节点生成Pojo对象
         val pojo = PojoProcessor.createFor(
             context = context,
-            element = element,
+            element = element,//@Entity修饰的节点
             bindingScope = FieldProcessor.BindingScope.TWO_WAY,
             parent = null,
             referenceStack = referenceStack
         ).process()
+
         context.checker.check(pojo.relations.isEmpty(), element, RELATION_IN_ENTITY)
 
         val fieldIndices = pojo.fields

@@ -21,6 +21,8 @@ import com.squareup.javapoet.ClassName
 /**
  * Common interface for elements that can contain methods and properties.
  *
+ * x系列，可以包含方法和属性的元素的通用接口。
+ *
  * This is especially important for handling top level methods / properties in KSP where the
  * synthetic container class does not exist
  */

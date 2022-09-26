@@ -59,6 +59,7 @@ class Checks(private val logger: RLog) {
         errorMsg: String,
         vararg args: Any
     ): Boolean {
+        //支持修饰泛型类型，但是泛型中的类型必须是绑定类型（例如List<T>肯定不行，必须使用List<String>）
         // TODO support bounds cases like <T extends Foo> T bar()
         val failed = check(typeName !is TypeVariableName, element, errorMsg, args)
         if (typeName is ParameterizedTypeName) {

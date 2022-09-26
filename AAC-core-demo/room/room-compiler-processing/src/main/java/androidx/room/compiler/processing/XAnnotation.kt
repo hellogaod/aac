@@ -26,6 +26,8 @@ package androidx.room.compiler.processing
  * In comparison, [XAnnotationBox] is used in situations where the annotation class is already
  * compiled and can be referenced. This can be converted with [asAnnotationBox] if the annotation
  * class is already compiled.
+ *
+ * x系列注解
  */
 interface XAnnotation {
     /**

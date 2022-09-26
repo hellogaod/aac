@@ -24,6 +24,8 @@ import javax.lang.model.type.DeclaredType
  * Declared types are different from non declared types in java (e.g. primitives, or wildcard
  * types). Even thought XProcessing does not distinguish between these these, in the java
  * implementation, it is handy to have a separate type for explicit typeMirror information.
+ *
+ * 声明的类型
  */
 internal class JavacDeclaredType private constructor(
     env: JavacProcessingEnv,

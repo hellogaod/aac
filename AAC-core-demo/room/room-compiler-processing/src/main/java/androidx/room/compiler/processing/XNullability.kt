@@ -18,6 +18,8 @@ package androidx.room.compiler.processing
 
 /**
  * Declares the nullability of a type or element.
+ *
+ * x系列，当前节点是否允许null
  */
 enum class XNullability {
     /**

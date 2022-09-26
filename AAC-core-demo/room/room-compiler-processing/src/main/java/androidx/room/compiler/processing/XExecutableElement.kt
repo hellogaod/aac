@@ -19,6 +19,8 @@ package androidx.room.compiler.processing
 /**
  * Represents a method, constructor or initializer.
  *
+ * x系列方法：普通方法、构造方法、初始化程序方法
+ *
  * @see [javax.lang.model.element.ExecutableElement]
  */
 interface XExecutableElement : XHasModifiers, XElement {

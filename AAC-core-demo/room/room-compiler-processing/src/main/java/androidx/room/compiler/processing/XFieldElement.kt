@@ -21,6 +21,8 @@ import androidx.room.compiler.processing.ksp.synthetic.KspSyntheticFileMemberCon
 
 /**
  * Field in an [XTypeElement].
+ *
+ * x系列变量节点
  */
 interface XFieldElement : XVariableElement, XHasModifiers {
     /**

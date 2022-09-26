@@ -19,6 +19,8 @@ package androidx.room.compiler.processing
 /**
  * Configuration class for XProcessingEnv where certain behaviors might be modified.
  *
+ * XProcessingEnv 的配置类，其中某些行为可能会被修改。
+ *
  * See documentation for details.
  *
  * To create an instance from Java, use the provided [Builder] class.
@@ -66,6 +68,9 @@ data class XProcessingEnvConfig private constructor(
          * @see XProcessingEnvConfig.excludeMethodsWithInvalidJvmSourceNames for docs.
          */
         fun excludeMethodsWithInvalidJvmSourceNames(value: Boolean) = apply {
+            //Kotlin 的 data class 默认提供了一种对象拷贝的方式 , 即 data class 类会生成 copy() 方法, 用于对象的拷贝:
+            // 这个方法类似于 java.lang.Object 的 clone() 方法 !
+            // 值得注意的是: Kotlin 的 data class 的 copy() 方法 和 java.lang.Object的clone()方法, 都是浅拷贝.
             instance = instance.copy(
                 excludeMethodsWithInvalidJvmSourceNames = value
             )

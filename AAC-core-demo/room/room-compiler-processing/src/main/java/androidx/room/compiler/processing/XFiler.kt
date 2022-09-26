@@ -21,6 +21,8 @@ import com.squareup.kotlinpoet.FileSpec
 
 /**
  * Code generation interface for XProcessing.
+ *
+ * 替代了File
  */
 interface XFiler {
 

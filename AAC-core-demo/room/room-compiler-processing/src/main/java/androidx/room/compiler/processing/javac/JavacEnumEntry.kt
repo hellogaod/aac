@@ -20,6 +20,7 @@ import androidx.room.compiler.processing.XEnumEntry
 import androidx.room.compiler.processing.XEnumTypeElement
 import javax.lang.model.element.Element
 
+//枚举类中的常量
 internal class JavacEnumEntry(
     env: JavacProcessingEnv,
     entryElement: Element,

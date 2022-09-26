@@ -25,6 +25,8 @@ import kotlin.reflect.KClass
 /**
  * Represents a type reference
  *
+ * x系列type类型
+ *
  * @see javax.lang.model.type.TypeMirror
  * @see [XArrayType]
  */

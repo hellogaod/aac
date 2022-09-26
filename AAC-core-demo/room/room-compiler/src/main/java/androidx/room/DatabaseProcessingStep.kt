@@ -60,6 +60,7 @@ class DatabaseProcessingStep : XProcessingStep {
                     return@mapNotNull null
                 }
                 val (database, logs) = context.collectLogs { subContext ->
+                    //注解使用校验，并且注解信息生成Datebase对象
                     DatabaseProcessor(
                         subContext,
                         annotatedElement
@@ -86,6 +87,7 @@ class DatabaseProcessingStep : XProcessingStep {
                 }
             }
 
+        //Database的daoMethods做生成代码操作
         val daoMethodsMap = databases?.flatMap { db -> db.daoMethods.map { it to db } }?.toMap()
         daoMethodsMap?.let {
             prepareDaosForWriting(databases, it.keys.toList())
@@ -99,6 +101,7 @@ class DatabaseProcessingStep : XProcessingStep {
             }
         }
 
+        //Database做生成代码操作
         databases?.forEach { db ->
             DatabaseWriter(db).write(context.processingEnv)
             if (db.exportSchema) {

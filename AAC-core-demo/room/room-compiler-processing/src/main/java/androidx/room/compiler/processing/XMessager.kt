@@ -20,6 +20,8 @@ import javax.tools.Diagnostic
 
 /**
  * Logging interface for the processor
+ *
+ * xMessager替代了Messager
  */
 abstract class XMessager {
     private val watchers = mutableListOf<XMessager>()

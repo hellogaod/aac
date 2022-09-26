@@ -66,9 +66,11 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
 
     private fun doProcess(): Database {
         val dbAnnotation = element.getAnnotation(androidx.room.Database::class)!!
-
+        //entity实体对象生成
         val entities = processEntities(dbAnnotation, element)
+        //views
         val viewsMap = processDatabaseViews(dbAnnotation)
+
         validateForeignKeys(element, entities)
         validateExternalContentFts(element, entities)
 
@@ -417,7 +419,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         entities.filterIsInstance(FtsEntity::class.java)
             .filterNot {
                 it.ftsOptions.contentEntity == null ||
-                    entities.contains(it.ftsOptions.contentEntity)
+                        entities.contains(it.ftsOptions.contentEntity)
             }
             .forEach {
                 context.logger.e(
@@ -435,13 +437,16 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         element: XTypeElement
     ): List<Entity> {
         val entityList = dbAnnotation.getAsTypeList("entities")
+        //@Database必须有entities属性
         context.checker.check(
             entityList.isNotEmpty(), element,
             ProcessorErrors.DATABASE_ANNOTATION_MUST_HAVE_LIST_OF_ENTITIES
         )
+
         return entityList.mapNotNull {
-            val typeElement = it.typeElement
+            val typeElement = it.typeElement //@Database entities中的类
             if (typeElement == null) {
+                //@Database entities属性中必须是一个类
                 context.logger.e(
                     element,
                     ProcessorErrors.invalidEntityTypeInDatabaseAnnotation(

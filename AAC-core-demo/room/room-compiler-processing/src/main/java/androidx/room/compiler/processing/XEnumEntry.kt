@@ -21,6 +21,8 @@ import kotlin.contracts.contract
 
 /**
  * Represents a named entry within an enum class.
+ *
+ *表示枚举类中的命名条目。
  */
 interface XEnumEntry : XElement {
     /**
@@ -36,7 +38,8 @@ interface XEnumEntry : XElement {
     /**
      * The parent enum type declaration that holds all entries for this enum type..
      */
-    @Deprecated(message = "use XEnumEntry#enclosingElement() instead.",
+    @Deprecated(
+        message = "use XEnumEntry#enclosingElement() instead.",
         replaceWith = ReplaceWith("enclosingElement")
     )
     val enumTypeElement: XEnumTypeElement

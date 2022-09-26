@@ -19,6 +19,8 @@ package androidx.room.compiler.processing
 /**
  * Represents an Array type including Kotlin's [Array] type.
  *
+ * 表示x系列数组
+ *
  * @see [javax.lang.model.type.ArrayType]
  */
 interface XArrayType : XType {

@@ -18,6 +18,8 @@ package androidx.room.compiler.processing
 
 /**
  * Parameter of a method.
+ *
+ * x系列方法参数
  */
 interface XExecutableParameterElement : XVariableElement {
 

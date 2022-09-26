@@ -24,6 +24,7 @@ import javax.annotation.processing.Messager
 import javax.lang.model.element.Element
 import javax.tools.Diagnostic
 
+//XMessager实际使用的还是代理对象Messager
 internal class JavacProcessingEnvMessager(
     val delegate: Messager
 ) : XMessager() {

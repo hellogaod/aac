@@ -18,6 +18,7 @@ package androidx.room.compiler.processing
 
 import com.squareup.javapoet.ClassName
 
+//x系列TypeElement
 interface XTypeElement : XHasModifiers, XElement, XMemberContainer {
     /**
      * The qualified name of the Class/Interface.
@@ -205,6 +206,7 @@ interface XTypeElement : XHasModifiers, XElement, XMemberContainer {
      */
     fun getEnclosedTypeElements(): List<XTypeElement>
 
+    //当前xTypeElement类型节点下所有节点信息
     fun getEnclosedElements(): List<XElement> = mutableListOf<XElement>().apply {
         addAll(getEnclosedTypeElements())
         addAll(getDeclaredFields())

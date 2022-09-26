@@ -23,7 +23,7 @@ import kotlin.contracts.ExperimentalContracts
  * Common interface for basic annotation processors.
  *
  * A processor should not implement this interface directly and instead should extend
- * [androidx.room.compiler.processing.javac.JavacBasicAnnotationProcessor] or
+ * [androidx.room.compiler.processing.javac.KotlinBasicAnnotationProcessor] or
  * [androidx.room.compiler.processing.ksp.KspBasicAnnotationProcessor].
  *
  * The XProcessing Javac and KSP implementations of this interface will automatically validate and
@@ -39,6 +39,8 @@ import kotlin.contracts.ExperimentalContracts
  * is not 1:1 with [com.google.auto.common.BasicAnnotationProcessor]. Specifically, when validation
  * is enabled it is done for each annotated element as opposed to the enclosing type element of the
  * annotated elements for the [XProcessingStep].
+ *
+ * xprocessor处理注解通用接口
  */
 interface XBasicAnnotationProcessor {
 
@@ -53,7 +55,7 @@ interface XBasicAnnotationProcessor {
      * This will be invoked before any other function in this interface and before any
      * [processingSteps].
      */
-    fun initialize(env: XProcessingEnv) { }
+    fun initialize(env: XProcessingEnv) {}
 
     /**
      * The list of processing steps to execute.
@@ -63,11 +65,13 @@ interface XBasicAnnotationProcessor {
     /**
      * Called at the end of a processing round after all [processingSteps] have been executed.
      */
-    fun postRound(env: XProcessingEnv, round: XRoundEnv) { }
+    fun postRound(env: XProcessingEnv, round: XRoundEnv) {}
 }
 
 /**
  * Common code for implementations of [XBasicAnnotationProcessor] offered by XProcessing.
+ *
+ * 为XProcessing 提供的 [XBasicAnnotationProcessor] 实现的通用代码。
  */
 internal class CommonProcessorDelegate(
     private val processorClass: Class<*>,
@@ -75,14 +79,19 @@ internal class CommonProcessorDelegate(
     private val steps: List<XProcessingStep>,
 ) {
     // Type names of deferred elements from the processor.
+    //收集无效节点
     private val deferredElementNames = mutableSetOf<String>()
+
     // Type element names containing deferred elements from processing steps.
+    //收集被Step拒绝处理的节点
     private val elementsDeferredBySteps = mutableMapOf<XProcessingStep, Set<String>>()
 
     @ExperimentalContracts
     fun processRound(roundEnv: XRoundEnv) {
         val previousRoundDeferredElementNames = deferredElementNames.toMutableSet()
         deferredElementNames.clear()
+
+        //收集上一轮processor处理器延迟的元素
         val currentElementsDeferredByStep = steps.associateWith { step ->
             // Previous round processor deferred elements, these need to be re-validated.
             val previousRoundDeferredElementsByAnnotation =
@@ -90,22 +99,30 @@ internal class CommonProcessorDelegate(
                     .withDefault { emptySet() }
             // Previous round step deferred elements, these don't need to be re-validated.
             val stepDeferredElementsByAnnotation =
-                getStepElementsByAnnotation(step, elementsDeferredBySteps[step]
-                    ?: emptySet()).withDefault { emptySet() }
+                getStepElementsByAnnotation(
+                    step, elementsDeferredBySteps[step]
+                        ?: emptySet()
+                ).withDefault { emptySet() }
+
             val deferredElements = mutableSetOf<XElement>()
+
+            //step中的注解集合信息
             val elementsByAnnotation = step.annotations().mapNotNull { annotation ->
                 val annotatedElements = roundEnv.getElementsAnnotatedWith(annotation) +
-                    previousRoundDeferredElementsByAnnotation.getValue(annotation)
+                        previousRoundDeferredElementsByAnnotation.getValue(annotation)
                 // Split between valid and invalid elements. Unlike auto-common, validation is only
                 // done in the annotated element from the round and not in the closest enclosing
                 // type element.
+                //分出有效元素（该元素已经被定义了）和 无效元素（该元素尚没有被定义，或者说尚没有生成）
                 val (validElements, invalidElements) =
                     if (env.config.disableAnnotatedElementValidation) {
                         annotatedElements to emptySet<XElement>()
                     } else {
                         annotatedElements.partition { it.validate() }
                     }
+
                 deferredElements.addAll(invalidElements)
+
                 (validElements + stepDeferredElementsByAnnotation.getValue(annotation)).let {
                     if (it.isNotEmpty()) {
                         annotation to it.toSet()
@@ -114,6 +131,7 @@ internal class CommonProcessorDelegate(
                     }
                 }
             }.toMap()
+
             // Store all processor deferred elements.
             deferredElementNames.addAll(
                 deferredElements.mapNotNull {
@@ -129,6 +147,7 @@ internal class CommonProcessorDelegate(
                 emptySet()
             }
         }
+
         // Store elements deferred by steps.
         elementsDeferredBySteps.clear()
         elementsDeferredBySteps.putAll(currentElementsDeferredByStep)
@@ -140,7 +159,7 @@ internal class CommonProcessorDelegate(
             val stepDeferredElementsByAnnotation = getStepElementsByAnnotation(
                 step = step,
                 typeElementNames =
-                    deferredElementNames + elementsDeferredBySteps.getOrElse(step) { emptySet() }
+                deferredElementNames + elementsDeferredBySteps.getOrElse(step) { emptySet() }
             )
             val elementsByAnnotation = step.annotations().mapNotNull { annotation ->
                 val annotatedElements = stepDeferredElementsByAnnotation[annotation] ?: emptySet()
@@ -173,7 +192,9 @@ internal class CommonProcessorDelegate(
      *     @X void bar() {}
      *   }
      * }
-     * ```
+     *
+     *
+     * 延时处理的元素（和元素中的方法参数元素），这些元素使用的注解在step中查找是否存在，存在则收集这些元素
      */
     @ExperimentalContracts
     private fun getStepElementsByAnnotation(
@@ -185,6 +206,7 @@ internal class CommonProcessorDelegate(
         }
         val stepAnnotations = step.annotations()
         val elementsByAnnotation = mutableMapOf<String, MutableSet<XElement>>()
+
         fun putStepAnnotatedElements(element: XElement) = element.getAllAnnotations()
             .map { it.qualifiedName }
             .forEach { annotationName ->
@@ -192,6 +214,7 @@ internal class CommonProcessorDelegate(
                     elementsByAnnotation.getOrPut(annotationName) { mutableSetOf() }.add(element)
                 }
             }
+
         typeElementNames
             .mapNotNull { env.findTypeElement(it) }
             .forEach { typeElement ->
@@ -215,10 +238,10 @@ internal class CommonProcessorDelegate(
             env.messager.printMessage(
                 kind = Diagnostic.Kind.ERROR,
                 msg = (
-                    "%s was unable to process '%s' because not all of its dependencies " +
-                        "could be resolved. Check for compilation errors or a circular " +
-                        "dependency with generated code."
-                    ).format(processorClass.canonicalName, missingElementName),
+                        "%s was unable to process '%s' because not all of its dependencies " +
+                                "could be resolved. Check for compilation errors or a circular " +
+                                "dependency with generated code."
+                        ).format(processorClass.canonicalName, missingElementName),
             )
         }
     }

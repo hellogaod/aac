@@ -30,6 +30,7 @@ import com.squareup.javapoet.TypeName
 import java.util.Locale
 
 // used in cache matching, must stay as a data class or implement equals
+//表字段
 data class Field(
     val element: XFieldElement,
     val name: String,

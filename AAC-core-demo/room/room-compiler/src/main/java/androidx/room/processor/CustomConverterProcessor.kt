@@ -46,6 +46,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
             isError() || isVoid() || isNone()
 
         fun findConverters(context: Context, element: XElement): ProcessResult {
+
             if (!element.hasAnnotation(TypeConverters::class)) {
                 return ProcessResult.EMPTY
             }
@@ -56,7 +57,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
             val annotation = element.requireAnnotation(TypeConverters::class)
             val classes = annotation.getAsTypeList("value").mapTo(LinkedHashSet()) { it }
             val converters = classes.flatMap {
-                val typeElement = it.typeElement
+                val typeElement = it.typeElement//@TypeConverters注解的value属性中的类类型
                 if (typeElement == null) {
                     context.logger.e(
                         element,
@@ -68,6 +69,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
                 }
             }
             reportDuplicates(context, converters)
+
             val builtInStates =
                 annotation.getAsAnnotationBox<BuiltInTypeConverters>("builtInTypeConverters").let {
                     BuiltInConverterFlags(
@@ -76,12 +78,13 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
                     )
                 }
             return ProcessResult(
-                classes = classes,
-                converters = converters.map(::CustomTypeConverterWrapper),
-                builtInConverterFlags = builtInStates
+                classes = classes,//@TypeConverters#values
+                converters = converters.map(::CustomTypeConverterWrapper),//@TypeConverters#values中的item类被@TypeConverter修饰的方法
+                builtInConverterFlags = builtInStates//@TypeConverters#builtInTypeConverters
             )
         }
 
+        //判断类型转换是否重复：判断依据是@TypeConverter修饰的方法的唯一参数类型 - > 当前方法返回类型，是否存在不止一个
         private fun reportDuplicates(context: Context, converters: List<CustomTypeConverter>) {
             converters
                 .groupBy { it.from.typeName to it.to.typeName }
@@ -113,16 +116,22 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
             it.hasAnnotation(TypeConverter::class)
         }.toList()
         val isProvidedConverter = element.hasAnnotation(ProvidedTypeConverter::class)
+        //@TypeConverters注解中的value属性中的item类中必须存在被@TypeConverter修饰的方法
         context.checker.check(converterMethods.isNotEmpty(), element, TYPE_CONVERTER_EMPTY_CLASS)
         val allStatic = converterMethods.all { it.isStatic() }
         val constructors = element.getConstructors()
         val isKotlinObjectDeclaration = element.isKotlinObject()
+        //@TypeConverters注解中的value属性中的item类没有使用@ProvidedTypeConverter修饰
         if (!isProvidedConverter) {
+
+            //要么该item类里面没有任何属性，要么该item类是static静态类；
             context.checker.check(
                 element.enclosingTypeElement == null || element.isStatic(),
                 element,
                 INNER_CLASS_TYPE_CONVERTER_MUST_BE_STATIC
             )
+
+            //该item类是`object`或`companion object`kotlin类型、或者@TypeConverter修饰的方法全部是static静态方法、或者当前item类不存在构造函数、或当前item只存在无参构造函数
             context.checker.check(
                 isKotlinObjectDeclaration || allStatic || constructors.isEmpty() ||
                     constructors.any {
@@ -131,6 +140,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
                 element, TYPE_CONVERTER_MISSING_NOARG_CONSTRUCTOR
             )
         }
+        //只会处理@TypeConverter修饰的方法
         return converterMethods.mapNotNull {
             processMethod(
                 container = element.type,
@@ -150,19 +160,24 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
         val asMember = methodElement.asMemberOf(container)
         val returnType = asMember.returnType
         val invalidReturnType = returnType.isInvalidReturnType()
+
+        //该方法必须ublic修饰
         context.checker.check(
             methodElement.isPublic(), methodElement, TYPE_CONVERTER_MUST_BE_PUBLIC
         )
+        //该方法返回类型不允许void（void最常用、error和none）类型
         if (invalidReturnType) {
             context.logger.e(methodElement, TYPE_CONVERTER_BAD_RETURN_TYPE)
             return null
         }
         val returnTypeName = returnType.typeName
+        //该方法返回类型如果是泛型，那么必须是实体类型（如List<String>），不允许出现List<T>或List<?>类型
         context.checker.notUnbound(
             returnTypeName, methodElement,
             TYPE_CONVERTER_UNBOUND_GENERIC
         )
         val params = methodElement.parameters
+        //该方法参数必须有且仅有一个
         if (params.size != 1) {
             context.logger.e(methodElement, TYPE_CONVERTER_MUST_RECEIVE_1_PARAM)
             return null
@@ -170,14 +185,15 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
         val param = params.map {
             it.asMemberOf(container)
         }.first()
+        //该方法的参数是当前方法所在的item类类型，并且item类必须是试题类型（如List<String>），不允许出现List<T>或List<?>类型
         context.checker.notUnbound(param.typeName, params[0], TYPE_CONVERTER_UNBOUND_GENERIC)
         return CustomTypeConverter(
-            enclosingClass = container,
-            isEnclosingClassKotlinObject = isContainerKotlinObject,
-            method = methodElement,
-            from = param,
-            to = returnType,
-            isProvidedConverter = isProvidedConverter
+            enclosingClass = container,//方法所在类
+            isEnclosingClassKotlinObject = isContainerKotlinObject,//`object`或`companion object`kotlin类型
+            method = methodElement,//@TypeConverter修饰的方法
+            from = param,//方法参数：当前方法所在类
+            to = returnType,//方法返回类型
+            isProvidedConverter = isProvidedConverter//当前方法所在类是否使用了@ProvidedTypeConverter修饰
         )
     }
 

@@ -18,6 +18,8 @@ package androidx.room.compiler.processing
 
 /**
  * Common interface for elements which might have modifiers (e.g. field, method, class)
+ *
+ * 判断修饰符的接口
  */
 interface XHasModifiers {
     /**

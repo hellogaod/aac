@@ -39,6 +39,7 @@ import javax.lang.model.type.TypeMirror
 import javax.lang.model.util.Elements
 import javax.lang.model.util.Types
 
+//ProcessingEnvironMent作为代理对象，XProcessingEnv实际操作的还是该代理对象
 internal class JavacProcessingEnv(
     val delegate: ProcessingEnvironment,
     override val config: XProcessingEnvConfig,
@@ -49,6 +50,7 @@ internal class JavacProcessingEnv(
 
     val typeUtils: Types = delegate.typeUtils
 
+    //根据节点名称，缓存该节点生成的JavacTypeElement(XTypeElement子类)
     private val typeElementStore =
         XTypeElementStore(
             findElement = { qName ->
@@ -251,7 +253,7 @@ internal class JavacProcessingEnv(
             is PackageElement -> {
                 error(
                     "Cannot get elements with annotation $annotationName. Package " +
-                        "elements are not supported by XProcessing."
+                            "elements are not supported by XProcessing."
                 )
             }
             else -> error("Unsupported element $element with annotation $annotationName")

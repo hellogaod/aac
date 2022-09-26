@@ -47,7 +47,7 @@ class AutoValuePojoProcessorDelegate(
         val allMethods = autoValueElement.getAllMethods()
         val autoValueAbstractGetters = allMethods
             .filter { it.isAbstract() && it.parameters.size == 0 }
-
+        //@Entity修饰的类同时使用了@AutoValue修饰，当前类的无参抽象方法（表示get方法）如果使用了androidx.room包下的注解并且没有使用@CopyAnnotations注解，那么会提示警告
         // Warn about missing @AutoValue.CopyAnnotations in the property getters.
         autoValueAbstractGetters.forEach {
             val hasRoomAnnotation = it.hasAnnotationWithPackage("androidx.room")

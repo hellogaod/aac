@@ -53,6 +53,7 @@ class FtsTableEntityProcessor internal constructor(
     }
 
     private fun doProcess(): FtsEntity {
+        //该类必须使用@Entity注解修饰
         context.checker.hasAnnotation(
             element, androidx.room.Entity::class,
             ProcessorErrors.ENTITY_MUST_BE_ANNOTATED_WITH_ENTITY
@@ -61,10 +62,12 @@ class FtsTableEntityProcessor internal constructor(
         val tableName: String
         if (entityAnnotation != null) {
             tableName = extractTableName(element, entityAnnotation.value)
+            //@Fts3或@Fts4修饰了@Entity修饰的类，那么当前@Entity注解不能使用indices索引属性
             context.checker.check(
                 extractIndices(entityAnnotation, tableName).isEmpty(),
                 element, ProcessorErrors.INDICES_IN_FTS_ENTITY
             )
+            //@Fts3或@Fts4修饰了@Entity修饰的类，那么当前@Entity注解不能使用foreignKeys主键属性
             context.checker.check(
                 extractForeignKeys(entityAnnotation).isEmpty(),
                 element, ProcessorErrors.FOREIGN_KEYS_IN_FTS_ENTITY

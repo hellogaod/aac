@@ -60,6 +60,7 @@ internal class JavacAnnotationBox<T : Annotation>(obj: Any) : XAnnotationBox<T> 
     }
 }
 
+//给的class转换成JavacAnnotationBox类型
 internal fun <T : Annotation> AnnotationMirror.box(
     env: JavacProcessingEnv,
     cl: Class<T>

@@ -85,12 +85,14 @@ abstract class KspBasicAnnotationProcessor @JvmOverloads constructor(
     }
 
     // KSPLogger delegate to keep track if an error was raised or not.
+    //错误和异常输出
     private class DelegateLogger(val delegate: KSPLogger) : KSPLogger by delegate {
         var hasError = false
         override fun error(message: String, symbol: KSNode?) {
             hasError = true
             delegate.error(message, symbol)
         }
+
         override fun exception(e: Throwable) {
             hasError = true
             delegate.exception(e)

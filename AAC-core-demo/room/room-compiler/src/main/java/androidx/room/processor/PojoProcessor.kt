@@ -78,6 +78,7 @@ class PojoProcessor private constructor(
             parent: EmbeddedField?,
             referenceStack: LinkedHashSet<String> = LinkedHashSet()
         ): PojoProcessor {
+            //如果当前@Entity修饰的类又使用了@AutoValue修饰
             val (pojoElement, delegate) = if (element.hasAnnotation(AutoValue::class)) {
                 val processingEnv = context.processingEnv
                 val autoValueGeneratedTypeName =
@@ -96,7 +97,7 @@ class PojoProcessor private constructor(
 
             return PojoProcessor(
                 baseContext = context,
-                element = pojoElement,
+                element = pojoElement,//如果当前@Entity修饰的类又使用了@AutoValue修饰，当前节点是 ： AutoValue_原先类名，并且delete使用AutoValuePojoProcessorDelegate；
                 bindingScope = bindingScope,
                 parent = parent,
                 referenceStack = referenceStack,
@@ -132,16 +133,23 @@ class PojoProcessor private constructor(
 
         val declaredType = element.type
         // TODO handle conflicts with super: b/35568142
+        //所有字段，包括父类私有字段
         val allFields = element.getAllFieldsIncludingPrivateSupers()
             .filter {
+                //有效字段：没有使用@Ignore注解 && 没有使用static修饰 && （没有使用transient修饰 || 使用@ColumnInfo、@Embedded或@Relation修饰）
                 !it.hasAnnotation(Ignore::class) &&
-                    !it.isStatic() &&
-                    (
-                        !it.isTransient() ||
-                            it.hasAnyAnnotation(ColumnInfo::class, Embedded::class, Relation::class)
-                        )
+                        !it.isStatic() &&
+                        (
+                                !it.isTransient() ||
+                                        it.hasAnyAnnotation(
+                                            ColumnInfo::class,
+                                            Embedded::class,
+                                            Relation::class
+                                        )
+                                )
             }
             .groupBy { field ->
+                //@ColumnInfo、@Embedded或@Relation修饰字段，该字段只允许出现这三种中的一种；
                 context.checker.check(
                     PROCESSED_ANNOTATIONS.count { field.hasAnnotation(it) } < 2, field,
                     ProcessorErrors.CANNOT_USE_MORE_THAN_ONE_POJO_FIELD_ANNOTATION
@@ -159,12 +167,14 @@ class PojoProcessor private constructor(
             element.getAnnotation(androidx.room.Entity::class)?.value?.ignoredColumns?.toSet()
                 ?: emptySet()
         val fieldBindingErrors = mutableMapOf<Field, String>()
+
+        //字段：没有使用@Ingnore修饰 && 没有使用static修饰 && （没有使用transient修饰 || 使用@ColumnInfo修饰）
         val unfilteredMyFields = allFields[null]
             ?.map {
                 FieldProcessor(
                     baseContext = context,
-                    containing = declaredType,
-                    element = it,
+                    containing = declaredType,//字段所在类
+                    element = it,//字段节点
                     bindingScope = bindingScope,
                     fieldParent = parent,
                     onBindingError = { field, errorMsg ->
@@ -172,34 +182,46 @@ class PojoProcessor private constructor(
                     }
                 ).process()
             } ?: emptyList()
+        //字段忽略掉在@Entity上设置ignoredColumns属性：表示该属性忽略掉
         val myFields = unfilteredMyFields.filterNot { ignoredColumns.contains(it.columnName) }
         myFields.forEach { field ->
             fieldBindingErrors[field]?.let {
                 context.logger.e(field.element, it)
             }
         }
+
+        //字段：没有使用@Ingnore修饰 && 没有使用static修饰 && 使用@Embedded修饰
         val unfilteredEmbeddedFields =
             allFields[Embedded::class]
                 ?.mapNotNull {
+                    //嵌入式
                     processEmbeddedField(declaredType, it)
                 }
                 ?: emptyList()
+
         val embeddedFields =
             unfilteredEmbeddedFields.filterNot { ignoredColumns.contains(it.field.columnName) }
 
         val subFields = embeddedFields.flatMap { it.pojo.fields }
+
         val fields = myFields + subFields
 
         val unfilteredCombinedFields =
             unfilteredMyFields + unfilteredEmbeddedFields.map { it.field }
+
         val missingIgnoredColumns = ignoredColumns.filterNot { ignoredColumn ->
             unfilteredCombinedFields.any { it.columnName == ignoredColumn }
         }
+
+        // @Entity注解ignoredColumns属性中的值必须是@Entity修饰的类（及其父类）
+        // 没有使用@Ingnore修饰 && 没有使用static修饰 && （使用@Embedded修饰修饰 ||没有使用transient修饰 || 使用@ColumnInfo修饰）
+        // 的字段
         context.checker.check(
             missingIgnoredColumns.isEmpty(), element,
             ProcessorErrors.missingIgnoredColumns(missingIgnoredColumns)
         )
 
+        //字段：没有使用@Ingnore修饰 && 没有使用static修饰 && 使用@Relation修饰
         val myRelationsList = allFields[Relation::class]
             ?.mapNotNull {
                 processRelationField(fields, declaredType, it)
@@ -209,6 +231,7 @@ class PojoProcessor private constructor(
         val subRelations = embeddedFields.flatMap { it.pojo.relations }
         val relations = myRelationsList + subRelations
 
+        //字段名称不允许重复
         fields.groupBy { it.columnName }
             .filter { it.value.size > 1 }
             .forEach {
@@ -223,9 +246,12 @@ class PojoProcessor private constructor(
                 }
             }
 
+
+        //获取所有非private修饰的方法
         val methods = element.getAllNonPrivateInstanceMethods()
             .asSequence()
             .filter {
+                //筛选出非抽象 && 没有使用@Ignore修饰 的方法
                 !it.isAbstract() && !it.hasAnnotation(Ignore::class)
             }.map {
                 PojoMethodProcessor(
@@ -250,7 +276,7 @@ class PojoProcessor private constructor(
         } else {
             chooseConstructor(myFields, embeddedFields, relations)
         }
-
+        //校验get和set方法
         assignGetters(myFields, getterCandidates)
         assignSetters(myFields, setterCandidates, constructor)
 
@@ -264,6 +290,7 @@ class PojoProcessor private constructor(
             assignSetter(it.field, setterCandidates, constructor)
         }
 
+        //新建Pojo对象
         return delegate.createPojo(
             element, declaredType, fields, embeddedFields, relations,
             constructor
@@ -337,8 +364,8 @@ class PojoProcessor private constructor(
                                 pojo = element.qualifiedName,
                                 paramName = paramName,
                                 matchingFields = matchingFields.map { it.getPath() } +
-                                    embeddedMatches.map { it.field.getPath() } +
-                                    relationMatches.map { it.field.getPath() }
+                                        embeddedMatches.map { it.field.getPath() } +
+                                        relationMatches.map { it.field.getPath() }
                             )
                         )
                         null
@@ -362,8 +389,8 @@ class PojoProcessor private constructor(
                     context.logger.e(
                         element,
                         ProcessorErrors.MISSING_POJO_CONSTRUCTOR +
-                            "\nTried the following constructors but they failed to match:" +
-                            "\n$failureMsg"
+                                "\nTried the following constructors but they failed to match:" +
+                                "\n$failureMsg"
                     )
                 }
                 context.logger.e(element, ProcessorErrors.MISSING_POJO_CONSTRUCTOR)
@@ -407,6 +434,7 @@ class PojoProcessor private constructor(
     ): EmbeddedField? {
         val asMemberType = variableElement.asMemberOf(declaredType)
         val asTypeElement = asMemberType.typeElement
+        //@Embedded修饰的字段类型必须是类或接口
         if (asTypeElement == null) {
             context.logger.e(
                 variableElement,
@@ -552,7 +580,7 @@ class PojoProcessor private constructor(
                     // warn about not having indices in the junction columns, only considering
                     // 1st column in composite primary key and indices, since order matters.
                     val coveredColumns = entityOrView.primaryKey.fields.columnNames.first() +
-                        entityOrView.indices.map { it.columnNames.first() }
+                            entityOrView.indices.map { it.columnNames.first() }
                     if (!coveredColumns.contains(field.columnName)) {
                         context.logger.w(
                             Warning.MISSING_INDEX_ON_JUNCTION, field.element,
@@ -698,6 +726,7 @@ class PojoProcessor private constructor(
     }
 
     private fun detectReferenceRecursion(typeElement: XTypeElement): Boolean {
+        //@Embedded、@Relation修饰的节点，不能存在递归引用
         if (referenceStack.contains(typeElement.qualifiedName)) {
             context.logger.e(
                 typeElement,
@@ -884,10 +913,10 @@ class PojoProcessor private constructor(
                 // use names in source (rather than jvmName) for matching since that is what user
                 // sees in code
                 field.type.isAssignableFromWithoutVariance(getType(it)) &&
-                    (
-                        field.nameWithVariations.contains(it.element.name) ||
-                            nameVariations.contains(it.element.name)
-                        )
+                        (
+                                field.nameWithVariations.contains(it.element.name) ||
+                                        nameVariations.contains(it.element.name)
+                                )
             }
             .groupBy {
                 it.element.isPublic()
@@ -948,6 +977,7 @@ class PojoProcessor private constructor(
         override fun onPreProcess(element: XTypeElement) {
             // Check that certain Room annotations with @Target(METHOD) are not used in the POJO
             // since it is not annotated with AutoValue.
+            // @Entity修饰的类（该类没有同时使用@AutoValue修饰）的所有方法不允许使用@PrimaryKey, @ColumnInfo,@Embedded, @Relation修饰
             element.getAllMethods()
                 .filter { it.hasAnyAnnotation(*TARGET_METHOD_ANNOTATIONS) }
                 .forEach { method ->

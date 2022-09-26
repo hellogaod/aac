@@ -42,6 +42,7 @@ internal abstract class JavacType(
         JavacRawType(env, this)
     }
 
+    //当前类型直接继承的类或接口生成JavacType对象
     override val superTypes by lazy {
         val superTypes = env.typeUtils.directSupertypes(typeMirror)
         superTypes.map {
@@ -67,8 +68,8 @@ internal abstract class JavacType(
 
     override fun isError(): Boolean {
         return typeMirror.kind == TypeKind.ERROR ||
-            // https://kotlinlang.org/docs/reference/kapt.html#non-existent-type-correction
-            (kotlinType != null && typeName == ERROR_TYPE_NAME)
+                // https://kotlinlang.org/docs/reference/kapt.html#non-existent-type-correction
+                (kotlinType != null && typeName == ERROR_TYPE_NAME)
     }
 
     override val typeName by lazy {
@@ -96,7 +97,7 @@ internal abstract class JavacType(
 
     override fun boxed(): JavacType {
         return when {
-            typeMirror.kind.isPrimitive -> {
+            typeMirror.kind.isPrimitive -> {//8中基础数据类型
                 env.wrap(
                     typeMirror = env.typeUtils.boxedClass(MoreTypes.asPrimitiveType(typeMirror))
                         .asType(),
@@ -104,7 +105,7 @@ internal abstract class JavacType(
                     elementNullability = XNullability.NULLABLE
                 )
             }
-            typeMirror.kind == TypeKind.VOID -> {
+            typeMirror.kind == TypeKind.VOID -> {//void类型
                 env.wrap(
                     typeMirror = env.elementUtils.getTypeElement("java.lang.Void").asType(),
                     kotlinType = kotlinType,
@@ -123,6 +124,7 @@ internal abstract class JavacType(
         return typeMirror.toString()
     }
 
+    //泛型上边界
     override fun extendsBound(): XType? {
         return typeMirror.extendsBound()?.let {
             env.wrap<JavacType>(
@@ -183,11 +185,13 @@ internal abstract class JavacType(
         return copyWithNullability(XNullability.NONNULL)
     }
 
-    override val nullability: XNullability get() {
-        return maybeNullability
-            ?: throw IllegalStateException(
-                "XType#nullibility cannot be called from this type because it is missing " +
-                    "nullability information. Was this type derived from a type created with " +
-                    "TypeMirror#toXProcessing(XProcessingEnv)?")
-    }
+    override val nullability: XNullability
+        get() {
+            return maybeNullability
+                ?: throw IllegalStateException(
+                    "XType#nullibility cannot be called from this type because it is missing " +
+                            "nullability information. Was this type derived from a type created with " +
+                            "TypeMirror#toXProcessing(XProcessingEnv)?"
+                )
+        }
 }

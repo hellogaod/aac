@@ -20,11 +20,15 @@ package androidx.room.compiler.processing
  * Helper interface to enforce implementing equality in wrappers so that we don't by mistake
  * create wrappers that do not properly handle equality.
  *
+ * 用于判断两个对象是否相同的节点：根据equalityItems数组中收集的hashcode值判断
+ *
  * Enforcement is done in JavacType and JavacElement
  */
 internal interface XEquality {
     /**
      * The list of items that should participate in equality checks.
+     *
+     * 用户判断两个对象是否相同
      */
     val equalityItems: Array<out Any?>
 
@@ -33,6 +37,7 @@ internal interface XEquality {
             return elements.contentHashCode()
         }
 
+        //判断方法非常精辟
         fun equals(first: Any?, second: Any?): Boolean {
             if (first !is XEquality || second !is XEquality) {
                 return false

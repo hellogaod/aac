@@ -18,6 +18,8 @@ package androidx.room.compiler.processing
 
 /**
  * This wraps information about an argument in an annotation.
+ *
+ * x系列注解值
  */
 interface XAnnotationValue {
     /**

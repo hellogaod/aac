@@ -29,12 +29,16 @@ import kotlin.contracts.ExperimentalContracts
 /**
  * Javac implementation of a [XBasicAnnotationProcessor] with built-in support for validating and
  * deferring elements.
+ *
+ * processor变成xprocessor
  */
-abstract class JavacBasicAnnotationProcessor2 @JvmOverloads constructor(
+abstract class KotlinBasicAnnotationProcessor @JvmOverloads constructor(
     configureEnv: (Map<String, String>) -> XProcessingEnvConfig = { XProcessingEnvConfig.DEFAULT }
 ) : AbstractProcessor(), XBasicAnnotationProcessor {
     constructor(config: XProcessingEnvConfig) : this({ config })
 
+    //lazy 只用于常量 val
+    //lazy 应用于单例模式(if-null-then-init-else-return)，而且当且仅当变量被第一次调用的时候，委托方法才会执行。
     private val xEnv: JavacProcessingEnv by lazy {
         JavacProcessingEnv(processingEnv, configureEnv(processingEnv.options))
     }
@@ -47,13 +51,18 @@ abstract class JavacBasicAnnotationProcessor2 @JvmOverloads constructor(
     final override val xProcessingEnv: XProcessingEnv
         get() = xEnv
 
+    // 1.初始化工作
     final override fun init(processingEnv: ProcessingEnvironment?) {
+
         super.init(processingEnv)
         initialize(xEnv)
+
     }
 
+    // 2.当前需要处理的注解
     final override fun getSupportedAnnotationTypes() = steps.flatMap { it.annotations() }.toSet()
 
+    //4. （还有getSupportedSourceVersion表示支持的版本）处理2中的注解
     @OptIn(ExperimentalContracts::class)
     final override fun process(
         annotations: MutableSet<out TypeElement>,

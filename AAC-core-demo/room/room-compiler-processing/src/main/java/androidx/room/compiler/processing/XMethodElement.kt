@@ -21,6 +21,8 @@ import androidx.room.compiler.processing.util.isValidJavaSourceName
 /**
  * Represents a method in a class / interface.
  *
+ * 表示x系列类或接口的方法节点
+ *
  * @see XConstructorElement
  * @see XMethodElement
  */

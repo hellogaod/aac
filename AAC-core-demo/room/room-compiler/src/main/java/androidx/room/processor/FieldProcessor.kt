@@ -39,11 +39,13 @@ class FieldProcessor(
         val type = member.typeName
         val columnInfo = element.getAnnotation(ColumnInfo::class)?.value
         val name = element.name
+
         val rawCName = if (columnInfo != null && columnInfo.name != ColumnInfo.INHERIT_FIELD_NAME) {
             columnInfo.name
         } else {
             name
         }
+        //字段名称规则：如果@ColumInfo的name属性没有使用默认"[field-name]"，则使用那么属性；否则使用变量名作为字段名；可能还要加前缀
         val columnName = (fieldParent?.prefix ?: "") + rawCName
         val affinity = try {
             SQLTypeAffinity.fromAnnotationValue(columnInfo?.typeAffinity)
@@ -55,6 +57,7 @@ class FieldProcessor(
             columnName, element,
             ProcessorErrors.COLUMN_NAME_CANNOT_BE_EMPTY
         )
+        //@Entity修饰的类的变量（非@Ignore修饰、 非static修饰的变量）支持泛型，但是泛型中的类型必须是绑定类型（例如List<T>肯定不行，必须使用List<String>）
         context.checker.notUnbound(
             type, element,
             ProcessorErrors.CANNOT_USE_UNBOUND_GENERICS_IN_ENTITY_FIELDS
@@ -65,7 +68,9 @@ class FieldProcessor(
             affinity,
             skipDefaultConverter = false
         )
+
         val adapterAffinity = adapter?.typeAffinity ?: affinity
+        //使用@NonNull修饰的字段
         val nonNull = Field.calcNonNull(member, fieldParent)
 
         val field = Field(

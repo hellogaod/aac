@@ -30,13 +30,17 @@ import com.squareup.javapoet.TypeName
  * very specific use case to check against raw types and nothing else.
  *
  * Instances of XRawType implement equality.
+ *
+ * x系列rawtype，例如List<String>,rawType表示List
  */
 interface XRawType {
     val typeName: TypeName
+
     /**
      * Returns `true` if this raw type can be assigned from [other].
      */
     fun isAssignableFrom(other: XRawType): Boolean
+
     /**
      * Returns `true` if this raw type can be assigned from [other].
      */

@@ -18,6 +18,7 @@ package androidx.room.compiler.processing
 
 import java.lang.annotation.Repeatable
 
+//将Annotation转换成XAnnotationBox对象
 @PublishedApi
 internal interface InternalXAnnotation : XAnnotation {
     fun <T : Annotation> asAnnotationBox(annotationClass: Class<T>): XAnnotationBox<T>

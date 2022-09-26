@@ -132,9 +132,12 @@ internal data class KmClassTypeInfo(
     val superType: KmType?
 )
 
+//遍历当前kotlin转换的class文件，获取function方法集合
 internal fun KotlinClassMetadata.Class.readFunctions(): List<KmFunction> =
     mutableListOf<KmFunction>().apply { accept(FunctionReader(this)) }
 
+//遍历当前kotlin转换的class文件
+//result和output好像都可以使用
 private class FunctionReader(val result: MutableList<KmFunction>) : KmClassVisitor() {
     override fun visitFunction(flags: Flags, name: String): KmFunctionVisitor {
         return object : KmFunctionVisitor() {
@@ -193,6 +196,7 @@ private class FunctionReader(val result: MutableList<KmFunction>) : KmClassVisit
     }
 }
 
+//遍历当前kotlin转换的class文件，获取构造函数集合
 internal fun KotlinClassMetadata.Class.readConstructors(): List<KmConstructor> =
     mutableListOf<KmConstructor>().apply { accept(ConstructorReader(this)) }
 
@@ -230,6 +234,7 @@ private class ConstructorReader(val result: MutableList<KmConstructor>) : KmClas
     }
 }
 
+//判断当前kotlin文件类型
 internal class KotlinMetadataClassFlags(val classMetadata: KotlinClassMetadata.Class) {
 
     private val flags: Flags by lazy {
@@ -262,11 +267,14 @@ internal class KotlinMetadataClassFlags(val classMetadata: KotlinClassMetadata.C
     fun isExpect(): Boolean = Flag.Class.IS_EXPECT(flags)
 }
 
+//访问类声明的属性
 internal fun KotlinClassMetadata.Class.readProperties(): List<KmProperty> =
     mutableListOf<KmProperty>().apply { accept(PropertyReader(this)) }
 
 /**
  * Reads the properties of a class declaration
+ *
+ * 读取类声明的属性：set和get
  */
 private class PropertyReader(
     val result: MutableList<KmProperty>
@@ -362,6 +370,8 @@ private class PropertyReader(
 
 /**
  * Reads a type description and calls the output with the read value
+ *
+ * 生层次遍历类型的父级类，并且返回KmType对象
  */
 private class TypeReader(
     private val flags: Flags,
@@ -436,6 +446,8 @@ private class ValueParameterReader(
 
 /**
  * Reads a class declaration and turns it into a KmType for both itself and its super type
+ *
+ * 读取类声明并将其转换为自身及其超类型的 KmType，包含在KmClassTypeInfo数据对象中
  */
 internal class ClassAsKmTypeReader(
     val output: (KmClassTypeInfo) -> Unit
@@ -481,6 +493,7 @@ internal class ClassAsKmTypeReader(
     }
 }
 
+//生层次遍历泛型类型，并且生成KmTypeParameter对象
 private class TypeParameterReader(
     private val name: String,
     private val flags: Flags,

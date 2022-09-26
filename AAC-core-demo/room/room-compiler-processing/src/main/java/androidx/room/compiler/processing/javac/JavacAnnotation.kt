@@ -25,6 +25,7 @@ import com.google.auto.common.AnnotationMirrors
 import com.google.auto.common.MoreTypes
 import javax.lang.model.element.AnnotationMirror
 
+//internal 限制了跨 module 的方法的使用
 internal class JavacAnnotation(
     val env: JavacProcessingEnv,
     val mirror: AnnotationMirror

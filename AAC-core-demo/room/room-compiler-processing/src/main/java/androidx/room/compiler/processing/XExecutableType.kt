@@ -19,6 +19,8 @@ package androidx.room.compiler.processing
 /**
  * Represents a type information for a method or constructor.
  *
+ * 表示x系列普通方法或构造方法类型信息
+ *
  * It is not an XType as it does not represent a class or primitive.
  */
 interface XExecutableType {

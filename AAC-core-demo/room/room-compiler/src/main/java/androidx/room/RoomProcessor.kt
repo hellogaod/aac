@@ -17,7 +17,7 @@
 package androidx.room
 
 import androidx.room.DatabaseProcessingStep.Companion.ENV_CONFIG
-import androidx.room.compiler.processing.javac.JavacBasicAnnotationProcessor
+import androidx.room.compiler.processing.javac.KotlinBasicAnnotationProcessor
 import androidx.room.processor.Context
 import androidx.room.processor.ProcessorErrors
 import androidx.room.util.SimpleJavaVersion
@@ -36,7 +36,7 @@ private const val ISOLATING_ANNOTATION_PROCESSORS_INDICATOR =
  * The annotation processor for Room.
  */
 @AutoService(Processor::class)
-class RoomProcessor : JavacBasicAnnotationProcessor({
+class RoomProcessor : KotlinBasicAnnotationProcessor({
     ENV_CONFIG
 }) {
 
@@ -44,6 +44,7 @@ class RoomProcessor : JavacBasicAnnotationProcessor({
     private var jdkVersionHasBugReported = false
 
     override fun processingSteps() = listOf(
+        //实际实现步骤
         DatabaseProcessingStep()
     )
 

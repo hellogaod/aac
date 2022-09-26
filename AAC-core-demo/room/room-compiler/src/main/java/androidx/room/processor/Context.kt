@@ -151,6 +151,7 @@ class Context private constructor(
     }
 
     fun fork(element: XElement, forceSuppressedWarnings: Set<Warning> = emptySet()): Context {
+
         val suppressedWarnings = SuppressWarningProcessor.getSuppressedWarnings(element)
         val processConvertersResult = CustomConverterProcessor.findConverters(this, element)
         val subBuiltInConverterFlags = typeConverters.builtInConverterFlags.withNext(

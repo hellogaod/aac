@@ -29,11 +29,13 @@ import java.util.Locale
 import javax.lang.model.element.Element
 import kotlin.reflect.KClass
 
+//节点都会继承当前基类节点类
 @Suppress("UnstableApiUsage")
 internal abstract class JavacElement(
     protected val env: JavacProcessingEnv,
     open val element: Element
 ) : XElement, XEquality, InternalXAnnotated {
+
     override fun <T : Annotation> getAnnotations(
         annotation: KClass<T>,
         containerAnnotation: KClass<out Annotation>?
@@ -88,6 +90,7 @@ internal abstract class JavacElement(
     }
 
     override fun kindName(): String {
+        //用于将大写字符转换为小写
         return element.kind.name.lowercase(Locale.US)
     }
 
@@ -101,6 +104,7 @@ internal abstract class JavacElement(
         env.elementUtils.getDocComment(element)
     }
 
+    //如果给定元素引用的所有类型都已定义，则返回 true（换句话说，当前元素尚没有定义，或者说还没有被生成）
     override fun validate(): Boolean {
         return SuperficialValidation.validateElement(element)
     }

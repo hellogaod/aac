@@ -21,6 +21,8 @@ import kotlin.contracts.contract
 
 /**
  * Type elements that represent Enum declarations.
+ *
+ * 枚举声明的类型节点
  */
 interface XEnumTypeElement : XTypeElement {
     val entries: Set<XEnumEntry>

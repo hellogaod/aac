@@ -21,6 +21,8 @@ import kotlin.reflect.KClass
 
 /**
  * Common interface implemented by elements that might have annotations.
+ *
+ * 节点被注解接口
  */
 interface XAnnotated {
     /**

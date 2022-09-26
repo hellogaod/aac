@@ -18,6 +18,7 @@ package androidx.room.vo
 
 import androidx.room.BuiltInTypeConverters
 
+//@BuiltInTypeConverters注解
 data class BuiltInConverterFlags(
     val enums: BuiltInTypeConverters.State,
     val uuid: BuiltInTypeConverters.State

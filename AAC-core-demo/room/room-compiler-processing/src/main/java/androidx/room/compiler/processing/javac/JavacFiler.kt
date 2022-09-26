@@ -22,6 +22,7 @@ import com.squareup.javapoet.JavaFile
 import com.squareup.kotlinpoet.FileSpec
 import javax.annotation.processing.Filer
 
+//XFile使用Filer代理对象
 internal class JavacFiler(
     private val processingEnv: XProcessingEnv,
     val delegate: Filer

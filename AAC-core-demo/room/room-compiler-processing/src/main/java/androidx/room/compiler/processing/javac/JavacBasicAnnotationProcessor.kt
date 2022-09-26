@@ -24,7 +24,6 @@ import javax.annotation.processing.AbstractProcessor
 import javax.annotation.processing.ProcessingEnvironment
 import javax.annotation.processing.RoundEnvironment
 import javax.lang.model.element.TypeElement
-import javax.tools.Diagnostic
 import kotlin.contracts.ExperimentalContracts
 
 /**
@@ -49,10 +48,8 @@ abstract class JavacBasicAnnotationProcessor @JvmOverloads constructor(
         get() = xEnv
 
     final override fun init(processingEnv: ProcessingEnvironment?) {
-
         super.init(processingEnv)
         initialize(xEnv)
-//        xEnv.delegate.messager.printMessage(Diagnostic.Kind.ERROR,"到底指向了没！")
     }
 
     final override fun getSupportedAnnotationTypes() = steps.flatMap { it.annotations() }.toSet()

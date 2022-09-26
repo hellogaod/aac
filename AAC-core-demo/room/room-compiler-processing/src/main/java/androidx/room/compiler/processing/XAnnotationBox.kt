@@ -19,6 +19,8 @@ package androidx.room.compiler.processing
 /**
  * This wraps an annotation element that is both accessible from the processor and runtime.
  *
+ * 这包装了一个注释元素，可以从处理器和运行时访问。
+ *
  * It won't scale to a general purpose processing APIs where an equivalent of the AnnotationMirror
  * API needs to be provided but works well for Room's case.
  */

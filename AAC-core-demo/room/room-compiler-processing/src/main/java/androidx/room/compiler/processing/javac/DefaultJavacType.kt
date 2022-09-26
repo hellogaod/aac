@@ -23,6 +23,8 @@ import javax.lang.model.type.TypeMirror
 
 /**
  * Catch-all class for XType implementation when we don't need/discover a sub-type
+ *
+ * 除了数组和（类或接口）以外的其他类型
  */
 internal class DefaultJavacType private constructor(
     env: JavacProcessingEnv,

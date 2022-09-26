@@ -24,13 +24,18 @@ import javax.lang.model.element.ExecutableElement
 
 /**
  * Utility class for processors that wants to run kotlin specific code.
+ *
+ * kotlin节点
  */
 internal class KotlinMetadataElement(
-    val element: Element,
-    private val classMetadata: KotlinClassMetadata.Class
+    val element: Element,//一个节点
+    private val classMetadata: KotlinClassMetadata.Class//kotlin文件转换的class文件
 ) {
+
+    //当前类及其超类生成KmType对象存储在数据对象KmClassTypeInfo中
     private val typeInfo: KmClassTypeInfo by lazy {
         lateinit var result: KmClassTypeInfo
+        //深度遍历
         classMetadata.accept(
             ClassAsKmTypeReader {
                 result = it
@@ -38,13 +43,17 @@ internal class KotlinMetadataElement(
         )
         result
     }
+
     val kmType
         get() = typeInfo.kmType
+
     val superType
         get() = typeInfo.superType
+
     private val functionList: List<KmFunction> by lazy { classMetadata.readFunctions() }
     private val constructorList: List<KmConstructor> by lazy { classMetadata.readConstructors() }
     private val propertyList: List<KmProperty> by lazy { classMetadata.readProperties() }
+
     private val classFlags: KotlinMetadataClassFlags by lazy {
         KotlinMetadataClassFlags(classMetadata)
     }
@@ -66,6 +75,7 @@ internal class KotlinMetadataElement(
     fun isFunctionalInterface(): Boolean = classFlags.isFunctionalInterface()
     fun isExpect(): Boolean = classFlags.isExpect()
 
+    //匹配方法
     fun getFunctionMetadata(method: ExecutableElement): KmFunction? {
         check(method.kind == ElementKind.METHOD) {
             "must pass an element type of method"
@@ -90,6 +100,7 @@ internal class KotlinMetadataElement(
         }
     }
 
+    //匹配构造函数
     fun getConstructorMetadata(method: ExecutableElement): KmConstructor? {
         check(method.kind == ElementKind.CONSTRUCTOR) {
             "must pass an element type of constructor"
@@ -98,6 +109,7 @@ internal class KotlinMetadataElement(
         return constructorList.firstOrNull { it.descriptor == methodSignature }
     }
 
+    //匹配配置
     fun getPropertyMetadata(propertyName: String) = propertyList.firstOrNull {
         it.name == propertyName
     }
@@ -106,6 +118,10 @@ internal class KotlinMetadataElement(
         /**
          * Creates a [KotlinMetadataElement] for the given element if it contains Kotlin metadata,
          * otherwise this method returns null.
+         *
+         * kotlin文件生成class的时候会自动生成@Metadata注解，这个就是kotlin metadata属性；
+         *
+         * 如果节点包含kotlin metadata生成KotlinMetadataElement；否则返回null
          *
          * Usually the [element] passed must represent a class. For example, if kotlin metadata is
          * desired for a method, then the containing class should be used as parameter.

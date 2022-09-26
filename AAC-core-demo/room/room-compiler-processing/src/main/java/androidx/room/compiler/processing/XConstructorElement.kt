@@ -19,6 +19,8 @@ package androidx.room.compiler.processing
 /**
  * Represents a constructor of a class.
  *
+ * x系列构造函数节点
+ *
  * @see XMethodElement
  * @see XExecutableElement
  */

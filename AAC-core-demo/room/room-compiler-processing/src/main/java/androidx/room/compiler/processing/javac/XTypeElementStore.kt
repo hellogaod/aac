@@ -21,6 +21,10 @@ import java.lang.ref.WeakReference
 
 /**
  * Utility class to cache type element wrappers.
+ *
+ * 缓存包含类型节点信息的工具类
+ *
+ * BackingType用法堪称一绝！！！
  */
 internal class XTypeElementStore<BackingType, T : XTypeElement>(
     private val findElement: (qName: String) -> BackingType?,
@@ -51,6 +55,7 @@ internal class XTypeElementStore<BackingType, T : XTypeElement>(
         typeCache[qName]?.get()?.let {
             return it
         }
+        //非常新颖的写法：findElement(qName)得到的是BackingType；let(wrap)得到的是T
         val result = findElement(qName)?.let(wrap) ?: return null
         return cache(qName, result)
     }

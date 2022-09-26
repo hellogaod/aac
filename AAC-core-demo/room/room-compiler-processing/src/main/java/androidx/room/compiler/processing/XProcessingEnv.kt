@@ -28,10 +28,13 @@ import kotlin.reflect.KClass
 
 /**
  * API for a Processor that is either backed by Java's Annotation Processing API or KSP.
+ *
+ * xprocessor环境变量，替代了ProcessingEnvironment
  */
 //@ExperimentalProcessingApi
 interface XProcessingEnv {
 
+    //kotlin对象的接口还可以对变量做重写操作
     val backend: Backend
 
     /**

@@ -29,6 +29,8 @@ import kotlin.contracts.contract
 /**
  * Represents an element declared in code.
  *
+ * x系列element节点
+ *
  * @see [javax.lang.model.element.Element]
  * @see XExecutableElement
  * @see XVariableElement

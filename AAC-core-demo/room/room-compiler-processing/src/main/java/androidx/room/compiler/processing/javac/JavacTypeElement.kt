@@ -221,11 +221,13 @@ internal sealed class JavacTypeElement(
         arrayOf(element)
     }
 
+    //除了枚举类其他类型在此处理
     class DefaultJavacTypeElement(
         env: JavacProcessingEnv,
         element: TypeElement
     ) : JavacTypeElement(env, element)
 
+    //处理枚举类
     class JavacEnumTypeElement(
         env: JavacProcessingEnv,
         element: TypeElement
@@ -236,6 +238,7 @@ internal sealed class JavacTypeElement(
 
         override val entries: Set<XEnumEntry> by lazy {
             element.enclosedElements.filter {
+                //枚举常量
                 it.kind == ElementKind.ENUM_CONSTANT
             }.mapTo(mutableSetOf()) {
                 JavacEnumEntry(env, it, this)

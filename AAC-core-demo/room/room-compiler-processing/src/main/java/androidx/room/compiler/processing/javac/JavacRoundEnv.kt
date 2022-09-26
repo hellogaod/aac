@@ -39,6 +39,7 @@ internal class JavacRoundEnv(
         get() = delegate.processingOver()
 
     override fun getElementsAnnotatedWith(klass: KClass<out Annotation>): Set<XElement> {
+        //返回当前注解修饰的所有节点
         val elements = delegate.getElementsAnnotatedWith(klass.java)
         return wrapAnnotatedElements(elements, klass.java.canonicalName)
     }

@@ -18,6 +18,8 @@ package androidx.room.compiler.processing
 
 /**
  * Represents a variable element, that is either a method parameter or a field.
+ *
+ * 表示变量元素，即方法参数或字段。
  */
 interface XVariableElement : XElement {
     /**

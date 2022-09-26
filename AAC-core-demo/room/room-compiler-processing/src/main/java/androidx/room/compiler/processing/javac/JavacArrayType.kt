@@ -22,6 +22,7 @@ import androidx.room.compiler.processing.XType
 import androidx.room.compiler.processing.javac.kotlin.KmType
 import javax.lang.model.type.ArrayType
 
+//数组类型
 internal class JavacArrayType private constructor(
     env: JavacProcessingEnv,
     override val typeMirror: ArrayType,

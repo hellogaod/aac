@@ -42,6 +42,7 @@ interface EntityProcessor : EntityOrViewProcessor {
             annotation: XAnnotationBox<Entity>,
             tableName: String
         ): List<IndexInput> {
+            //索引
             return annotation.getAsAnnotationBoxArray<androidx.room.Index>("indices").map {
                 val indexAnnotation = it.value
                 val nameValue = indexAnnotation.name
@@ -61,6 +62,7 @@ interface EntityProcessor : EntityOrViewProcessor {
         }
 
         fun extractForeignKeys(annotation: XAnnotationBox<Entity>): List<ForeignKeyInput> {
+            //主键
             return annotation.getAsAnnotationBoxArray<ForeignKey>("foreignKeys")
                 .mapNotNull { annotationBox ->
                     val foreignKey = annotationBox.value
@@ -84,6 +86,8 @@ interface EntityProcessor : EntityOrViewProcessor {
 
 /**
  * Processed Index annotation output.
+ *
+ * 转换成索引对象输出
  */
 data class IndexInput(
     val name: String,
@@ -94,6 +98,8 @@ data class IndexInput(
 
 /**
  * ForeignKey, before it is processed in the context of a database.
+ *
+ * 主键对象
  */
 data class ForeignKeyInput(
     val parent: XType,
