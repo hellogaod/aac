@@ -18,7 +18,7 @@ package androidx.room.vo
 
 import androidx.room.BuiltInTypeConverters
 
-//@BuiltInTypeConverters注解
+//用于打开/关闭 Room 提供的额外类型转换器的标志。
 data class BuiltInConverterFlags(
     val enums: BuiltInTypeConverters.State,
     val uuid: BuiltInTypeConverters.State

@@ -24,7 +24,7 @@ import androidx.room.parser.SQLTypeAffinity
 import androidx.room.vo.EmbeddedField
 import androidx.room.vo.Field
 import java.util.Locale
-
+//@Entity修饰的类中的变量处理
 class FieldProcessor(
     baseContext: Context,
     val containing: XType,
@@ -45,7 +45,8 @@ class FieldProcessor(
         } else {
             name
         }
-        //字段名称规则：如果@ColumInfo的name属性没有使用默认"[field-name]"，则使用那么属性；否则使用变量名作为字段名；可能还要加前缀
+        //字段名称规则：@Entity修饰的类（如果该类还是用了@AutoValue修饰，那么处理的是`AutoValue_原先类`）的有效变量，如果变量使用了@ColumInfo修饰并且name没有使用默认"[field-name]"，
+        // 那么当前@ColumInfo#name作为变量名；否则当前有效变量作为变量名
         val columnName = (fieldParent?.prefix ?: "") + rawCName
         val affinity = try {
             SQLTypeAffinity.fromAnnotationValue(columnInfo?.typeAffinity)
@@ -57,7 +58,7 @@ class FieldProcessor(
             columnName, element,
             ProcessorErrors.COLUMN_NAME_CANNOT_BE_EMPTY
         )
-        //@Entity修饰的类的变量（非@Ignore修饰、 非static修饰的变量）支持泛型，但是泛型中的类型必须是绑定类型（例如List<T>肯定不行，必须使用List<String>）
+        //有效变量支持泛型，但是泛型中的类型必须是实体类型（例如List<T>肯定不行，必须使用List<String>）
         context.checker.notUnbound(
             type, element,
             ProcessorErrors.CANNOT_USE_UNBOUND_GENERICS_IN_ENTITY_FIELDS
@@ -70,6 +71,7 @@ class FieldProcessor(
         )
 
         val adapterAffinity = adapter?.typeAffinity ?: affinity
+
         //使用@NonNull修饰的字段
         val nonNull = Field.calcNonNull(member, fieldParent)
 

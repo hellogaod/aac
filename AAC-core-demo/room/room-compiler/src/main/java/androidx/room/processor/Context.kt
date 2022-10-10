@@ -30,6 +30,7 @@ import androidx.room.verifier.DatabaseVerifier
 import androidx.room.vo.BuiltInConverterFlags
 import androidx.room.vo.Warning
 
+//当前类贯穿step处理过程，启到上下文关系的作用，step处理过程中都会在当前类中拿去需要的变量
 class Context private constructor(
     val processingEnv: XProcessingEnv,
     val logger: RLog,
@@ -55,7 +56,8 @@ class Context private constructor(
             TypeAdapterStore.copy(this, inheritedAdapterStore)
         } else {
             TypeAdapterStore.create(
-                this, typeConverters.builtInConverterFlags,
+                this,
+                typeConverters.builtInConverterFlags,
                 typeConverters.converters
             )
         }
@@ -85,7 +87,7 @@ class Context private constructor(
     companion object {
         val ARG_OPTIONS by lazy {
             ProcessorOptions.values().map { it.argName } +
-                BooleanProcessorOptions.values().map { it.argName }
+                    BooleanProcessorOptions.values().map { it.argName }
         }
     }
 
@@ -150,17 +152,21 @@ class Context private constructor(
         return Pair(result, collector)
     }
 
+    //节点一级级处理对Context叠加生成新的Context对象
     fun fork(element: XElement, forceSuppressedWarnings: Set<Warning> = emptySet()): Context {
-
+        //警告注释信息
         val suppressedWarnings = SuppressWarningProcessor.getSuppressedWarnings(element)
+
         val processConvertersResult = CustomConverterProcessor.findConverters(this, element)
         val subBuiltInConverterFlags = typeConverters.builtInConverterFlags.withNext(
             processConvertersResult.builtInConverterFlags
         )
         val canReUseAdapterStore =
             subBuiltInConverterFlags == typeConverters.builtInConverterFlags &&
-                processConvertersResult.classes.isEmpty()
+                    processConvertersResult.classes.isEmpty()
+
         // order here is important since the sub context should give priority to new converters.
+        //顺序非常重要
         val subTypeConverters = if (canReUseAdapterStore) {
             this.typeConverters
         } else {
@@ -168,6 +174,7 @@ class Context private constructor(
         }
         val subSuppressedWarnings =
             forceSuppressedWarnings + suppressedWarnings + logger.suppressedWarnings
+
         val subCache = Cache(
             parent = cache,
             converters = subTypeConverters.classes,
@@ -175,7 +182,7 @@ class Context private constructor(
             builtInConverterFlags = subBuiltInConverterFlags
         )
         val subCanRemoveUnusedColumns = canRewriteQueriesToDropUnusedColumns ||
-            element.hasRemoveUnusedColumnsAnnotation()
+                element.hasRemoveUnusedColumnsAnnotation()
         val subContext = Context(
             processingEnv = processingEnv,
             logger = RLog(logger.messager, subSuppressedWarnings, element),
@@ -184,7 +191,9 @@ class Context private constructor(
             cache = subCache,
             canRewriteQueriesToDropUnusedColumns = subCanRemoveUnusedColumns
         )
+
         subContext.databaseVerifier = databaseVerifier
+
         return subContext
     }
 
@@ -207,7 +216,7 @@ class Context private constructor(
     fun reportMissingTypeReference(containerName: String) {
         logger.e(
             "${RLog.MISSING_TYPE_PREFIX}: Element '$containerName' references a type that is " +
-                "not present"
+                    "not present"
         )
     }
 

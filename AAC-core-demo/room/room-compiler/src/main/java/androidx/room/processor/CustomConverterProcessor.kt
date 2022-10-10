@@ -39,8 +39,13 @@ import java.util.LinkedHashSet
 
 /**
  * Processes classes that are referenced in TypeConverters annotations.
+ *
+ * 使用了@TypeConverters注解处理
  */
-class CustomConverterProcessor(val context: Context, val element: XTypeElement) {
+class CustomConverterProcessor(
+    val context: Context,
+    val element: XTypeElement
+    ) {
     companion object {
         private fun XType.isInvalidReturnType() =
             isError() || isVoid() || isNone()
@@ -57,7 +62,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
             val annotation = element.requireAnnotation(TypeConverters::class)
             val classes = annotation.getAsTypeList("value").mapTo(LinkedHashSet()) { it }
             val converters = classes.flatMap {
-                val typeElement = it.typeElement//@TypeConverters注解的value属性中的类类型
+                val typeElement = it.typeElement//@TypeConverters注解的value属性中的类型必须是一个类（或接口）节点
                 if (typeElement == null) {
                     context.logger.e(
                         element,
@@ -68,8 +73,10 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
                     CustomConverterProcessor(context, typeElement).process()
                 }
             }
+
             reportDuplicates(context, converters)
 
+            //@TypeConverters#builtInTypeConverters值
             val builtInStates =
                 annotation.getAsAnnotationBox<BuiltInTypeConverters>("builtInTypeConverters").let {
                     BuiltInConverterFlags(
@@ -77,6 +84,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
                         uuid = it.value.uuid
                     )
                 }
+
             return ProcessResult(
                 classes = classes,//@TypeConverters#values
                 converters = converters.map(::CustomTypeConverterWrapper),//@TypeConverters#values中的item类被@TypeConverter修饰的方法
@@ -93,8 +101,8 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
                     possiblyDuplicateConverters.forEach { converter ->
                         val duplicates = possiblyDuplicateConverters.filter { duplicate ->
                             duplicate !== converter &&
-                                duplicate.from.isSameType(converter.from) &&
-                                duplicate.to.isSameType(converter.to)
+                                    duplicate.from.isSameType(converter.from) &&
+                                    duplicate.to.isSameType(converter.to)
                         }
                         if (duplicates.isNotEmpty()) {
                             context.logger.e(
@@ -115,38 +123,42 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
         val converterMethods = methods.filter {
             it.hasAnnotation(TypeConverter::class)
         }.toList()
+
         val isProvidedConverter = element.hasAnnotation(ProvidedTypeConverter::class)
+
         //@TypeConverters注解中的value属性中的item类中必须存在被@TypeConverter修饰的方法
         context.checker.check(converterMethods.isNotEmpty(), element, TYPE_CONVERTER_EMPTY_CLASS)
+
         val allStatic = converterMethods.all { it.isStatic() }
         val constructors = element.getConstructors()
         val isKotlinObjectDeclaration = element.isKotlinObject()
+
         //@TypeConverters注解中的value属性中的item类没有使用@ProvidedTypeConverter修饰
         if (!isProvidedConverter) {
 
-            //要么该item类里面没有任何属性，要么该item类是static静态类；
+            //该item类如果是内部类，那么必须使用static修饰；
             context.checker.check(
                 element.enclosingTypeElement == null || element.isStatic(),
                 element,
                 INNER_CLASS_TYPE_CONVERTER_MUST_BE_STATIC
             )
 
-            //该item类是`object`或`companion object`kotlin类型、或者@TypeConverter修饰的方法全部是static静态方法、或者当前item类不存在构造函数、或当前item只存在无参构造函数
+            //该item类必须满足以下条件之一：①`object`或`companion object`kotlin类型；②@TypeConverter修饰的方法并且方法是static修饰；③不存在构造函数或只存在无参构造函数；
             context.checker.check(
                 isKotlinObjectDeclaration || allStatic || constructors.isEmpty() ||
-                    constructors.any {
-                        it.parameters.isEmpty()
-                    },
+                        constructors.any {
+                            it.parameters.isEmpty()
+                        },
                 element, TYPE_CONVERTER_MISSING_NOARG_CONSTRUCTOR
             )
         }
         //只会处理@TypeConverter修饰的方法
         return converterMethods.mapNotNull {
             processMethod(
-                container = element.type,
-                isContainerKotlinObject = isKotlinObjectDeclaration,
-                methodElement = it,
-                isProvidedConverter = isProvidedConverter
+                container = element.type,//当前方法所在类
+                isContainerKotlinObject = isKotlinObjectDeclaration,//方法所在类 object` or `companion object` in Kotlin
+                methodElement = it,//@TypeConverter修饰的方法节点
+                isProvidedConverter = isProvidedConverter//当前方法所在类是否使用了ProvidedTypeConverter修饰
             )
         }
     }
@@ -157,6 +169,7 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
         isContainerKotlinObject: Boolean,
         isProvidedConverter: Boolean
     ): CustomTypeConverter? {
+
         val asMember = methodElement.asMemberOf(container)
         val returnType = asMember.returnType
         val invalidReturnType = returnType.isInvalidReturnType()
@@ -187,9 +200,10 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
         }.first()
         //该方法的参数是当前方法所在的item类类型，并且item类必须是试题类型（如List<String>），不允许出现List<T>或List<?>类型
         context.checker.notUnbound(param.typeName, params[0], TYPE_CONVERTER_UNBOUND_GENERIC)
+
         return CustomTypeConverter(
             enclosingClass = container,//方法所在类
-            isEnclosingClassKotlinObject = isContainerKotlinObject,//`object`或`companion object`kotlin类型
+            isEnclosingClassKotlinObject = isContainerKotlinObject,//方法所在类 `object`或`companion object`kotlin类型
             method = methodElement,//@TypeConverter修饰的方法
             from = param,//方法参数：当前方法所在类
             to = returnType,//方法返回类型
@@ -201,9 +215,9 @@ class CustomConverterProcessor(val context: Context, val element: XTypeElement) 
      * Order of classes is important hence they are a LinkedHashSet not a set.
      */
     open class ProcessResult(
-        val classes: LinkedHashSet<XType>,
-        val converters: List<CustomTypeConverterWrapper>,
-        val builtInConverterFlags: BuiltInConverterFlags
+        val classes: LinkedHashSet<XType>,//@TypeConverters#values
+        val converters: List<CustomTypeConverterWrapper>,//@TypeConverters#values中的item类被@TypeConverter修饰的方法
+        val builtInConverterFlags: BuiltInConverterFlags//@TypeConverters#builtInTypeConverters
     ) {
         object EMPTY : ProcessResult(
             classes = LinkedHashSet(),

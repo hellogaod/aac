@@ -37,21 +37,25 @@ class DatabaseViewProcessor(
         )
         val annotationBox = element.getAnnotation(androidx.room.DatabaseView::class)
 
+        //@DatabaseView表示视图；如果@DatabaseView#viewName存在，该属性表示视图名称，否则使用@DatabaseView修饰的类型的SimpleName作为视图名称；
         val viewName: String = if (annotationBox != null) {
             extractViewName(element, annotationBox.value)
         } else {
             element.name
         }
+
         val query: ParsedQuery = if (annotationBox != null) {
             SqlParser.parse(annotationBox.value.value).also {
                 context.checker.check(
                     it.errors.isEmpty(), element,
                     it.errors.joinToString("\n")
                 )
+                //@DatabaseView#value使用select查询语句，必须存在
                 context.checker.check(
                     it.type == QueryType.SELECT, element,
                     ProcessorErrors.VIEW_QUERY_MUST_BE_SELECT
                 )
+                //@DatabaseView 的查询不能接受任何参数。
                 context.checker.check(
                     it.bindSections.isEmpty(), element,
                     ProcessorErrors.VIEW_QUERY_CANNOT_TAKE_ARGUMENTS
@@ -65,6 +69,8 @@ class DatabaseViewProcessor(
             viewName, element,
             ProcessorErrors.VIEW_NAME_CANNOT_BE_EMPTY
         )
+
+        //视图名称不能使用"sqlite_"前缀；
         context.checker.check(
             !viewName.startsWith("sqlite_", true), element,
             ProcessorErrors.VIEW_NAME_CANNOT_START_WITH_SQLITE

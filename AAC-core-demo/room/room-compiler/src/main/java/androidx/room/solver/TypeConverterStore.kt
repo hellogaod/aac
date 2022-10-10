@@ -88,13 +88,13 @@ interface TypeConverterStore {
             context: Context,
             typeConverters: List<TypeConverter>,
             knownColumnTypes: List<XType>
-        ) = if (context.useNullAwareConverter) {
+        ) = if (context.useNullAwareConverter) {//ksp
             NullAwareTypeConverterStore(
                 context = context,
                 typeConverters = typeConverters,
                 knownColumnTypes = knownColumnTypes
             )
-        } else {
+        } else {//kapt
             TypeConverterStoreImpl(
                 typeConverters = typeConverters,
                 knownColumnTypes = knownColumnTypes

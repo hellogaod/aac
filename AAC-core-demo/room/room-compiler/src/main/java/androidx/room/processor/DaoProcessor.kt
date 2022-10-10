@@ -117,7 +117,7 @@ class DaoProcessor(
         val queryMethods = methods[Query::class]?.map {
             QueryMethodProcessor(
                 baseContext = context,
-                containing = declaredType,
+                containing = declaredType,//当前@Dao修饰的类
                 executableElement = it,
                 dbVerifier = processorVerifier
             ).process()

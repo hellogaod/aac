@@ -21,6 +21,8 @@ import androidx.room.vo.Warning
 
 /**
  * A visitor that reads SuppressWarnings annotations and keeps the ones we know about.
+ *
+ * 阅读 SuppressWarnings 注释并保留我们知道的注释信息。
  */
 object SuppressWarningProcessor {
 

@@ -30,6 +30,8 @@ import java.util.LinkedHashSet
 
 /**
  * A cache key can be used to avoid re-processing elements.
+ *
+ * 通过key缓存节点，防止二次处理节点
  * <p>
  * Each context has a cache variable that uses the same backing storage as the Root Context but
  * adds current adapters and warning suppression list to the key.

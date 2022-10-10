@@ -119,6 +119,8 @@ import kotlin.contracts.ExperimentalContracts
 /**
  * Holds all type adapters and can create on demand composite type adapters to convert a type into a
  * database column.
+ *
+ * 包含所有类型适配器，并且可以按需创建复合类型适配器以将类型转换为数据库列。
  */
 class TypeAdapterStore private constructor(
     val context: Context,
@@ -148,6 +150,7 @@ class TypeAdapterStore private constructor(
         ): TypeAdapterStore {
             val adapters = arrayListOf<ColumnTypeAdapter>()
             val converters = arrayListOf<TypeConverter>()
+
             fun addAny(extra: Any?) {
                 when (extra) {
                     is TypeConverter -> converters.add(extra)
@@ -156,8 +159,8 @@ class TypeAdapterStore private constructor(
                     else -> throw IllegalArgumentException("unknown extra $extra")
                 }
             }
-
             extras.forEach(::addAny)
+
             fun addTypeConverter(converter: TypeConverter) {
                 converters.add(converter)
             }
@@ -166,22 +169,36 @@ class TypeAdapterStore private constructor(
                 adapters.add(adapter)
             }
 
+            //7种基本类型转换成PrimitiveColumnTypeAdapter对象
             val primitives = PrimitiveColumnTypeAdapter
                 .createPrimitiveAdapters(context.processingEnv)
             primitives.forEach(::addColumnAdapter)
+
+            //7种基本类型转换成包装类
             BoxedPrimitiveColumnTypeAdapter
                 .createBoxedPrimitiveAdapters(primitives)
                 .forEach(::addColumnAdapter)
+
+            //String类型字段适配
             StringColumnTypeAdapter.create(context.processingEnv).forEach(::addColumnAdapter)
+            //byte数组类型字段适配
             ByteArrayColumnTypeAdapter.create(context.processingEnv).forEach(::addColumnAdapter)
+            //ByteBuffer类型字段适配
             ByteBufferColumnTypeAdapter.create(context.processingEnv).forEach(::addColumnAdapter)
+            //boolean转换成int转换器
             PrimitiveBooleanToIntConverter.create(context.processingEnv).forEach(::addTypeConverter)
+
             // null aware converter is able to automatically null wrap converters so we don't
             // need this as long as we are running in KSP
+            //Boolean转换成Integer转换器
             BoxedBooleanToBoxedIntConverter.create(context.processingEnv)
                 .forEach(::addTypeConverter)
+
+            //type类型存储
             return TypeAdapterStore(
-                context = context, columnTypeAdapters = adapters,
+                context = context,
+                columnTypeAdapters = adapters,
+                //type类型转换存储
                 typeConverterStore = TypeConverterStore.create(
                     context = context,
                     typeConverters = converters,
@@ -317,11 +334,13 @@ class TypeAdapterStore private constructor(
         if (out.isError()) {
             return null
         }
+        //如果当前字段类型是否存在于typeAdapterStore字段适配类型集合中，如果存在直接返回
         val adapter = findDirectAdapterFor(out, affinity)
         if (adapter != null) {
             return adapter
         }
 
+        //如果当前字段类型不存在于typeAdapterStore字段适配类型中，那么在typeAdapterStore转换适配类型中查找，存在返回，不存在继续往下查找
         fun findTypeConverterAdapter(): ColumnTypeAdapter? {
             val targetTypes = affinity?.getTypeMirrors(context.processingEnv)
             val intoStatement = typeConverterStore.findConverterIntoStatement(
@@ -341,6 +360,8 @@ class TypeAdapterStore private constructor(
             return adapterByTypeConverter
         }
 
+        //基本上字段类型存在于typeAdapterStore的字段适配类型集合中或字段转换适配类型集合中，如果不存在，那么：
+        //在判断当前字段类型是否是枚举或UUID类型，如果是并且！BuiltInTypeConverters.State.DISABLED，那么又是一种场景
         if (!skipDefaultConverter) {
             val defaultAdapter = createDefaultTypeAdapter(out)
             if (defaultAdapter != null) {
@@ -355,9 +376,9 @@ class TypeAdapterStore private constructor(
         val typeElement = type.typeElement
         return when {
             builtInConverterFlags.enums.isEnabled() &&
-                typeElement?.isEnum() == true -> EnumColumnTypeAdapter(typeElement)
+                    typeElement?.isEnum() == true -> EnumColumnTypeAdapter(typeElement)
             builtInConverterFlags.uuid.isEnabled() &&
-                type.isUUID() -> UuidColumnTypeAdapter(type)
+                    type.isUUID() -> UuidColumnTypeAdapter(type)
             else -> null
         }
     }
@@ -516,7 +537,7 @@ class TypeAdapterStore private constructor(
             if (valueTypeArg.typeElement == null) {
                 context.logger.e(
                     "Guava multimap 'value' type argument does not represent a class. " +
-                        "Found $valueTypeArg."
+                            "Found $valueTypeArg."
                 )
                 return null
             }
@@ -590,7 +611,7 @@ class TypeAdapterStore private constructor(
             if (mapValueTypeArg.typeElement == null) {
                 context.logger.e(
                     "Multimap 'value' collection type argument does not represent a class. " +
-                        "Found $mapValueTypeArg."
+                            "Found $mapValueTypeArg."
                 )
                 return null
             }

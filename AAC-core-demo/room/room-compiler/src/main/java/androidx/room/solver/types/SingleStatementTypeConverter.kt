@@ -24,6 +24,9 @@ import com.squareup.javapoet.CodeBlock
 
 /**
  * A [TypeConverter] that has only 1 statement (e.g. foo ? bar : baz).
+ *
+ * 简单类型转换器
+ *
  */
 abstract class SingleStatementTypeConverter(
     from: XType,

@@ -26,6 +26,8 @@ import kotlin.reflect.KClass
 /**
  * Similar to preconditions but element bound and just logs the error instead of throwing an
  * exception.
+ *
+ * 类似于前置条件，但元素绑定并且只记录错误而不是抛出异常。
  * <p>
  * It is important for processing to continue when some errors happen so that we can generate as
  * much code as possible, leaving only the errors in javac output.

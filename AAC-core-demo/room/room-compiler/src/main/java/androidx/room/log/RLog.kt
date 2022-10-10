@@ -29,6 +29,7 @@ import javax.tools.Diagnostic.Kind.ERROR
 import javax.tools.Diagnostic.Kind.NOTE
 import javax.tools.Diagnostic.Kind.WARNING
 
+//日志打印：调用的是XMessager.printMessage方法
 class RLog(
     val messager: XMessager,
     val suppressedWarnings: Set<Warning>,
@@ -81,6 +82,7 @@ class RLog(
         val annotationValue: XAnnotationValue?
     )
 
+    //收集输出信息
     class CollectingMessager : XMessager() {
         private val messages = mutableMapOf<Diagnostic.Kind, MutableList<DiagnosticMessage>>()
         override fun onPrintMessage(

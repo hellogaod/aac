@@ -20,16 +20,16 @@ import androidx.room.FtsOptions.MatchInfo
 import androidx.room.FtsOptions.Order
 import androidx.room.migration.bundle.FtsOptionsBundle
 import java.util.Locale
-
+//@Fts3或@Fts4修饰的注解生成的对象
 data class FtsOptions(
-    val tokenizer: String,
-    val tokenizerArgs: List<String>,
-    val contentEntity: Entity?,
-    val languageIdColumnName: String,
-    val matchInfo: MatchInfo,
-    val notIndexedColumns: List<String>,
-    val prefixSizes: List<Int>,
-    val preferredOrder: Order
+    val tokenizer: String,//@Fts3#tokenizer或@Fts4#tokenizer中的属性值
+    val tokenizerArgs: List<String>,//@Fts3#tokenizerArgs或@Fts4#tokenizerArgs中的属性值
+    val contentEntity: Entity?,//如果是@Fst3注解，该属性为null；@Fts4#contentEntity属性
+    val languageIdColumnName: String,//如果是@Fst3注解，该属性为null；@Fts4#languageId属性
+    val matchInfo: MatchInfo,//如果是@Fst3注解，该属性为MatchInfo.FTS4；否则，@Fts4#matchInfo属性，默认是MatchInfo.FTS4
+    val notIndexedColumns: List<String>,//如果是@Fst3注解，该属性为null；@Fts4#notIndexed属性
+    val prefixSizes: List<Int>,//如果是@Fst3注解，该属性为null；@Fts4#prefix属性
+    val preferredOrder: Order//如果是@Fst3注解，该属性为Order.ASC；否则，@Fts4#order属性，默认是Order.ASC
 ) : HasSchemaIdentity {
 
     override fun getIdKey(): String {

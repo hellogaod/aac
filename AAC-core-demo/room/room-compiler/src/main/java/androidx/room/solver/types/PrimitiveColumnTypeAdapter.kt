@@ -36,10 +36,10 @@ import java.util.Locale
  * Adapters for all primitives that has direct cursor mappings.
  */
 open class PrimitiveColumnTypeAdapter(
-    out: XType,
-    val cursorGetter: String,
-    val stmtSetter: String,
-    typeAffinity: SQLTypeAffinity
+    out: XType,//e.g. int
+    val cursorGetter: String,//e.g. getInt
+    val stmtSetter: String,//e.g. bindLong
+    typeAffinity: SQLTypeAffinity //e.g.SQLTypeAffinity.INTEGER
 ) : ColumnTypeAdapter(out, typeAffinity) {
     val cast = if (cursorGetter == "get${out.typeName.toString().capitalize(Locale.US)}")
         ""

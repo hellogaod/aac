@@ -22,6 +22,8 @@ import androidx.room.solver.CodeGenScope
 
 /**
  * Adapters for all boxed primitives that has direct cursor mappings.
+ *
+ * 基本类型转换成包装类
  */
 open class BoxedPrimitiveColumnTypeAdapter(
     boxed: XType,

@@ -25,6 +25,7 @@ import androidx.room.solver.query.result.QueryResultBinder
 /**
  * A class that holds information about a QueryMethod.
  * It is self sufficient and must have all generics etc resolved once created.
+ *
  */
 sealed class QueryMethod(
     val element: XMethodElement,

@@ -50,6 +50,7 @@ class QueryMethodProcessor(
      * implemented as a sub procedure in [InternalQueryProcessor].
      */
     fun process(): QueryMethod {
+
         val annotation = executableElement.getAnnotation(Query::class)?.value
         context.checker.check(
             annotation != null, executableElement,
@@ -68,6 +69,7 @@ class QueryMethodProcessor(
                 containing = containing
             ).processQuery(annotation?.value)
         }
+
         // check if want to swap the query for a better one
         val finalResult = if (initialResult is ReadQueryMethod) {
             val resultAdapter = initialResult.queryResultBinder.adapter
@@ -113,6 +115,7 @@ private class InternalQueryProcessor(
             ProcessorErrors.suspendReturnsDeferredType(returnType.rawType.typeName.toString())
         )
 
+        // @Query#value不允许为空；并且必须是合格的sql语句；
         val query = if (input != null) {
             val query = SqlParser.parse(input)
             context.checker.check(
@@ -120,6 +123,7 @@ private class InternalQueryProcessor(
                 query.errors.joinToString("\n")
             )
             validateQuery(query)
+
             context.checker.check(
                 returnType.isNotError(),
                 executableElement, ProcessorErrors.CANNOT_RESOLVE_RETURN_TYPE,
@@ -130,12 +134,14 @@ private class InternalQueryProcessor(
             ParsedQuery.MISSING
         }
 
+        //@Query修饰的方法返回类型，如果是泛型，那么当前泛型必须是实体绑定类型，e.g.List<String>可以，但是List<?>不可以；
         val returnTypeName = returnType.typeName
         context.checker.notUnbound(
             returnTypeName, executableElement,
             ProcessorErrors.CANNOT_USE_UNBOUND_GENERICS_IN_QUERY_METHODS
         )
 
+        //insert ,delete, update
         val isPreparedQuery = PREPARED_TYPES.contains(query.type)
         val queryMethod = if (isPreparedQuery) {
             getPreparedQueryMethod(delegate, returnType, query)
@@ -187,6 +193,7 @@ private class InternalQueryProcessor(
         query: ParsedQuery
     ): WriteQueryMethod {
         val resultBinder = delegate.findPreparedResultBinder(returnType, query)
+        //@Query修饰的方法返回类型必须是Rxjava2，Rxjava3中的single、maybe、completable等类
         context.checker.check(
             resultBinder.adapter != null,
             executableElement,

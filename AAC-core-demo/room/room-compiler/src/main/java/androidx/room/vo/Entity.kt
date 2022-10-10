@@ -23,6 +23,8 @@ import androidx.room.migration.bundle.TABLE_NAME_PLACEHOLDER
 
 /**
  * A Pojo with a mapping SQLite table.
+ *
+ * 带有映射 SQLite 表的 Pojo。
  */
 open class Entity(
     element: XTypeElement,

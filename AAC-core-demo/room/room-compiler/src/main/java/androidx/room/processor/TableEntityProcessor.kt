@@ -67,8 +67,13 @@ class TableEntityProcessor internal constructor(
         val inheritSuperIndices: Boolean
         if (annotationBox != null) {
             tableName = extractTableName(element, annotationBox.value)
-            entityIndices = extractIndices(annotationBox, tableName)
+            entityIndices = extractIndices(
+                annotationBox, //@Entity注解
+                tableName//表名
+            )
+
             inheritSuperIndices = annotationBox.value.inheritSuperIndices
+
             foreignKeyInputs = extractForeignKeys(annotationBox)
         } else {
             tableName = element.name
@@ -76,7 +81,7 @@ class TableEntityProcessor internal constructor(
             entityIndices = emptyList()
             inheritSuperIndices = false
         }
-        //@Entity修饰的类表示表名，表名要么通过@Entity的tableName属性获取，如果不存在，那么将当前修饰的类名作为表名
+        //@Entity修饰的类表示表名，表名要么通过@Entity的tableName属性获取，如果不存在tableName属性，那么将当前修饰的类名作为表名
         context.checker.notBlank(
             tableName, element,
             ProcessorErrors.ENTITY_TABLE_NAME_CANNOT_BE_EMPTY
@@ -96,11 +101,13 @@ class TableEntityProcessor internal constructor(
             referenceStack = referenceStack
         ).process()
 
+        //@Entity修饰的类中不允许出现@Relation修饰的有效字段
         context.checker.check(pojo.relations.isEmpty(), element, RELATION_IN_ENTITY)
 
         val fieldIndices = pojo.fields
             .filter { it.indexed }.mapNotNull {
                 if (it.parent != null) {
+                    //@Entity修饰的类中@Embedded修饰的类型中的有效变量如果是索引，那么将包警告，因为这种用法无效；
                     it.indexed = false
                     context.logger.w(
                         Warning.INDEX_FROM_EMBEDDED_FIELD_IS_DROPPED, it.element,
@@ -110,6 +117,7 @@ class TableEntityProcessor internal constructor(
                     )
                     null
                 } else if (it.element.enclosingElement != element && !inheritSuperIndices) {
+                    //当前有效节点是索引节点，但是该节点的父级节点不是@Entity修饰的节点，并且这个索引又不是@Entity修饰的节点的父类继承下来的，将报警告，表示用法无效；
                     it.indexed = false
                     context.logger.w(
                         Warning.INDEX_FROM_PARENT_FIELD_IS_DROPPED,
@@ -130,10 +138,14 @@ class TableEntityProcessor internal constructor(
             }
 
         val superIndices = loadSuperIndices(element.superClass, tableName, inheritSuperIndices)
+
+        //索引来源：（1）@ColumnInfo#index = true；（2）@Entity#indices；（3）@Entity#inheritSuperIndices = true，并且@Entity修饰的父类也是用了@Entity修饰，其#indices属性集合
         val indexInputs = entityIndices + fieldIndices + superIndices
+
         val indices = validateAndCreateIndices(indexInputs, pojo)
 
         val primaryKey = findAndValidatePrimaryKey(pojo.fields, pojo.embeddedFields)
+
         val affinity = primaryKey.fields.firstOrNull()?.affinity ?: SQLTypeAffinity.TEXT
         context.checker.check(
             !primaryKey.autoGenerateId || affinity == SQLTypeAffinity.INTEGER,
@@ -280,6 +292,7 @@ class TableEntityProcessor internal constructor(
         fields: List<Field>,
         embeddedFields: List<EmbeddedField>
     ): PrimaryKey {
+
         val candidates = collectPrimaryKeysFromEntityAnnotations(element, fields) +
             collectPrimaryKeysFromPrimaryKeyAnnotations(fields) +
             collectPrimaryKeysFromEmbeddedFields(embeddedFields)
@@ -338,6 +351,7 @@ class TableEntityProcessor internal constructor(
         return fields.mapNotNull { field ->
             field.element.getAnnotation(androidx.room.PrimaryKey::class)?.let {
                 if (field.parent != null) {
+                    //如果@PrimaryKey修饰的字段父节点是@Entity修饰的类中@Embedded修饰的变量表示的对象，那么报警告，表示当前使用方法已经被弃用；
                     // the field in the entity that contains this error.
                     val grandParentField = field.parent.mRootParent.field.element
                     // bound for entity.
@@ -511,6 +525,7 @@ class TableEntityProcessor internal constructor(
             }
 
         // see if any embedded field is an entity with indices, if so, report a warning
+        //如果@Embedded修饰的有效字段类型中的有效字段存在于其所在@Entity#indices属性中，则报警告；
         pojo.embeddedFields.forEach { embedded ->
             val embeddedElement = embedded.pojo.element
             embeddedElement.getAnnotation(androidx.room.Entity::class)?.let {
@@ -546,12 +561,14 @@ class TableEntityProcessor internal constructor(
             // this is coming from a parent, shouldn't happen so no reason to report an error
             return emptyList()
         }
+
+        //如果@Entity修饰的节点的父级节点也是使用@Entity修饰，并且当前@Entity#inheritSuperIndices = true表示索引可传递给子类，那么父类@Entity#indices传递给子类
         val myIndices = parentTypeElement
             .getAnnotation(androidx.room.Entity::class)?.let { annotation ->
                 val indices = extractIndices(annotation, tableName = "super")
                 if (indices.isEmpty()) {
                     emptyList()
-                } else if (inherit) {
+                } else if (inherit) {//表示当前索引可以传递给子类
                     // rename them
                     indices.map {
                         IndexInput(

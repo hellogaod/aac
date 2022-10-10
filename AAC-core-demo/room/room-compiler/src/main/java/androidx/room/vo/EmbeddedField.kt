@@ -20,6 +20,8 @@ import androidx.room.compiler.processing.XNullability
 
 /**
  * Used when a field is embedded inside an Entity or Pojo.
+ *
+ * @Embedded修饰的有效字段生成EmbeddedField
  */
 // used in cache matching, must stay as a data class or implement equals
 data class EmbeddedField(
@@ -30,7 +32,7 @@ data class EmbeddedField(
     val getter by lazy { field.getter }
     val setter by lazy { field.setter }
     val nonNull = field.type.nullability == XNullability.NONNULL
-    lateinit var pojo: Pojo
+    lateinit var pojo: Pojo//@Embedded修饰的有效字段类型生成的Pojo对象
     val mRootParent: EmbeddedField by lazy {
         parent?.mRootParent ?: this
     }

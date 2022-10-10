@@ -83,6 +83,8 @@ public annotation class Entity(
      * When this happens, you will receive a [RoomWarnings.INDEX_FROM_PARENT_FIELD_IS_DROPPED]
      * or [RoomWarnings.INDEX_FROM_PARENT_IS_DROPPED] warning during compilation.
      *
+     * 如果设置为 `true`，则在此类的父类中定义的任何索引都将被传递到当前的 `Entity`。
+     *
      * @return True if indices from parent classes should be automatically inherited by this Entity,
      *         false otherwise. Defaults to false.
      */
@@ -101,6 +103,8 @@ public annotation class Entity(
 
     /**
      * List of [ForeignKey] constraints on this entity.
+     *
+     * 外键
      *
      * @return The list of [ForeignKey] constraints on this entity.
      */

@@ -23,6 +23,6 @@ import androidx.room.compiler.processing.XMethodType
  * An executable element processed as member of a class (pojo or entity)
  */
 class PojoMethod(
-    val element: XMethodElement,
-    val resolvedType: XMethodType,
+    val element: XMethodElement, //方法节点
+    val resolvedType: XMethodType, //方法节点类型
 )

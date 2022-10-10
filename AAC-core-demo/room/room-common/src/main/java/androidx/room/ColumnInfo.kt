@@ -37,6 +37,8 @@ public annotation class ColumnInfo(
     /**
      * The type affinity for the column, which will be used when constructing the database.
      *
+     * 列的类型亲和性，将在构建数据库时使用。
+     *
      * If it is not specified, the value defaults to [UNDEFINED] and Room resolves it based
      * on the field's type and available TypeConverters.
      *

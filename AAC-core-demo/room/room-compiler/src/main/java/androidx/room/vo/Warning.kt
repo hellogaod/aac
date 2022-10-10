@@ -20,6 +20,8 @@ import java.util.Locale
 
 /**
  * Internal representation of supported warnings
+ *
+ * 警告信息大全
  */
 // If these warnings are updated also update androidx.room.RoomWarnings
 enum class Warning(val publicKey: String) {
@@ -38,15 +40,18 @@ enum class Warning(val publicKey: String) {
     MISSING_INDEX_ON_FOREIGN_KEY_CHILD("ROOM_MISSING_FOREIGN_KEY_CHILD_INDEX"),
     RELATION_QUERY_WITHOUT_TRANSACTION("ROOM_RELATION_QUERY_WITHOUT_TRANSACTION"),
     DEFAULT_CONSTRUCTOR("ROOM_DEFAULT_CONSTRUCTOR"),
+
     // TODO(danysantiago): These warning keys should have 'ROOM_' prefix.
     MISSING_COPY_ANNOTATIONS("MISSING_COPY_ANNOTATIONS"),
     MISSING_INDEX_ON_JUNCTION("MISSING_INDEX_ON_JUNCTION"),
     JDK_VERSION_HAS_BUG("JDK_VERSION_HAS_BUG"),
     MISMATCHED_GETTER_TYPE("ROOM_MISMATCHED_GETTER_TYPE"),
     MISMATCHED_SETTER_TYPE("ROOM_MISMATCHED_SETTER_TYPE"),
+
     // NOTE there is no constant for this in RoomWarnings since this is a temporary case until
     // expand projection is removed.
     EXPAND_PROJECTION_WITH_REMOVE_UNUSED_COLUMNS("ROOM_EXPAND_PROJECTION_WITH_UNUSED_COLUMNS"),
+
     // We shouldn't let devs suppress this error via Room so there is no runtime constant for it
     JVM_NAME_ON_OVERRIDDEN_METHOD("ROOM_JVM_NAME_IN_OVERRIDDEN_METHOD");
 

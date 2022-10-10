@@ -20,6 +20,8 @@ import androidx.room.migration.bundle.ForeignKeyBundle
 
 /**
  * Keeps information about a foreign key.
+ *
+ * 外键
  */
 data class ForeignKey(
     val parentTable: String,

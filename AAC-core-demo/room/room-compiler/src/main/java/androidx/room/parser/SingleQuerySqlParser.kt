@@ -25,6 +25,8 @@ import org.antlr.v4.runtime.Recognizer
 
 /**
  * Helper class to parse a single statement out of a query.
+ *
+ * 用于从查询中分析单个语句的Helper类。
  */
 object SingleQuerySqlParser {
     fun <T> parse(
@@ -33,6 +35,7 @@ object SingleQuerySqlParser {
         fallback: (syntaxErrors: List<String>) -> T
     ): T {
         val inputStream = CharStreams.fromString(input)
+
         val lexer = SQLiteLexer(inputStream)
         val tokenStream = CommonTokenStream(lexer)
         val parser = SQLiteParser(tokenStream)

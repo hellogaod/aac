@@ -72,6 +72,8 @@ public annotation class Junction(
     /**
      * The junction column that will be used to match against the [Relation.parentColumn].
      *
+     * 将用于匹配 [Relation.parentColumn] 的连接列。
+     *
      * If not specified it defaults to [Relation.parentColumn].
      */
     val parentColumn: String = "",

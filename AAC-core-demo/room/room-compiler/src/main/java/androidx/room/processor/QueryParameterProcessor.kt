@@ -20,7 +20,7 @@ import androidx.room.compiler.processing.XType
 import androidx.room.compiler.processing.XVariableElement
 import androidx.room.parser.Section
 import androidx.room.vo.QueryParameter
-
+//query查询语句参数
 class QueryParameterProcessor(
     baseContext: Context,
     val containing: XType,

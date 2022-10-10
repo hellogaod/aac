@@ -25,6 +25,7 @@ import androidx.room.solver.CodeGenScope
 import com.squareup.javapoet.TypeName
 import java.nio.ByteBuffer
 
+//ByteBuffer类型字段适配
 class ByteBufferColumnTypeAdapter private constructor(out: XType) : ColumnTypeAdapter(
     out = out,
     typeAffinity = SQLTypeAffinity.BLOB

@@ -24,6 +24,8 @@ import com.squareup.javapoet.TypeName
 
 /**
  * int to boolean adapter.
+ *
+ * 基础类型int转换成boolean转换器
  */
 object PrimitiveBooleanToIntConverter {
     fun create(processingEnvironment: XProcessingEnv): List<TypeConverter> {

@@ -22,7 +22,7 @@ import androidx.room.ext.L
 import androidx.room.parser.SQLTypeAffinity
 import androidx.room.solver.CodeGenScope
 import com.squareup.javapoet.TypeName
-
+//byte数组类型字段适配
 class ByteArrayColumnTypeAdapter private constructor(
     out: XType
 ) : ColumnTypeAdapter(

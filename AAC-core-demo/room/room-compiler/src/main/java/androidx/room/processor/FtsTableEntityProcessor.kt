@@ -67,7 +67,7 @@ class FtsTableEntityProcessor internal constructor(
                 extractIndices(entityAnnotation, tableName).isEmpty(),
                 element, ProcessorErrors.INDICES_IN_FTS_ENTITY
             )
-            //@Fts3或@Fts4修饰了@Entity修饰的类，那么当前@Entity注解不能使用foreignKeys主键属性
+            //@Fts3或@Fts4修饰了@Entity修饰的类，那么当前@Entity注解不能使用foreignKeys外键属性
             context.checker.check(
                 extractForeignKeys(entityAnnotation).isEmpty(),
                 element, ProcessorErrors.FOREIGN_KEYS_IN_FTS_ENTITY
@@ -92,6 +92,7 @@ class FtsTableEntityProcessor internal constructor(
             FtsVersion.FTS4 to getFts4Options(element.getAnnotation(Fts4::class)!!)
         }
 
+        //@Fts3使用tablename拼接 "${tableName}_content"；@Fts4使用#contentEntity属性的表名
         val shadowTableName = if (ftsOptions.contentEntity != null) {
             // In 'external content' mode the FTS table content is in another table.
             // See: https://www.sqlite.org/fts3.html#_external_content_fts4_tables_
@@ -103,6 +104,7 @@ class FtsTableEntityProcessor internal constructor(
         }
 
         val primaryKey = findAndValidatePrimaryKey(entityAnnotation, pojo.fields)
+
         findAndValidateLanguageId(pojo.fields, ftsOptions.languageIdColumnName)
 
         val missingNotIndexed = ftsOptions.notIndexedColumns - pojo.columnNames

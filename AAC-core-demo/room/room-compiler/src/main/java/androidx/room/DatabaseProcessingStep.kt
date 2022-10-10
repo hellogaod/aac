@@ -34,6 +34,7 @@ import androidx.room.writer.DatabaseWriter
 import java.io.File
 import java.nio.file.Path
 
+//Database注解处理
 class DatabaseProcessingStep : XProcessingStep {
 
     override fun annotations(): Set<String> {
@@ -47,11 +48,12 @@ class DatabaseProcessingStep : XProcessingStep {
     ): Set<XTypeElement> {
         check(env.config == ENV_CONFIG) {
             "Room Processor expected $ENV_CONFIG but was invoked with a different configuration:" +
-                "${env.config}"
+                    "${env.config}"
         }
         val context = Context(env)
 
         val rejectedElements = mutableSetOf<XTypeElement>()
+
         val databases = elementsByAnnotation[Database::class.qualifiedName]
             ?.filterIsInstance<XTypeElement>()
             ?.mapNotNull { annotatedElement ->
@@ -66,6 +68,7 @@ class DatabaseProcessingStep : XProcessingStep {
                         annotatedElement
                     ).process()
                 }
+
                 if (logs.hasMissingTypeErrors()) {
                     if (isLastRound) {
                         // Processing is done yet there are still missing type errors, only report
@@ -87,7 +90,7 @@ class DatabaseProcessingStep : XProcessingStep {
                 }
             }
 
-        //Database的daoMethods做生成代码操作
+        //对Dao生成逻辑代码
         val daoMethodsMap = databases?.flatMap { db -> db.daoMethods.map { it to db } }?.toMap()
         daoMethodsMap?.let {
             prepareDaosForWriting(databases, it.keys.toList())
@@ -141,6 +144,8 @@ class DatabaseProcessingStep : XProcessingStep {
 
     /**
      * Traverses all dao methods and assigns them suffix if they are used in multiple databases.
+     *
+     * 如果一个表在多个数据库中使用，那么需要加入前缀；否则不处理
      */
     private fun prepareDaosForWriting(
         databases: List<androidx.room.vo.Database>,

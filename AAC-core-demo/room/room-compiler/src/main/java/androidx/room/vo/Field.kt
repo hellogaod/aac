@@ -30,22 +30,22 @@ import com.squareup.javapoet.TypeName
 import java.util.Locale
 
 // used in cache matching, must stay as a data class or implement equals
-//表字段
+//表字段数据对象
 data class Field(
-    val element: XFieldElement,
-    val name: String,
-    val type: XType,
-    var affinity: SQLTypeAffinity?,
-    val collate: Collate? = null,
-    val columnName: String = name,
-    val defaultValue: String? = null,
+    val element: XFieldElement,//表字段节点
+    val name: String,//当前变量名称
+    val type: XType,//表字段类型
+    var affinity: SQLTypeAffinity?,//当前表字段的类型，默认是UNDEFINED；如果不是这个值，表示在类型转换时需要转换到的类型
+    val collate: Collate? = null,//字段的排序规则，将在构建数据库时使用。
+    val columnName: String = name,//表字段名
+    val defaultValue: String? = null,//表字段默认值
     // null here means that this field does not belong to parent, instead, it belongs to an
     // embedded child of the main Pojo
-    val parent: EmbeddedField? = null,
+    val parent: EmbeddedField? = null,//@Embedded修饰的变量才会出现该对象
     // index might be removed when being merged into an Entity
-    var indexed: Boolean = false,
+    var indexed: Boolean = false,//表字段索引
     /** Whether the table column for this field should be NOT NULL */
-    val nonNull: Boolean = calcNonNull(type, parent)
+    val nonNull: Boolean = calcNonNull(type, parent)//是否使用了@NonNull修饰
 ) : HasSchemaIdentity {
     lateinit var getter: FieldGetter
     lateinit var setter: FieldSetter
@@ -89,6 +89,8 @@ data class Field(
      * List of names that include variations.
      * e.g. if it is mUser, user is added to the list
      * or if it is isAdmin, admin is added to the list
+     *
+     * 前缀如 _ m is has去掉
      */
     val nameWithVariations by lazy {
         val result = arrayListOf(name)

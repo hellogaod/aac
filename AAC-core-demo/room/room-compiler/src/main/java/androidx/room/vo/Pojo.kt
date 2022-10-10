@@ -24,14 +24,16 @@ import com.squareup.javapoet.TypeName
 
 /**
  * A class is turned into a Pojo if it is used in a query response.
+ *
+ * 如果在查询响应中使用一个类，它就会变成一个 Pojo。
  */
 open class Pojo(
-    val element: XTypeElement,
-    val type: XType,
-    fields: List<Field>,
-    val embeddedFields: List<EmbeddedField>,
-    val relations: List<Relation>,
-    val constructor: Constructor? = null
+    val element: XTypeElement,//@Entity修饰的节点（如果同时与@AutovAlue一起使用，表示新生成的节点：Auto_原先节点）表节点
+    val type: XType,//表节点类型
+    fields: List<Field>,//当前@Entity修饰的有效字段被@ColumnInfo修饰（或没有被@Embedded、@ColumnInfo和@Relation修饰） + @Embedded修饰的有效字段类型中的所有有效字段
+    val embeddedFields: List<EmbeddedField>,//@Embedded修饰的有效字段没有被忽略的字段
+    val relations: List<Relation>,//当前@Relation修饰的有效字段生成的Relation对象 + 当前@Embedded有效字段的类型，该类型中使用@Relation修饰的有效字段生成的Relation对象
+    val constructor: Constructor? = null//当前表节点的构造函数
 ) : HasFields {
     val typeName: TypeName by lazy { type.typeName }
 

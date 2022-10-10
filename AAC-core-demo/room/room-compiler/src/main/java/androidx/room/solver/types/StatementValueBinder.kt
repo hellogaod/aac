@@ -21,6 +21,7 @@ import androidx.room.solver.CodeGenScope
 
 /**
  * Binds a value into a statement
+ *
  * see: CursorValueReader
  */
 interface StatementValueBinder {

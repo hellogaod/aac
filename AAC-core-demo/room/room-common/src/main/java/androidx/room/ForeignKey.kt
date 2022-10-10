@@ -57,6 +57,8 @@ public annotation class ForeignKey(
     /**
      * The list of column names in the parent [Entity].
      *
+     * 外键指引的表中的字段
+     *
      * Number of columns must match the number of columns specified in [childColumns].
      *
      * @return The list of column names in the parent Entity.
@@ -67,6 +69,8 @@ public annotation class ForeignKey(
     /**
      * The list of column names in the current [Entity].
      *
+     * 当前表中的字段
+     *
      * Number of columns must match the number of columns specified in [parentColumns].
      *
      * @return The list of column names in the current Entity.
@@ -75,6 +79,8 @@ public annotation class ForeignKey(
 
     /**
      * Action to take when the parent [Entity] is deleted from the database.
+     *
+     * 判断当前外键指引的表被数据库删除
      *
      * By default, [NO_ACTION] is used.
      *
@@ -85,6 +91,8 @@ public annotation class ForeignKey(
 
     /**
      * Action to take when the parent [Entity] is updated in the database.
+     *
+     * 判断当前外键指引的表被数据库更新
      *
      * By default, [NO_ACTION] is used.
      *
@@ -100,6 +108,8 @@ public annotation class ForeignKey(
      * You can also use
      * [defer_foreign_keys](https://sqlite.org/pragma.html#pragma_defer_foreign_keys)
      * PRAGMA to defer them depending on your transaction.
+     *
+     * 外键约束是及时的，但是我们可以通过该字段改变它，表示外键约束可以推迟到事务完成。
      *
      * @return Whether the foreign key constraint should be deferred until the transaction is
      * complete. Defaults to `false`.

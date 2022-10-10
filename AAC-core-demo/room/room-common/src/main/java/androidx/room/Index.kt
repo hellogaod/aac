@@ -42,6 +42,8 @@ public annotation class Index(
     /**
      * List of column names in the Index.
      *
+     * 索引项
+     *
      * The order of columns is important as it defines when SQLite can use a particular index.
      * See [SQLite documentation](https://www.sqlite.org/optoverview.html) for details on
      * index usage in the query optimizer.
@@ -52,6 +54,8 @@ public annotation class Index(
 
     /**
      * List of column sort orders in the Index.
+     *
+     * 索引排序
      *
      * The number of entries in the array should be equal to size of columns in [value].
      *
@@ -82,12 +86,16 @@ public annotation class Index(
      * the index in a query, you should never rely on this name, instead, specify a name for your
      * index.
      *
+     * 索引名称
+     *
      * @return The name of the index.
      */
     val name: String = "",
 
     /**
      * If set to true, this will be a unique index and any duplicates will be rejected.
+     *
+     * 如果设置为 true，这将是一个唯一索引。有且仅有一个
      *
      * @return True if index is unique. False by default.
      */

@@ -22,6 +22,9 @@ import androidx.room.solver.CodeGenScope
 
 /**
  * Reads value from a cursor at the given index.
+ *
+ * 从给定索引处的游标读取值。
+ *
  * see: StatementValueBinder
  */
 interface CursorValueReader {

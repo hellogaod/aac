@@ -48,6 +48,7 @@ import java.nio.file.Path
 import java.util.Locale
 
 class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
+    //Context叠加生成新的Context对象
     val context = baseContext.fork(element)
 
     val roomDatabaseType: XType by lazy {
@@ -67,17 +68,23 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
     private fun doProcess(): Database {
         val dbAnnotation = element.getAnnotation(androidx.room.Database::class)!!
         //entity实体对象生成
-        val entities = processEntities(dbAnnotation, element)
+        val entities = processEntities(
+            dbAnnotation, //Database注解
+            element//使用Database注解修饰的节点
+        )
+
         //views
         val viewsMap = processDatabaseViews(dbAnnotation)
 
         validateForeignKeys(element, entities)
+
         validateExternalContentFts(element, entities)
 
         val extendsRoomDb = roomDatabaseType.isAssignableFrom(element.type)
         context.checker.check(extendsRoomDb, element, ProcessorErrors.DB_MUST_EXTEND_ROOM_DB)
 
         val views = resolveDatabaseViews(viewsMap.values.toList())
+        //数据库验证器
         val dbVerifier = if (element.hasAnnotation(SkipQueryVerification::class)) {
             null
         } else {
@@ -115,7 +122,13 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                         ProcessorErrors.JVM_NAME_ON_OVERRIDDEN_METHOD
                     )
                 }
-                val dao = DaoProcessor(context, daoElement, declaredType, dbVerifier)
+
+                val dao = DaoProcessor(
+                    context,
+                    daoElement,//方法返回类型节点
+                    declaredType,//方法所在父级节点，即@Database修饰的节点
+                    dbVerifier
+                )
                     .process()
                 DaoMethod(executable, dao)
             }
@@ -416,6 +429,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
 
     private fun validateExternalContentFts(dbElement: XTypeElement, entities: List<Entity>) {
         // Validate FTS external content entities are present in the same database.
+        //验证FTS外部内容实体是否存在于同一数据库中。
         entities.filterIsInstance(FtsEntity::class.java)
             .filterNot {
                 it.ftsOptions.contentEntity == null ||
@@ -455,7 +469,10 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 null
             } else {
-                EntityProcessor(context, typeElement).process()
+                EntityProcessor(
+                    context,
+                    typeElement//@Database#entities属性中的类
+                ).process()
             }
         }
     }
@@ -475,7 +492,10 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 null
             } else {
-                viewElement to DatabaseViewProcessor(context, viewElement).process()
+                viewElement to DatabaseViewProcessor(
+                    context,
+                    viewElement// @Database#views节点
+                ).process()
             }
         }.toMap()
     }
@@ -503,6 +523,8 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
     /**
      * Resolves all the underlying tables for each of the [DatabaseView]. All the tables
      * including those that are indirectly referenced are included.
+     *
+     * 解析视图引用的表信息
      *
      * @param views The list of all the [DatabaseView]s in this database. The order in this list is
      * important. A view always comes after all of the tables and views that it depends on.

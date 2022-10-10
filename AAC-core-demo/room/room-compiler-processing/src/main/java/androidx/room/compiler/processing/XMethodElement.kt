@@ -104,6 +104,8 @@ interface XMethodElement : XExecutableElement {
     /**
      * Returns true if this is a suspend function.
      *
+     * kotlin中的挂起函数
+     *
      * @see XSuspendMethodType
      */
     fun isSuspendFunction(): Boolean

@@ -22,14 +22,15 @@ import androidx.room.parser.ParsedQuery
 import androidx.room.compiler.processing.XTypeElement
 import androidx.room.migration.bundle.VIEW_NAME_PLACEHOLDER
 
+//@DatabaseView修饰的节点生成对象
 class DatabaseView(
-    element: XTypeElement,
-    val viewName: String,
-    val query: ParsedQuery,
-    type: XType,
-    fields: List<Field>,
-    embeddedFields: List<EmbeddedField>,
-    constructor: Constructor?
+    element: XTypeElement,//@DatabaseView修饰的节点
+    val viewName: String,//视图名称
+    val query: ParsedQuery,//@DatabaseView#value查询语句生成的解析查询对象
+    type: XType,//@DatabaseView修饰的节点类型
+    fields: List<Field>,//@DatabaseView修饰的类下的所有有效节点
+    embeddedFields: List<EmbeddedField>,//@DatabaseView修饰的类中使用@Embedded修饰的有效字段生成的对象
+    constructor: Constructor?//@DatabaseView修饰的类构造函数
 ) : Pojo(element, type, fields, embeddedFields, emptyList(), constructor),
     HasSchemaIdentity,
     EntityOrView {

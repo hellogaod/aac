@@ -58,7 +58,10 @@ open class RxPreparedQueryResultBinderProvider internal constructor(
     open fun extractTypeArg(declared: XType): XType = declared.typeArguments.first()
 
     companion object {
+
         fun getAll(context: Context) = listOf(
+            //Rxjava2,single类、maybe类、completable类；
+            //Rxjava3，single类、maybe类、completable类；
             RxPreparedQueryResultBinderProvider(context, RxType.RX2_SINGLE),
             RxPreparedQueryResultBinderProvider(context, RxType.RX2_MAYBE),
             RxCompletablePreparedQueryResultBinderProvider(context, RxType.RX2_COMPLETABLE),

@@ -34,6 +34,7 @@ class QueryVisitor(
     statement: ParseTree
 ) : SQLiteBaseVisitor<Void?>() {
     private val bindingExpressions = arrayListOf<BindParameterNode>()
+
     // table name alias mappings
     private val tableNames = mutableSetOf<Table>()
     private val withClauseNames = mutableSetOf<String>()
@@ -117,7 +118,7 @@ class QueryVisitor(
             inputs = bindingExpressions.sortedBy { it.sourceInterval.a },
             tables = tableNames,
             hasTopStarProjection =
-                if (queryType == QueryType.SELECT) foundTopLevelStarProjection else null,
+            if (queryType == QueryType.SELECT) foundTopLevelStarProjection else null,
             syntaxErrors = syntaxErrors,
         )
     }
@@ -284,6 +285,8 @@ enum class SQLTypeAffinity {
     /**
      * produce acceptable variations of the given type names.
      * For JAVAC:
+     *  - 基础类型转换成基础类型的包装类，例如int转换成Integer对象
+     *
      *  - If it is primitive, we'll add boxed version
      * For KSP:
      *  - We'll add a nullable version

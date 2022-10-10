@@ -157,7 +157,7 @@ interface XAnnotated {
      * @see [getAnnotations]
      * @see [hasAnnotationWithPackage]
      */
-    fun getAnnotation(annotationName: ClassName): XAnnotation? {
+    fun getAnnotation(annotationName: KClass<Any>): XAnnotation? {
         return getAnnotations(annotationName).firstOrNull()
     }
 

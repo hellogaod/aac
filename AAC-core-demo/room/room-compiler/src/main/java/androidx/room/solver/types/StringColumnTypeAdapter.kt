@@ -22,7 +22,7 @@ import androidx.room.ext.CommonTypeNames
 import androidx.room.ext.L
 import androidx.room.parser.SQLTypeAffinity.TEXT
 import androidx.room.solver.CodeGenScope
-
+//String字段类型
 class StringColumnTypeAdapter private constructor(
     out: XType
 ) : ColumnTypeAdapter(out = out, typeAffinity = TEXT) {

@@ -102,6 +102,7 @@ abstract class MethodProcessorDelegate(
             executableElement: XMethodElement
         ): MethodProcessorDelegate {
             val asMember = executableElement.asMemberOf(containing)
+            //如果方法是挂起方法，那么必须使用到room-ktx依赖（该依赖中包含CoroutinesRoom类）
             return if (asMember.isSuspendFunction()) {
                 val hasCoroutineArtifact = context.processingEnv
                     .findTypeElement(RoomCoroutinesTypeNames.COROUTINES_ROOM.toString()) != null
@@ -126,11 +127,15 @@ abstract class MethodProcessorDelegate(
     }
 }
 
+// 如果当前方法不是（kotlin）挂起函数，返回false；
+// 否则（是挂起函数），如果当前方法返回类型包含在DEFERRED_TYPES集合（该集合中筛选出存在于当前项目中的类）中，那么返回true；
+// 否则返回false
 fun MethodProcessorDelegate.isSuspendAndReturnsDeferredType(): Boolean {
     if (!executableElement.isSuspendFunction()) {
         return false
     }
 
+    //筛选出DEFERRED_TYPES集合中存在于当前项目中的类
     val deferredTypes = DEFERRED_TYPES.mapNotNull { context.processingEnv.findType(it) }
 
     val returnType = extractReturnType()

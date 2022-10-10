@@ -48,6 +48,7 @@ interface EntityProcessor : EntityOrViewProcessor {
                 val nameValue = indexAnnotation.name
                 val columns = indexAnnotation.value.asList()
                 val orders = indexAnnotation.orders.asList()
+                //如果当前所有不存在名称，根据规则新建一个
                 val name = if (nameValue == "") {
                     createIndexName(columns, tableName)
                 } else {
@@ -62,10 +63,11 @@ interface EntityProcessor : EntityOrViewProcessor {
         }
 
         fun extractForeignKeys(annotation: XAnnotationBox<Entity>): List<ForeignKeyInput> {
-            //主键
+            //外键 @Entity#ForeignKey
             return annotation.getAsAnnotationBoxArray<ForeignKey>("foreignKeys")
                 .mapNotNull { annotationBox ->
                     val foreignKey = annotationBox.value
+                    //当前表的外键指引的表
                     val parent = annotationBox.getAsType("entity")
                     if (parent != null) {
                         ForeignKeyInput(
@@ -90,24 +92,24 @@ interface EntityProcessor : EntityOrViewProcessor {
  * 转换成索引对象输出
  */
 data class IndexInput(
-    val name: String,
-    val unique: Boolean,
-    val columnNames: List<String>,
-    val orders: List<androidx.room.Index.Order>
+    val name: String,//索引名称
+    val unique: Boolean,//是否唯一索引
+    val columnNames: List<String>,//索引项
+    val orders: List<androidx.room.Index.Order>//索引排序
 )
 
 /**
  * ForeignKey, before it is processed in the context of a database.
  *
- * 主键对象
+ * 外键对象
  */
 data class ForeignKeyInput(
-    val parent: XType,
-    val parentColumns: List<String>,
-    val childColumns: List<String>,
-    val onDelete: ForeignKeyAction?,
-    val onUpdate: ForeignKeyAction?,
-    val deferred: Boolean
+    val parent: XType,//当前表的外键指引的表
+    val parentColumns: List<String>,//外键指引的表中的字段
+    val childColumns: List<String>,//当前表中的字段
+    val onDelete: ForeignKeyAction?,//外键指引的表是否被删除
+    val onUpdate: ForeignKeyAction?,//外键指引的表是否被更新
+    val deferred: Boolean//外键约束是否推迟
 )
 
 fun EntityProcessor(

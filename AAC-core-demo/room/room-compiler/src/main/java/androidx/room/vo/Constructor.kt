@@ -29,7 +29,10 @@ import kotlin.contracts.ExperimentalContracts
  * constructor with fields. It can also be a static factory method, such as in the case of an
  * AutoValue Pojo.
  */
-data class Constructor(val element: XExecutableElement, val params: List<Param>) {
+data class Constructor(
+    val element: XExecutableElement,
+    val params: List<Param>
+    ) {
 
     fun hasField(field: Field): Boolean {
         return params.any {

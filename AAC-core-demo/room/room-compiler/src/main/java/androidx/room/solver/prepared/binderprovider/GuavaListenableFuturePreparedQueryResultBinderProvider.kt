@@ -27,7 +27,7 @@ import androidx.room.processor.Context
 import androidx.room.processor.ProcessorErrors
 import androidx.room.solver.prepared.binder.CallablePreparedQueryResultBinder.Companion.createPreparedBinder
 import androidx.room.solver.prepared.binder.PreparedQueryResultBinder
-
+//GuavaRoom类
 class GuavaListenableFuturePreparedQueryResultBinderProvider(val context: Context) :
     PreparedQueryResultBinderProvider {
 

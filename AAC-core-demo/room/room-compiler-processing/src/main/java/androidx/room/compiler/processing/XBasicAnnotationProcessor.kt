@@ -106,7 +106,7 @@ internal class CommonProcessorDelegate(
 
             val deferredElements = mutableSetOf<XElement>()
 
-            //step中的注解集合信息
+            //step中的注解集合信息：Map<String, Set<XElement>> Key：注解，Value：使用该注解的节点集合
             val elementsByAnnotation = step.annotations().mapNotNull { annotation ->
                 val annotatedElements = roundEnv.getElementsAnnotatedWith(annotation) +
                         previousRoundDeferredElementsByAnnotation.getValue(annotation)
