@@ -50,17 +50,19 @@ import java.util.Locale
 
 /**
  * Internal class that is used to manage fetching 1/N to N relationships.
+ *
+ * 一对多，多对多关系
  */
 data class RelationCollector(
-    val relation: Relation,
-    val affinity: SQLTypeAffinity,
-    val mapTypeName: ParameterizedTypeName,
-    val keyTypeName: TypeName,
-    val relationTypeName: TypeName,
-    val queryWriter: QueryWriter,
-    val rowAdapter: RowAdapter,
-    val loadAllQuery: ParsedQuery,
-    val relationTypeIsCollection: Boolean
+    val relation: Relation,//关联对象
+    val affinity: SQLTypeAffinity,//受关联的字段
+    val mapTypeName: ParameterizedTypeName,//转换成map类型：LongSparseArray，ArrayMap，HashMap
+    val keyTypeName: TypeName,//受关联字段转换对象
+    val relationTypeName: TypeName,//表关联字段类型（如果是集合类型，那么当前表示泛型中的参数类型）
+    val queryWriter: QueryWriter,//当前关联写入的sql查询和参数信息
+    val rowAdapter: RowAdapter,//查询列适配
+    val loadAllQuery: ParsedQuery,//关联查询sql解析
+    val relationTypeIsCollection: Boolean//当前关联是否是一对多（或多对多）
 ) {
     // variable name of map containing keys to relation collections, set when writing the code
     // generator in writeInitCode
@@ -232,22 +234,34 @@ data class RelationCollector(
         private val LONG_SPARSE_ARRAY_KEY_QUERY_PARAM_ADAPTER =
             LongSparseArrayKeyQueryParameterAdapter()
 
+        //入口处
         fun createCollectors(
             baseContext: Context,
             relations: List<Relation>
         ): List<RelationCollector> {
+
             return relations.map { relation ->
+
                 val context = baseContext.fork(
                     element = relation.field.element,
                     forceSuppressedWarnings = setOf(Warning.CURSOR_MISMATCH)
                 )
+
+                //关联字段类型匹配
                 val affinity = affinityFor(context, relation)
+                //affinity转换成匹配类型
                 val keyType = keyTypeFor(context, affinity)
+                //关联对象类型（如果是集合类型，那么当前表示泛型中的参数类型），关联对象是否集合类型
                 val (relationTypeName, isRelationCollection) = relationTypeFor(relation)
+
+                //转换成Map类型
                 val tmpMapType = temporaryMapTypeFor(context, affinity, keyType, relationTypeName)
 
+                //被关联对象提取的字段 生成 sql查询语句
                 val loadAllQuery = relation.createLoadAllSql()
+                //对sql解析
                 val parsedQuery = SqlParser.parse(loadAllQuery)
+
                 context.checker.check(
                     parsedQuery.errors.isEmpty(), relation.field.element,
                     parsedQuery.errors.joinToString("\n")
@@ -305,6 +319,7 @@ data class RelationCollector(
                 fun getDefaultRowAdapter(): RowAdapter? {
                     return context.typeAdapterStore.findRowAdapter(relation.pojoType, parsedQuery)
                 }
+
                 val rowAdapter = if (relation.projection.size == 1 && resultInfo != null &&
                     (resultInfo.columns.size == 1 || resultInfo.columns.size == 2)
                 ) {
@@ -344,6 +359,7 @@ data class RelationCollector(
         }
 
         // Gets and check the affinity of the relating columns.
+        //关联字段类型匹配
         private fun affinityFor(context: Context, relation: Relation): SQLTypeAffinity {
             fun checkAffinity(
                 first: SQLTypeAffinity?,
@@ -362,7 +378,9 @@ data class RelationCollector(
                 relation.junction?.parentField?.cursorValueReader?.affinity()
             val junctionChildAffinity =
                 relation.junction?.entityField?.cursorValueReader?.affinity()
+
             return if (relation.junction != null) {
+
                 checkAffinity(childAffinity, junctionChildAffinity) {
                     context.logger.w(
                         Warning.RELATION_TYPE_MISMATCH, relation.field.element,
@@ -374,6 +392,7 @@ data class RelationCollector(
                         )
                     )
                 }
+
                 checkAffinity(parentAffinity, junctionParentAffinity) {
                     context.logger.w(
                         Warning.RELATION_TYPE_MISMATCH, relation.field.element,
@@ -385,7 +404,9 @@ data class RelationCollector(
                         )
                     )
                 }
+
             } else {
+
                 checkAffinity(parentAffinity, childAffinity) {
                     context.logger.w(
                         Warning.RELATION_TYPE_MISMATCH, relation.field.element,
@@ -401,8 +422,12 @@ data class RelationCollector(
         }
 
         // Gets the resulting relation type name. (i.e. the Pojo's @Relation field type name.)
+        //如果是集合，返回集合中的参数类型
         private fun relationTypeFor(relation: Relation) =
+
+            //如果是泛型类型，返回泛型中的参数类型
             if (relation.field.typeName is ParameterizedTypeName) {
+
                 val paramType = relation.field.typeName as ParameterizedTypeName
                 val paramTypeName = if (paramType.rawType == CommonTypeNames.LIST) {
                     ParameterizedTypeName.get(
@@ -432,23 +457,29 @@ data class RelationCollector(
             keyType: TypeName,
             relationTypeName: TypeName
         ): ParameterizedTypeName {
+
             val canUseLongSparseArray = context.processingEnv
                 .findTypeElement(CollectionTypeNames.LONG_SPARSE_ARRAY) != null
+
             val canUseArrayMap = context.processingEnv
                 .findTypeElement(CollectionTypeNames.ARRAY_MAP) != null
+
             return when {
+                //当前项目能引用LongSparseArray && 关联字段是integer类型，返回LongSparseArray< >
                 canUseLongSparseArray && affinity == SQLTypeAffinity.INTEGER -> {
                     ParameterizedTypeName.get(
                         CollectionTypeNames.LONG_SPARSE_ARRAY,
                         relationTypeName
                     )
                 }
+                //当前项目能引用ArrayMap，返回ArrayMap<keyType,relationTypeName>
                 canUseArrayMap -> {
                     ParameterizedTypeName.get(
                         CollectionTypeNames.ARRAY_MAP,
                         keyType, relationTypeName
                     )
                 }
+                //否则使用HashMap<keyType,relationTypeName>
                 else -> {
                     ParameterizedTypeName.get(
                         ClassName.get(java.util.HashMap::class.java),
@@ -473,6 +504,7 @@ data class RelationCollector(
         }
 
         // Gets the type name of the relationship key.
+        // 转换为实际类型
         private fun keyTypeFor(context: Context, affinity: SQLTypeAffinity): TypeName {
             return when (affinity) {
                 SQLTypeAffinity.INTEGER -> TypeName.LONG.box()

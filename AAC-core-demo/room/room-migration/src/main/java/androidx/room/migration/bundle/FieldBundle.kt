@@ -45,13 +45,14 @@ public open class FieldBundle(
      */
     @Deprecated("Use [FieldBundle(String, String, String, boolean, String)")
     public constructor(fieldPath: String, columnName: String, affinity: String, nonNull: Boolean) :
-        this(fieldPath, columnName, affinity, nonNull, null)
+            this(fieldPath, columnName, affinity, nonNull, null)
 
     // Used by GSON
     @Deprecated("Marked deprecated to avoid usage in the codebase")
     @SuppressWarnings("unused")
     private constructor() : this("", "", "", false, null)
 
+    //判断表字段是否出现了更改，条件遵循：1.是否可空；2.表字段名称；3.默认值；4.表字段类型；
     override fun isSchemaEqual(other: FieldBundle): Boolean {
         if (isNonNull != other.isNonNull) return false
         if (columnName != other.columnName) {

@@ -25,9 +25,9 @@ import androidx.room.compiler.processing.XNullability
  */
 // used in cache matching, must stay as a data class or implement equals
 data class EmbeddedField(
-    val field: Field,
-    val prefix: String = "",
-    val parent: EmbeddedField?
+    val field: Field,//@Embedded修饰的有效字段生成的Field对象
+    val prefix: String = "",//前缀
+    val parent: EmbeddedField?//如果当前embedded节点的父节点还是embedded节点，该父embedded节点表示的对象
 ) {
     val getter by lazy { field.getter }
     val setter by lazy { field.setter }

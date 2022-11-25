@@ -25,6 +25,8 @@ import java.util.LinkedList
 /**
  * Legacy [TypeConverterStore] implementation that does not assume we have type nullability
  * information. It is kept around for backwards compatibility.
+ *
+ * 自定义转换器匹配工作
  */
 class TypeConverterStoreImpl(
     /**

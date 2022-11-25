@@ -22,7 +22,7 @@ import androidx.room.ext.N
 import androidx.room.ext.T
 import androidx.room.solver.CodeGenScope
 import com.squareup.javapoet.FieldSpec
-
+//android.database.Cursor生成的BinderProvider
 class CursorQueryResultBinder : QueryResultBinder(NO_OP_RESULT_ADAPTER) {
     override fun convertAndReturn(
         roomSQLiteQueryVar: String,

@@ -93,7 +93,6 @@ import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.BINARY)
-
 public annotation class AutoMigration(
     /**
      * Version of the database schema to migrate from.

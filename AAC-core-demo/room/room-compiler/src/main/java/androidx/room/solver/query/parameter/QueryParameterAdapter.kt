@@ -20,10 +20,14 @@ import androidx.room.solver.CodeGenScope
 
 /**
  * Knows how to convert a query parameter into query arguments.
+ *
+ * 了解如何将查询参数转换为参数
  */
 abstract class QueryParameterAdapter(val isMultiple: Boolean) {
     /**
      * Must bind the value into the statement at the given index.
+     *
+     * 必须将值绑定到给定index处的语句中。
      */
     abstract fun bindToStmt(
         inputVarName: String,
@@ -34,6 +38,8 @@ abstract class QueryParameterAdapter(val isMultiple: Boolean) {
 
     /**
      * Should declare and set the given value with the count
+     *
+     * 应使用计数声明并设置给定值
      */
     abstract fun getArgCount(inputVarName: String, outputVarName: String, scope: CodeGenScope)
 }

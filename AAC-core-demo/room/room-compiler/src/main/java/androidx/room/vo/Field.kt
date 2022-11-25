@@ -35,7 +35,7 @@ data class Field(
     val element: XFieldElement,//表字段节点
     val name: String,//当前变量名称
     val type: XType,//表字段类型
-    var affinity: SQLTypeAffinity?,//当前表字段的类型，默认是UNDEFINED；如果不是这个值，表示在类型转换时需要转换到的类型
+    var affinity: SQLTypeAffinity?,//@ColumnInfo#typeAffinity转换表字段偏向类型
     val collate: Collate? = null,//字段的排序规则，将在构建数据库时使用。
     val columnName: String = name,//表字段名
     val defaultValue: String? = null,//表字段默认值
@@ -43,9 +43,9 @@ data class Field(
     // embedded child of the main Pojo
     val parent: EmbeddedField? = null,//@Embedded修饰的变量才会出现该对象
     // index might be removed when being merged into an Entity
-    var indexed: Boolean = false,//表字段索引
+    var indexed: Boolean = false,//表字段是否创建了索引
     /** Whether the table column for this field should be NOT NULL */
-    val nonNull: Boolean = calcNonNull(type, parent)//是否使用了@NonNull修饰
+    val nonNull: Boolean = calcNonNull(type, parent)//是否允许null
 ) : HasSchemaIdentity {
     lateinit var getter: FieldGetter
     lateinit var setter: FieldSetter

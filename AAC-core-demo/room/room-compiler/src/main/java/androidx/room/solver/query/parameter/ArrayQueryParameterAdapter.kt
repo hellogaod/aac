@@ -24,6 +24,8 @@ import com.squareup.javapoet.TypeName
 
 /**
  * Binds ARRAY(T) (e.g. int[]) into String[] args of a query.
+ *
+ * 查询参数是数组的适配
  */
 class ArrayQueryParameterAdapter(val bindAdapter: StatementValueBinder) :
     QueryParameterAdapter(true) {

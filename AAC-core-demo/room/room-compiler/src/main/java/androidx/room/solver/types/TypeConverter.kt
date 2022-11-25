@@ -25,7 +25,7 @@ import androidx.room.solver.CodeGenScope
 /**
  * A code generator that can convert from 1 type to another
  *
- * 可以从一种类型转换为另一种类型的代码生成器
+ * 自定义类型转换器
  */
 abstract class TypeConverter(
     val from: XType,

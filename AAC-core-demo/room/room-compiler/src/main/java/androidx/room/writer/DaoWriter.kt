@@ -78,6 +78,7 @@ class DaoWriter(
 
     companion object {
         const val GET_LIST_OF_TYPE_CONVERTERS_METHOD = "getRequiredConverters"
+
         // TODO nothing prevents this from conflicting, we should fix.
         val dbField: FieldSpec = FieldSpec
             .builder(RoomTypeNames.ROOM_DB, "__db", PRIVATE, FINAL)
@@ -86,12 +87,13 @@ class DaoWriter(
         private fun shortcutEntityFieldNamePart(shortcutEntity: ShortcutEntity): String {
             return if (shortcutEntity.isPartialEntity) {
                 typeNameToFieldName(shortcutEntity.pojo.typeName) + "As" +
-                    typeNameToFieldName(shortcutEntity.entityTypeName)
+                        typeNameToFieldName(shortcutEntity.entityTypeName)
             } else {
                 typeNameToFieldName(shortcutEntity.entityTypeName)
             }
         }
 
+        //生成的变量名
         private fun typeNameToFieldName(typeName: TypeName?): String {
             return if (typeName is ClassName) {
                 typeName.simpleName()
@@ -102,7 +104,9 @@ class DaoWriter(
     }
 
     override fun createTypeSpecBuilder(): TypeSpec.Builder {
+
         val builder = TypeSpec.classBuilder(dao.implTypeName)
+
         /**
          * For prepared statements that perform insert/update/delete, we check if there are any
          * arguments of variable length (e.g. "IN (:var)"). If not, we should re-use the statement.
@@ -111,13 +115,18 @@ class DaoWriter(
         val groupedPreparedQueries = dao.queryMethods
             .filterIsInstance<WriteQueryMethod>()
             .groupBy { it.parameters.any { it.queryParamAdapter?.isMultiple ?: true } }
+
         // queries that can be prepared ahead of time
+        // 可以提前准备的查询
         val preparedQueries = groupedPreparedQueries[false] ?: emptyList()
+
         // queries that must be rebuilt every single time
+        // 每次都必须重新生成的查询
         val oneOffPreparedQueries = groupedPreparedQueries[true] ?: emptyList()
+
         val shortcutMethods = createInsertionMethods() +
-            createDeletionMethods() + createUpdateMethods() + createTransactionMethods() +
-            createPreparedQueries(preparedQueries)
+                createDeletionMethods() + createUpdateMethods() + createTransactionMethods() +
+                createPreparedQueries(preparedQueries)
 
         builder.apply {
             addOriginatingElement(dbElement)
@@ -199,7 +208,7 @@ class DaoWriter(
             PreparedStmtQuery(
                 mapOf(
                     PreparedStmtQuery.NO_PARAM_FIELD
-                        to (fieldSpec to fieldImpl)
+                            to (fieldSpec to fieldImpl)
                 ),
                 methodBody
             )
@@ -354,10 +363,14 @@ class DaoWriter(
     /**
      * Groups all insertion methods based on the insert statement they will use then creates all
      * field specs, EntityInsertionAdapterWriter and actual insert methods.
+     *
+     * 根据插入语句对所有插入方法进行分组，然后创建所有字段规范、EntityInsertionAdapterWriter和实际插入方法。
      */
     private fun createInsertionMethods(): List<PreparedStmtQuery> {
+
         return dao.insertionMethods
             .map { insertionMethod ->
+                //冲突默认解决办法是ABORT-中止
                 val onConflict = OnConflictProcessor.onConflictText(insertionMethod.onConflict)
                 val entities = insertionMethod.entities
 
@@ -367,6 +380,7 @@ class DaoWriter(
                         .createAnonymous(this@DaoWriter, dbField.name)
                     spec to impl
                 }
+
                 val methodImpl = overrideWithoutAnnotations(
                     insertionMethod.element,
                     declaredDao
@@ -570,6 +584,7 @@ class DaoWriter(
         val onConflictText: String
     ) : SharedFieldSpec(
         baseName = "insertionAdapterOf${shortcutEntityFieldNamePart(shortcutEntity)}",
+        //EntityInsertionAdapter
         type = ParameterizedTypeName.get(
             RoomTypeNames.INSERTION_ADAPTER, shortcutEntity.pojo.typeName
         )
@@ -599,7 +614,7 @@ class DaoWriter(
 
         override fun getUniqueKey(): String {
             return "${shortcutEntity.pojo.typeName}-${shortcutEntity.entityTypeName}" +
-                "$methodPrefix$onConflictText"
+                    "$methodPrefix$onConflictText"
         }
     }
 

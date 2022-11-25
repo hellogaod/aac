@@ -21,11 +21,11 @@ import androidx.room.compiler.processing.XType
 import androidx.room.solver.transaction.binder.TransactionMethodBinder
 
 class TransactionMethod(
-    val element: XMethodElement,
-    val returnType: XType,
-    val parameterNames: List<String>,
+    val element: XMethodElement,//transaction方法
+    val returnType: XType,//transaction方法返回类型
+    val parameterNames: List<String>,//transaction方法参数
     val callType: CallType,
-    val methodBinder: TransactionMethodBinder
+    val methodBinder: TransactionMethodBinder//绑定对象
 ) {
     enum class CallType {
         /**

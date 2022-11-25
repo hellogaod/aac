@@ -27,6 +27,7 @@ import androidx.room.solver.TypeAdapterExtras
 import androidx.room.solver.query.result.GuavaListenableFutureQueryResultBinder
 import androidx.room.solver.query.result.QueryResultBinder
 
+//com.google.common.util.concurrent.ListenableFuture
 @Suppress("FunctionName")
 fun GuavaListenableFutureQueryResultBinderProvider(context: Context): QueryResultBinderProvider =
     GuavaListenableFutureQueryResultBinderProviderImpl(

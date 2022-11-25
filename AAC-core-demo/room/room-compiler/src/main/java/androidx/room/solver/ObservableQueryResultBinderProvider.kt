@@ -42,10 +42,14 @@ abstract class ObservableQueryResultBinderProvider(val context: Context) :
     ): QueryResultBinder {
         val typeArg = extractTypeArg(declared)
         val adapter = context.typeAdapterStore.findQueryResultAdapter(typeArg, query, extras)
+
         val tableNames = (
             (adapter?.accessedTableNames() ?: emptyList()) +
                 query.tables.map { it.name }
             ).toSet()
+
+        //方法返回类型是 LiveData, Flowable , DataSource, DataSourceFactory等，必须通过直接select查询（或间接使用@Relection）一起使用；
+        //如果是@RawQuery，应该通过observedEntities属性指定要查询的表信息
         if (tableNames.isEmpty()) {
             context.logger.e(ProcessorErrors.OBSERVABLE_QUERY_NOTHING_TO_OBSERVE)
         }

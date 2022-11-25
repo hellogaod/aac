@@ -25,6 +25,7 @@ import androidx.room.solver.TypeAdapterExtras
 import androidx.room.solver.query.result.CursorQueryResultBinder
 import androidx.room.solver.query.result.QueryResultBinder
 
+//android.database.Cursor
 class CursorQueryResultBinderProvider(val context: Context) : QueryResultBinderProvider {
     override fun provide(
         declared: XType,

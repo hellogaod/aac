@@ -75,6 +75,8 @@ data class ParsedQuery(
      * Optional data that might be assigned when the query is parsed inside an annotation processor.
      * User may turn this off or it might be disabled for any reason so generated code should
      * always handle not having it.
+     *
+     * sql查询结果
      */
     var resultInfo: QueryResultInfo? = null
     val sections by lazy {

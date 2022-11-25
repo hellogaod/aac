@@ -35,15 +35,15 @@ import com.google.gson.annotations.SerializedName
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
 public open class DatabaseBundle(
     @field:SerializedName("version")
-    public open val version: Int,
+    public open val version: Int,//@Database#version
     @field:SerializedName("identityHash")
-    public open val identityHash: String,
+    public open val identityHash: String,//当前@Database中的所有表和视图形成的hash，唯一标识符，以防开发人员忘记切换版本
     @field:SerializedName("entities")
-    public open val entities: List<EntityBundle>,
+    public open val entities: List<EntityBundle>,//@Database#entities中的表
     @field:SerializedName("views")
-    public open val views: List<DatabaseViewBundle>,
+    public open val views: List<DatabaseViewBundle>,//@Database#views中的视图
     @field:SerializedName("setupQueries")
-    private val setupQueries: List<String>,
+    private val setupQueries: List<String>,//room_master_table表，字段有id和identity_hash,id = 42,identity_hash = 和identityHash有关
 ) : SchemaEquality<DatabaseBundle> {
 
     // Used by GSON

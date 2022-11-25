@@ -60,14 +60,15 @@ class FtsTableEntityProcessor internal constructor(
         )
         val entityAnnotation = element.getAnnotation(androidx.room.Entity::class)
         val tableName: String
+
+        //fts表不允许创建索引，不允许使用外键
         if (entityAnnotation != null) {
             tableName = extractTableName(element, entityAnnotation.value)
-            //@Fts3或@Fts4修饰了@Entity修饰的类，那么当前@Entity注解不能使用indices索引属性
+
             context.checker.check(
                 extractIndices(entityAnnotation, tableName).isEmpty(),
                 element, ProcessorErrors.INDICES_IN_FTS_ENTITY
             )
-            //@Fts3或@Fts4修饰了@Entity修饰的类，那么当前@Entity注解不能使用foreignKeys外键属性
             context.checker.check(
                 extractForeignKeys(entityAnnotation).isEmpty(),
                 element, ProcessorErrors.FOREIGN_KEYS_IN_FTS_ENTITY
@@ -85,6 +86,7 @@ class FtsTableEntityProcessor internal constructor(
         ).process()
 
         context.checker.check(pojo.relations.isEmpty(), element, ProcessorErrors.RELATION_IN_ENTITY)
+
 
         val (ftsVersion, ftsOptions) = if (element.hasAnnotation(androidx.room.Fts3::class)) {
             FtsVersion.FTS3 to getFts3Options(element.getAnnotation(Fts3::class)!!)
@@ -107,12 +109,14 @@ class FtsTableEntityProcessor internal constructor(
 
         findAndValidateLanguageId(pojo.fields, ftsOptions.languageIdColumnName)
 
+        //该表字段必须存在于fts表常规字段或嵌入表常规字段中
         val missingNotIndexed = ftsOptions.notIndexedColumns - pojo.columnNames
         context.checker.check(
             missingNotIndexed.isEmpty(), element,
             ProcessorErrors.missingNotIndexedField(missingNotIndexed)
         )
 
+        //@Fts4#prefix必须大于0
         context.checker.check(
             ftsOptions.prefixSizes.all { it > 0 },
             element, ProcessorErrors.INVALID_FTS_ENTITY_PREFIX_SIZES
@@ -162,6 +166,7 @@ class FtsTableEntityProcessor internal constructor(
         )
     }
 
+    //@Fts4#contentEntity必须存在，并且是使用@Entity注解修饰的类
     private fun getContentEntity(entityType: XType?): Entity? {
         if (entityType == null) {
             context.logger.e(element, ProcessorErrors.FTS_EXTERNAL_CONTENT_CANNOT_FIND_ENTITY)
@@ -189,6 +194,7 @@ class FtsTableEntityProcessor internal constructor(
         return EntityProcessor(context, contentEntityElement, referenceStack).process()
     }
 
+    //fts表必须存在主键是rowid的表字段，并且当前字段类型是int；主键有且仅有一个，（原则上主键可以有多个字段，但是必须保证第一个是rowid）；
     private fun findAndValidatePrimaryKey(
         entityAnnotation: XAnnotationBox<androidx.room.Entity>?,
         fields: List<Field>
@@ -258,6 +264,7 @@ class FtsTableEntityProcessor internal constructor(
         }
 
         // Verify external content columns are a superset of those defined in the FtsEntity
+        //fts表中除了rowid主键和languageId（@Fts4#languageId）字段，其他字段必须存在于@Fts4#contentEntity中属性对象生成的表常规字段或嵌入表常规字段中
         ftsEntity.nonHiddenFields.filterNot {
             contentEntity.fields.any { contentField -> contentField.columnName == it.columnName }
         }.forEach {
@@ -279,12 +286,14 @@ class FtsTableEntityProcessor internal constructor(
             return LanguageId.MISSING
         }
 
+        // languageid字段必须存在于@Fts4和@Entity修饰的类生成的表的常规字段或嵌入表常规字段中；
         val languageIdField = fields.firstOrNull { it.columnName == languageIdColumnName }
         if (languageIdField == null) {
             context.logger.e(element, ProcessorErrors.missingLanguageIdField(languageIdColumnName))
             return LanguageId.MISSING
         }
 
+        // languageid字段必须是int类型
         context.checker.check(
             languageIdField.affinity == SQLTypeAffinity.INTEGER,
             languageIdField.element, ProcessorErrors.INVALID_FTS_ENTITY_LANGUAGE_ID_AFFINITY

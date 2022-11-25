@@ -22,10 +22,11 @@ import androidx.room.compiler.processing.XType
 import androidx.room.solver.shortcut.binder.InsertMethodBinder
 
 data class InsertionMethod(
-    val element: XMethodElement,
-    @OnConflictStrategy val onConflict: Int,
+    val element: XMethodElement,//insert方法节点
+    @OnConflictStrategy val onConflict: Int,//@Insert#onConflict
+    //insert方法参数生成的entity对象；如果@Insert#entity属性存在并且和方法参数（如果参数是数组或集合，那么是item类型）对象不匹配，entity属性对象生成的entity对象
     val entities: Map<String, ShortcutEntity>,
-    val returnType: XType,
-    val parameters: List<ShortcutQueryParameter>,
-    val methodBinder: InsertMethodBinder
+    val returnType: XType,//普通方法表示方法返回类型，suspend方法：suspend方法最后一个参数，该参数的第一个泛型类型
+    val parameters: List<ShortcutQueryParameter>,//insert方法参数生成的对象
+    val methodBinder: InsertMethodBinder//方法返回类型匹配的binder，在solver.shortcut.binder包下
 )

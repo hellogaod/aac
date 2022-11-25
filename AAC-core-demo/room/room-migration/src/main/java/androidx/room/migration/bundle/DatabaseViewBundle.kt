@@ -29,9 +29,9 @@ import com.google.gson.annotations.SerializedName
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
 public open class DatabaseViewBundle(
     @SerializedName("viewName")
-    public open val viewName: String,
+    public open val viewName: String,//视图名称
     @SerializedName("createSql")
-    public open val createSql: String
+    public open val createSql: String//用于生成视图的sql语句
 ) : SchemaEquality<DatabaseViewBundle> {
 
     // Used by GSON

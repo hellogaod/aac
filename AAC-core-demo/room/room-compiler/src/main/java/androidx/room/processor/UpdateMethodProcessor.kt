@@ -35,6 +35,7 @@ class UpdateMethodProcessor(
         val annotation = delegate
             .extractAnnotation(Update::class, ProcessorErrors.MISSING_UPDATE_ANNOTATION)
 
+        // @Update#onConflict：必填项，默认是3，值得范围存在于@OnConflictStrategy注解值范围（0~5）中，自行查看；
         val onConflict = annotation?.value?.onConflict ?: OnConflictProcessor.INVALID_ON_CONFLICT
         context.checker.check(
             onConflict in OnConflictStrategy.NONE..OnConflictStrategy.IGNORE,

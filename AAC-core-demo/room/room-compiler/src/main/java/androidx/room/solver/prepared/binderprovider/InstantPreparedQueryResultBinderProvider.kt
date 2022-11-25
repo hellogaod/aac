@@ -21,6 +21,7 @@ import androidx.room.parser.ParsedQuery
 import androidx.room.processor.Context
 import androidx.room.solver.prepared.binder.InstantPreparedQueryResultBinder
 
+//任意类型都可以匹配
 class InstantPreparedQueryResultBinderProvider(
     val context: Context
 ) : PreparedQueryResultBinderProvider {

@@ -26,11 +26,11 @@ import com.squareup.javapoet.ClassName
  * Stores the changes detected in a database schema between the old and new versions.
  */
 data class AutoMigration(
-    val from: Int,
-    val to: Int,
-    val specElement: XTypeElement?,
-    val schemaDiff: SchemaDiffResult,
-    val isSpecProvided: Boolean,
+    val from: Int,//就数据库版本
+    val to: Int,//新数据库版本
+    val specElement: XTypeElement?,//@Database#autoMigrations中的类
+    val schemaDiff: SchemaDiffResult,//数据库迁移
+    val isSpecProvided: Boolean,//是否做数据库迁移
 ) {
     val specClassName = specElement?.className
 
@@ -78,13 +78,15 @@ data class AutoMigration(
      *
      * The renamed columns map contains a mapping from the NEW name of the column to the OLD name
      * of the column.
+     *
+     * 如果结构发生了变化
      */
     data class ComplexChangedTable(
-        val tableName: String,
-        val tableNameWithNewPrefix: String,
-        val oldVersionEntityBundle: EntityBundle,
-        val newVersionEntityBundle: EntityBundle,
-        val renamedColumnsMap: MutableMap<String, String>
+        val tableName: String,//新表名
+        val tableNameWithNewPrefix: String,//新表名加前缀
+        val oldVersionEntityBundle: EntityBundle,//旧表对象
+        val newVersionEntityBundle: EntityBundle,//新表对象
+        val renamedColumnsMap: MutableMap<String, String>//k:新表名，v：旧表名
     )
 
     /**

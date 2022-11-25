@@ -19,8 +19,9 @@ import androidx.room.compiler.processing.XMethodElement
 import androidx.room.solver.shortcut.binder.DeleteOrUpdateMethodBinder
 
 class DeletionMethod(
-    element: XMethodElement,
+    element: XMethodElement,//delete方法节点
+    //insert方法参数生成的entity对象；如果@Insert#entity属性存在并且和方法参数（如果参数是数组或集合，那么是item类型）对象不匹配，entity属性对象生成的entity对象
     entities: Map<String, ShortcutEntity>,
-    parameters: List<ShortcutQueryParameter>,
-    methodBinder: DeleteOrUpdateMethodBinder?
+    parameters: List<ShortcutQueryParameter>,//delete方法参数生成的对象
+    methodBinder: DeleteOrUpdateMethodBinder?//delete方法绑定对象
 ) : ShortcutMethod(element, entities, parameters, methodBinder)

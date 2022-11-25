@@ -23,17 +23,18 @@ import com.squareup.javapoet.ClassName
 import com.squareup.javapoet.TypeName
 
 data class Dao(
-    val element: XTypeElement,
-    val type: XType,
-    val queryMethods: List<QueryMethod>,
-    val rawQueryMethods: List<RawQueryMethod>,
-    val insertionMethods: List<InsertionMethod>,
-    val deletionMethods: List<DeletionMethod>,
-    val updateMethods: List<UpdateMethod>,
-    val transactionMethods: List<TransactionMethod>,
+    val element: XTypeElement,//dao节点
+    val type: XType,//dao节点类型
+    val queryMethods: List<QueryMethod>,//query方法
+    val rawQueryMethods: List<RawQueryMethod>,//requery方法
+    val insertionMethods: List<InsertionMethod>,//insert方法
+    val deletionMethods: List<DeletionMethod>,//delete方法
+    val updateMethods: List<UpdateMethod>,//update方法
+    val transactionMethods: List<TransactionMethod>,//transaction方法
+    //dao节点存在继承的接口或类，如果排除dao方法和transaction方法以外的方法，该方法存在于dao方法和transaction方法中（参数或返回类型存在包装被包装关系）
     val delegatingMethods: List<KotlinBoxedPrimitiveMethodDelegate>,
-    val kotlinDefaultMethodDelegates: List<KotlinDefaultMethodDelegate>,
-    val constructorParamType: TypeName?
+    val kotlinDefaultMethodDelegates: List<KotlinDefaultMethodDelegate>,//如果dao节点是接口，那么除了dao方法和transaction方法以外kotlin默认实现方法
+    val constructorParamType: TypeName?//
 ) {
     // parsed dao might have a suffix if it is used in multiple databases.
     private var suffix: String? = null
@@ -51,6 +52,7 @@ data class Dao(
         deletionMethods + updateMethods
     }
 
+    //dao节点生成的类名
     private val implClassName by lazy {
         if (suffix == null) {
             suffix = ""

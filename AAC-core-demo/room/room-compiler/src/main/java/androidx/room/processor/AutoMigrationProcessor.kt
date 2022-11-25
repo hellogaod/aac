@@ -46,17 +46,21 @@ class AutoMigrationProcessor(
      * @return the AutoMigrationResult containing the schema changes detected
      */
     fun process(): AutoMigration? {
+
         val (specElement, isSpecProvided) = if (!spec.isTypeOf(Any::class)) {
             val typeElement = spec.typeElement
+            //@AutoMigratio#spec如果不是Any类型（默认是Any类型），那么必须是一个类
             if (typeElement == null) {
                 context.logger.e(AUTOMIGRATION_SPEC_MUST_BE_CLASS)
                 return null
             }
+            //不是抽象类或接口
             if (typeElement.isInterface() || typeElement.isAbstract()) {
                 context.logger.e(typeElement, AUTOMIGRATION_SPEC_MUST_BE_CLASS)
                 return null
             }
 
+            //@AutoMigratio#spec属性中的类如果没有使用@ProvidedAutoMigrationSpec修饰，那么当前类如果存在构造函数，构造函数不允许存在参数；
             val isSpecProvided = typeElement.hasAnnotation(ProvidedAutoMigrationSpec::class)
             if (!isSpecProvided) {
                 val constructors = typeElement.getConstructors()
@@ -67,12 +71,14 @@ class AutoMigrationProcessor(
                 )
             }
 
+            //@AutoMigratio#spec属性中的类如果是内部类，必须是static修饰的静态内部类；
             context.checker.check(
                 typeElement.enclosingTypeElement == null || typeElement.isStatic(),
                 typeElement,
                 INNER_CLASS_AUTOMIGRATION_SPEC_MUST_BE_STATIC
             )
 
+            //@AutoMigratio#spec属性中的类必须继承`androidx.room.migration.AutoMigrationSpec`
             val implementsMigrationSpec =
                 context.processingEnv.requireType(RoomTypeNames.AUTO_MIGRATION_SPEC)
                     .isAssignableFrom(spec)
@@ -98,6 +104,7 @@ class AutoMigrationProcessor(
             return null
         }
 
+        //表示迁移数据后，当前表需要删减的表字段
         val specClassName = specElement?.className?.simpleName()
         val deleteColumnEntries = specElement?.let { element ->
             element.getAnnotations(DeleteColumn::class).map {
@@ -108,6 +115,7 @@ class AutoMigrationProcessor(
             }
         } ?: emptyList()
 
+        //表示迁移数据后，当前需要删减的表
         val deleteTableEntries = specElement?.let { element ->
             element.getAnnotations(DeleteTable::class).map {
                 AutoMigration.DeletedTable(
@@ -116,6 +124,7 @@ class AutoMigrationProcessor(
             }
         } ?: emptyList()
 
+        //表示迁移数据后，修改表名
         val renameTableEntries = specElement?.let { element ->
             element.getAnnotations(RenameTable::class).map {
                 AutoMigration.RenamedTable(
@@ -125,6 +134,7 @@ class AutoMigrationProcessor(
             }
         } ?: emptyList()
 
+        //表示迁移数据后，修改表字段名
         val renameColumnEntries = specElement?.let { element ->
             element.getAnnotations(RenameColumn::class).map {
                 AutoMigration.RenamedColumn(

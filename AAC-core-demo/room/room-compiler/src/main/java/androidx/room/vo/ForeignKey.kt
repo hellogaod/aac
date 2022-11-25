@@ -24,28 +24,28 @@ import androidx.room.migration.bundle.ForeignKeyBundle
  * 外键
  */
 data class ForeignKey(
-    val parentTable: String,
-    val parentColumns: List<String>,
-    val childFields: List<Field>,
+    val parentTable: String,//外键指向的表（外键表）名
+    val parentColumns: List<String>,//外键表常规字段
+    val childFields: List<Field>,//@ForeignKey#childColumns属性
     val onDelete: ForeignKeyAction,
     val onUpdate: ForeignKeyAction,
-    val deferred: Boolean
+    val deferred: Boolean//@ForeignKey#deferred属性
 ) : HasSchemaIdentity {
     override fun getIdKey(): String {
         return parentTable +
-            "-${parentColumns.joinToString(",")}" +
-            "-${childFields.joinToString(",") {it.columnName}}" +
-            "-${onDelete.sqlName}" +
-            "-${onUpdate.sqlName}" +
-            "-$deferred"
+                "-${parentColumns.joinToString(",")}" +
+                "-${childFields.joinToString(",") { it.columnName }}" +
+                "-${onDelete.sqlName}" +
+                "-${onUpdate.sqlName}" +
+                "-$deferred"
     }
 
     fun databaseDefinition(): String {
         return "FOREIGN KEY(${joinEscaped(childFields.map { it.columnName })})" +
-            " REFERENCES `$parentTable`(${joinEscaped(parentColumns)})" +
-            " ON UPDATE ${onUpdate.sqlName}" +
-            " ON DELETE ${onDelete.sqlName}" +
-            " ${deferredDeclaration()}"
+                " REFERENCES `$parentTable`(${joinEscaped(parentColumns)})" +
+                " ON UPDATE ${onUpdate.sqlName}" +
+                " ON DELETE ${onDelete.sqlName}" +
+                " ${deferredDeclaration()}"
     }
 
     private fun deferredDeclaration(): String {

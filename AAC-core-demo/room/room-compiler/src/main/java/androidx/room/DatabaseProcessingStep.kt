@@ -62,10 +62,10 @@ class DatabaseProcessingStep : XProcessingStep {
                     return@mapNotNull null
                 }
                 val (database, logs) = context.collectLogs { subContext ->
-                    //注解使用校验，并且注解信息生成Datebase对象
+                    //从@Datebase注解开始
                     DatabaseProcessor(
                         subContext,
-                        annotatedElement
+                        annotatedElement//@Database修饰的节点
                     ).process()
                 }
 
@@ -92,6 +92,7 @@ class DatabaseProcessingStep : XProcessingStep {
 
         //对Dao生成逻辑代码
         val daoMethodsMap = databases?.flatMap { db -> db.daoMethods.map { it to db } }?.toMap()
+
         daoMethodsMap?.let {
             prepareDaosForWriting(databases, it.keys.toList())
             it.forEach { (daoMethod, db) ->
@@ -145,7 +146,7 @@ class DatabaseProcessingStep : XProcessingStep {
     /**
      * Traverses all dao methods and assigns them suffix if they are used in multiple databases.
      *
-     * 如果一个表在多个数据库中使用，那么需要加入前缀；否则不处理
+     * 如果一个daoMethod方法在多个database节点中使用，需要加入前缀。
      */
     private fun prepareDaosForWriting(
         databases: List<androidx.room.vo.Database>,

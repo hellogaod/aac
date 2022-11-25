@@ -21,9 +21,10 @@ import androidx.room.compiler.processing.XMethodElement
 import androidx.room.solver.shortcut.binder.DeleteOrUpdateMethodBinder
 
 class UpdateMethod(
-    element: XMethodElement,
+    element: XMethodElement,//update方法节点
+    //update方法参数生成的entity对象；如果@Update#entity属性存在并且和方法参数（如果参数是数组或集合，那么是item类型）对象不匹配，entity属性对象生成的entity对象
     entities: Map<String, ShortcutEntity>,
-    parameters: List<ShortcutQueryParameter>,
-    methodBinder: DeleteOrUpdateMethodBinder?,
-    @OnConflictStrategy val onConflictStrategy: Int
+    parameters: List<ShortcutQueryParameter>,//update方法参数生成的对象
+    methodBinder: DeleteOrUpdateMethodBinder?,//update方法匹配绑定类型
+    @OnConflictStrategy val onConflictStrategy: Int//@Update#onConflict
 ) : ShortcutMethod(element, entities, parameters, methodBinder)

@@ -61,6 +61,10 @@ interface MultimapQueryResultAdapter {
                 )
             }
 
+            //1.如果rawQuery方法没有使用@MapInfo && 方法返回类型是`ImmutableSetMultimap，ImmutableListMultimap`，
+            //      那么<k,v>中的key和value类型必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；
+            //2.如果rawQuery方法没有使用@MapInfo && 方法返回类型是`Map、androidx.collection.ArrayMap、androidx.collection.LongSparseArray、androidx.collection.SparseArrayCompat`，
+            //      那么<k,v>中的key和value类型(如果value是集合，判断的是集合中的item类型)必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；
             val hasKeyColumnName = mapInfo?.keyColumnName?.isNotEmpty() ?: false
             if (!hasKeyColumnName && keyReader != null) {
                 logger.e(
@@ -69,7 +73,6 @@ interface MultimapQueryResultAdapter {
                     )
                 )
             }
-
             val hasValueColumnName = mapInfo?.valueColumnName?.isNotEmpty() ?: false
             if (!hasValueColumnName && valueReader != null) {
                 logger.e(

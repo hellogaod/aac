@@ -127,8 +127,10 @@ internal class JavacProcessingEnv(
         )
     }
 
+    //vararg 相当于java的 ...多个参数
     override fun getDeclaredType(type: XTypeElement, vararg types: XType): JavacType {
         check(type is JavacTypeElement)
+        //转换成数组
         val args = types.map {
             check(it is JavacType)
             it.typeMirror

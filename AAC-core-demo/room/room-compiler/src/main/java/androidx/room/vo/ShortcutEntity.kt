@@ -20,7 +20,9 @@ package androidx.room.vo
  * Represents a shortcut method parameter entity.
  */
 data class ShortcutEntity(
+    //dao方法参数生成的entity
     private val entity: Entity, // the actual entity
+    //如果dao方法注解的entity属性存在，并且属性对象和dao方法参数（如果是集合或数组，判断的是item类型）不一致，当前entity属性对象生成的pojo对象
     private val partialEntity: Pojo? // the partial entity
 ) {
     val tableName = entity.tableName

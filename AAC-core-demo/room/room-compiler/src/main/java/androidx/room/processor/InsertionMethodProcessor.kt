@@ -25,12 +25,14 @@ import androidx.room.compiler.processing.XType
 import androidx.room.vo.InsertionMethod
 import androidx.room.vo.findFieldByColumnName
 
+//@Insert修饰的方法处理
 class InsertionMethodProcessor(
     baseContext: Context,
     val containing: XType,
     val executableElement: XMethodElement
 ) {
     val context = baseContext.fork(executableElement)
+
     fun process(): InsertionMethod {
         val delegate = ShortcutMethodProcessor(context, containing, executableElement)
         val annotation = delegate.extractAnnotation(
@@ -38,6 +40,7 @@ class InsertionMethodProcessor(
             ProcessorErrors.MISSING_INSERT_ANNOTATION
         )
 
+        //@Insert#onConflict：必填项，默认是3，值得范围存在于@OnConflictStrategy注解值范围（0~5）中，自行查看；
         val onConflict = annotation?.value?.onConflict ?: OnConflictProcessor.INVALID_ON_CONFLICT
         context.checker.check(
             onConflict in OnConflictStrategy.NONE..OnConflictStrategy.IGNORE,
@@ -71,8 +74,10 @@ class InsertionMethodProcessor(
                 // the INSERT will fail with a NOT NULL constraint.
                 val missingRequiredFields = (entity.fields - entity.primaryKey.fields).filter {
                     it.nonNull && it.defaultValue == null &&
-                        pojo.findFieldByColumnName(it.columnName) == null
+                            pojo.findFieldByColumnName(it.columnName) == null
                 }
+
+                //entity属性对象除了主键字段，其他字段不允许是notnull属性（因为可能没有插入值而导致插入失败）；
                 context.checker.check(
                     missingRequiredFields.isEmpty(),
                     executableElement,

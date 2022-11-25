@@ -27,17 +27,17 @@ import androidx.room.migration.bundle.TABLE_NAME_PLACEHOLDER
  * 带有映射 SQLite 表的 Pojo。
  */
 open class Entity(
-    element: XTypeElement,
-    override val tableName: String,
-    type: XType,
-    fields: List<Field>,
-    embeddedFields: List<EmbeddedField>,
-    val primaryKey: PrimaryKey,
-    val indices: List<Index>,
-    val foreignKeys: List<ForeignKey>,
-    constructor: Constructor?,
-    val shadowTableName: String?
-) : Pojo(element, type, fields, embeddedFields, emptyList(), constructor),
+    element: XTypeElement,//@Entity修饰的节点，或@Entity和@AutoValue同时修饰生成的原先类_AutoValue节点
+    override val tableName: String,//生成的表名
+    type: XType,//用于创建Pojo的节点类型；如果节点同时使用@AutovAlue表示新生成的节点类型：Auto_原先节点类型；
+    fields: List<Field>,//表常规字段和嵌入表常规字段
+    embeddedFields: List<EmbeddedField>,//表嵌入字段
+    val primaryKey: PrimaryKey,//主键
+    val indices: List<Index>,//索引
+    val foreignKeys: List<ForeignKey>,//外键
+    constructor: Constructor?,//Pojo节点构造函数
+    val shadowTableName: String?//null
+) : Pojo(element, type, fields, embeddedFields, emptyList(), constructor),//
     HasSchemaIdentity,
     EntityOrView {
 
@@ -56,6 +56,7 @@ open class Entity(
         return identityKey.hash()
     }
 
+    //当前entity和entity中的表字段生成一段用于生成表和表字段的sql代码
     private fun createTableQuery(tableName: String): String {
         val definitions = (
             fields.map {

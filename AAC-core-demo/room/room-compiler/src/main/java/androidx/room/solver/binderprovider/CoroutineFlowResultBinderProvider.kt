@@ -27,6 +27,7 @@ import androidx.room.solver.TypeAdapterExtras
 import androidx.room.solver.query.result.CoroutineFlowResultBinder
 import androidx.room.solver.query.result.QueryResultBinder
 
+//kotlinx.coroutines.flow.Flow
 @Suppress("FunctionName")
 fun CoroutineFlowResultBinderProvider(context: Context): QueryResultBinderProvider =
     CoroutineFlowResultBinderProviderImpl(

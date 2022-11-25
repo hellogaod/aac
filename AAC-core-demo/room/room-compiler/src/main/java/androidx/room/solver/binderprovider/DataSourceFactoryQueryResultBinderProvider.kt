@@ -29,6 +29,7 @@ import androidx.room.solver.query.result.ListQueryResultAdapter
 import androidx.room.solver.query.result.PositionalDataSourceQueryResultBinder
 import androidx.room.solver.query.result.QueryResultBinder
 
+//androidx.paging.DataSource.Factory
 class DataSourceFactoryQueryResultBinderProvider(val context: Context) : QueryResultBinderProvider {
     private val dataSourceFactoryType: XRawType? by lazy {
         context.processingEnv.findType(PagingTypeNames.DATA_SOURCE_FACTORY)?.rawType

@@ -38,6 +38,7 @@ private class NonEntityOrViewProcessor(
 ) : EntityOrViewProcessor {
 
     override fun process(): EntityOrView {
+        //@Relation修饰的变量对象必须使用@Entity或@DatabaseView修饰
         context.logger.e(element, ProcessorErrors.NOT_ENTITY_OR_VIEW)
         // Parse this as a Pojo in case there are more errors.
         PojoProcessor.createFor(

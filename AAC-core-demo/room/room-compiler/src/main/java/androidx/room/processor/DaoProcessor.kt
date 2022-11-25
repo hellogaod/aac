@@ -35,8 +35,8 @@ import androidx.room.vo.Warning
 
 class DaoProcessor(
     baseContext: Context,
-    val element: XTypeElement,
-    val dbType: XType,
+    val element: XTypeElement,//dao节点
+    val dbType: XType,//dao节点所在父级节点类型
     val dbVerifier: DatabaseVerifier?
 ) {
     val context = baseContext.fork(element)
@@ -65,10 +65,12 @@ class DaoProcessor(
                 constructorParamType = null
             )
         }
+        //必须使用@Dao修饰
         context.checker.hasAnnotation(
             element, androidx.room.Dao::class,
             ProcessorErrors.DAO_MUST_BE_ANNOTATED_WITH_DAO
         )
+        //@Dao修饰的节点必须是抽象类或接口
         context.checker.check(
             element.isAbstract() || element.isInterface(),
             element, ProcessorErrors.DAO_MUST_BE_AN_ABSTRACT_CLASS_OR_AN_INTERFACE
@@ -80,10 +82,12 @@ class DaoProcessor(
             .filter {
                 it.isAbstract() && !it.hasKotlinDefaultImpl()
             }.groupBy { method ->
+                //dao方法最多只能使用@Insert、@Delete、@Query、@Update和@RawQuery中的一个注解，换句话说@Insert、@Delete、@Query、@Update和@RawQuery不能修饰同一个方法
                 context.checker.check(
                     PROCESSED_ANNOTATIONS.count { method.hasAnnotation(it) } <= 1, method,
                     ProcessorErrors.INVALID_ANNOTATION_COUNT_IN_DAO_METHOD
                 )
+                //dao方法最好不要使用@JvmName修饰，否则警告
                 if (method.hasAnnotation(JvmName::class)) {
                     context.logger.w(
                         Warning.JVM_NAME_ON_OVERRIDDEN_METHOD,
@@ -114,6 +118,7 @@ class DaoProcessor(
             dbVerifier
         }
 
+        //处理Query修饰的dao方法
         val queryMethods = methods[Query::class]?.map {
             QueryMethodProcessor(
                 baseContext = context,
@@ -157,7 +162,7 @@ class DaoProcessor(
 
         val transactionMethods = allMethods.filter { member ->
             member.hasAnnotation(Transaction::class) &&
-                PROCESSED_ANNOTATIONS.none { member.hasAnnotation(it) }
+                    PROCESSED_ANNOTATIONS.none { member.hasAnnotation(it) }
         }.map {
             TransactionMethodProcessor(
                 baseContext = context,
@@ -181,6 +186,7 @@ class DaoProcessor(
                 emptyList()
             }
 
+        // Insert, Delete, Query, Update, RawQuery,Transaction之外的方法如果存在于kotlin默认实现的方法中
         val kotlinDefaultMethodDelegates = if (element.isInterface()) {
             val allProcessedMethods =
                 methods.values.flatten() + transactionMethods.map { it.element }
@@ -202,21 +208,25 @@ class DaoProcessor(
         val constructors = element.getConstructors()
         val goodConstructor = constructors.firstOrNull {
             it.parameters.size == 1 &&
-                it.parameters[0].type.isAssignableFrom(dbType)
+                    it.parameters[0].type.isAssignableFrom(dbType)
         }
         val constructorParamType = if (goodConstructor != null) {
             goodConstructor.parameters[0].type.typeName
         } else {
+            //如果dao节点对象存在构造函数并且构造函数参数不为空，则报错。
+            // 除非构造函数参数有且仅有一个，并且参数类型是dao节点所在父节点类型；
             validateEmptyConstructor(constructors)
             null
         }
 
+        //dao节点支持泛型类型，但是泛型类型必须是实体类型，e.g.List<String>正确，List< T>不正确；
         val type = declaredType.typeName
         context.checker.notUnbound(
             type, element,
             ProcessorErrors.CANNOT_USE_UNBOUND_GENERICS_IN_DAO_CLASSES
         )
 
+        //dao节点中存在方法，除了Insert, Delete, Query, Update, RawQuery,Transaction之外的方法必须存在于kotlin默认实现的方法中；否则报错；
         (unannotatedMethods - delegatingMethods.map { it.element }).forEach { method ->
             context.logger.e(method, ProcessorErrors.INVALID_ANNOTATION_COUNT_IN_DAO_METHOD)
         }
@@ -237,6 +247,7 @@ class DaoProcessor(
     }
 
     private fun validateEmptyConstructor(constructors: List<XConstructorElement>) {
+        //如果dao方法返回类型 表示的节点，该节点对象存在构造函数并且构造函数参数不为空，则报错。
         if (constructors.isNotEmpty() && constructors.all { it.parameters.isNotEmpty() }) {
             context.logger.e(
                 element,

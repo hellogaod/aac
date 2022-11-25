@@ -30,6 +30,7 @@ interface EntityProcessor : EntityOrViewProcessor {
     override fun process(): androidx.room.vo.Entity
 
     companion object {
+        //表名：@Entity#tableName属性值如果存在，则使用该属性值；否则使用@Entity修饰的类名
         fun extractTableName(element: XTypeElement, annotation: Entity): String {
             return if (annotation.tableName == "") {
                 element.name
@@ -94,8 +95,8 @@ interface EntityProcessor : EntityOrViewProcessor {
 data class IndexInput(
     val name: String,//索引名称
     val unique: Boolean,//是否唯一索引
-    val columnNames: List<String>,//索引项
-    val orders: List<androidx.room.Index.Order>//索引排序
+    val columnNames: List<String>,//索引的表字段
+    val orders: List<androidx.room.Index.Order>//索引排序：升序还是降序
 )
 
 /**
@@ -107,9 +108,9 @@ data class ForeignKeyInput(
     val parent: XType,//当前表的外键指引的表
     val parentColumns: List<String>,//外键指引的表中的字段
     val childColumns: List<String>,//当前表中的字段
-    val onDelete: ForeignKeyAction?,//外键指引的表是否被删除
-    val onUpdate: ForeignKeyAction?,//外键指引的表是否被更新
-    val deferred: Boolean//外键约束是否推迟
+    val onDelete: ForeignKeyAction?,//外键所在父级表中的表字段被删除，当前外键的行为
+    val onUpdate: ForeignKeyAction?,//外键所在父级表中的表字段被修改，当前外键的行为
+    val deferred: Boolean//外键约束是否根据事务延时处理
 )
 
 fun EntityProcessor(

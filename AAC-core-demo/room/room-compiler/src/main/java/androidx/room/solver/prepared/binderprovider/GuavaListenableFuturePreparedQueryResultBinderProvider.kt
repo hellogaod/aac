@@ -27,7 +27,7 @@ import androidx.room.processor.Context
 import androidx.room.processor.ProcessorErrors
 import androidx.room.solver.prepared.binder.CallablePreparedQueryResultBinder.Companion.createPreparedBinder
 import androidx.room.solver.prepared.binder.PreparedQueryResultBinder
-//GuavaRoom类
+//com.google.common.util.concurrent.ListenableFuture
 class GuavaListenableFuturePreparedQueryResultBinderProvider(val context: Context) :
     PreparedQueryResultBinderProvider {
 
@@ -39,6 +39,7 @@ class GuavaListenableFuturePreparedQueryResultBinderProvider(val context: Contex
         declared.typeArguments.size == 1 &&
             declared.rawType.typeName == GuavaUtilConcurrentTypeNames.LISTENABLE_FUTURE
 
+    //必须新增依赖androidx.room:room-guava
     override fun provide(declared: XType, query: ParsedQuery): PreparedQueryResultBinder {
         if (!hasGuavaRoom) {
             context.logger.e(ProcessorErrors.MISSING_ROOM_GUAVA_ARTIFACT)

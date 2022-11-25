@@ -95,7 +95,7 @@ public annotation class Index(
     /**
      * If set to true, this will be a unique index and any duplicates will be rejected.
      *
-     * 如果设置为 true，这将是一个唯一索引。有且仅有一个
+     * 如果设置为 true，这将是一个唯一索引。
      *
      * @return True if index is unique. False by default.
      */

@@ -55,7 +55,7 @@ class DatabaseViewProcessor(
                     it.type == QueryType.SELECT, element,
                     ProcessorErrors.VIEW_QUERY_MUST_BE_SELECT
                 )
-                //@DatabaseView 的查询不能接受任何参数。
+
                 context.checker.check(
                     it.bindSections.isEmpty(), element,
                     ProcessorErrors.VIEW_QUERY_CANNOT_TAKE_ARGUMENTS

@@ -23,6 +23,8 @@ import androidx.room.solver.prepared.binder.PreparedQueryResultBinder
 /**
  * Interface for for providing the appropriate [PreparedQueryResultBinder] given a query and a
  * method's return type.
+ *
+ * 接口，用于提供给定查询和方法返回类型的适当[PreparedQueryResultBinder]。
  */
 interface PreparedQueryResultBinderProvider {
     /**

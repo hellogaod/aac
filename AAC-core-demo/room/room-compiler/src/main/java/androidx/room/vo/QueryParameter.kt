@@ -21,12 +21,14 @@ import androidx.room.solver.query.parameter.QueryParameterAdapter
 
 /**
  * Holds the parameter for a {@link QueryMethod}.
+ *
+ * 查询字段参数
  */
 data class QueryParameter(
     // this is name seen by java
-    val name: String,
+    val name: String,//Dao方法参数名
     // this is the name used in the query. Might be different for kotlin queries
-    val sqlName: String,
-    val type: XType,
-    val queryParamAdapter: QueryParameterAdapter?
+    val sqlName: String,//在query使用，默认是Dao方法参数名
+    val type: XType,//Dao方法参数类型
+    val queryParamAdapter: QueryParameterAdapter?//Dao方法参数适配，有collection，数组，其他。在solver.query.parameter
 )

@@ -27,7 +27,7 @@ import androidx.room.solver.TypeAdapterExtras
 import androidx.room.solver.query.result.ListQueryResultAdapter
 import androidx.room.solver.query.result.PositionalDataSourceQueryResultBinder
 import androidx.room.solver.query.result.QueryResultBinder
-
+//androidx.paging.PositionalDataSource
 class DataSourceQueryResultBinderProvider(val context: Context) : QueryResultBinderProvider {
     private val dataSourceType: XRawType? by lazy {
         context.processingEnv.findType(PagingTypeNames.DATA_SOURCE)?.rawType

@@ -34,6 +34,11 @@ import com.squareup.javapoet.FieldSpec
 /**
  * An adapter for [PreparedQueryResultBinder] that executes queries with INSERT, UPDATE or DELETE
  * statements.
+ *
+ * （1）如果返回类型是void ，Void 或kotlin [Unit] type类型生成当前适配对象；
+ * （2）insert，如果返回类型是long生成适配对象；
+ * （3）update或delete，如果返回类型是int生成当前适配对象；
+ * （4）其他情况不生成适配对象；
  */
 class PreparedQueryResultAdapter(
     private val returnType: XType,
@@ -49,6 +54,11 @@ class PreparedQueryResultAdapter(
             null
         }
 
+        //方法返回类型是void ，voidObject 或KotlinUnit 都返回true;
+        //如果以上条件不满足，那么判断sql类型：
+        //(1)如果是insert，那么返回类型是long或Long，返回true；否则返回false；
+        //(2)如果是update或delete，那么返回类型是int或Integer，返回true；否则返回false；
+        //(3)其他情况一律返回false；
         private fun isValidReturnType(returnType: XType, queryType: QueryType): Boolean {
             if (returnType.isVoid() || returnType.isVoidObject() || returnType.isKotlinUnit()) {
                 return true

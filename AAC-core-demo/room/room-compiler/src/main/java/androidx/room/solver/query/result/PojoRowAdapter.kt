@@ -42,6 +42,8 @@ import java.util.Locale
  * Creates the entity from the given info.
  * <p>
  * The info comes from the query processor so we know about the order of columns in the result etc.
+ *
+ * 表字段是一个对象（非基本类型，非基本类型包装类型），则对当前字段生成pojo对象
  */
 class PojoRowAdapter(
     context: Context,
@@ -62,6 +64,8 @@ class PojoRowAdapter(
         val remainingFields = pojo.fields.mapTo(mutableListOf(), { it })
         val unusedColumns = arrayListOf<String>()
         val matchedFields: List<Field>
+
+        //将pojo中的表常规字段和嵌入表常规字段匹配sql查询字段
         if (info != null) {
             matchedFields = info.columns.mapNotNull { column ->
                 // first check remaining, otherwise check any. maybe developer wants to map the same
@@ -76,6 +80,9 @@ class PojoRowAdapter(
                     field
                 }
             }
+
+            //row表字段是pojo对象，如果该pojo对象中的表常规字段和嵌入表常规字段 不存在于 sql查询字段中，我们称之为剩余字段，剩余字段不允许是null值
+            //换句话说，非null字段必须被包含在sql查询字段中
             val nonNulls = remainingFields.filter { it.nonNull }
             if (nonNulls.isNotEmpty()) {
                 context.logger.e(
@@ -86,6 +93,7 @@ class PojoRowAdapter(
                     )
                 )
             }
+            //sql查询字段必须包含pojo对象中的表常规字段或嵌入表常规字段
             if (matchedFields.isEmpty()) {
                 context.logger.e(ProcessorErrors.cannotFindQueryResultAdapter(out.typeName))
             }
@@ -128,8 +136,8 @@ class PojoRowAdapter(
                 }
                 check(infoIndex != -1) {
                     "Result column index not found for field '$it' with column name " +
-                        "'${it.columnName}'. Query: ${query.original}. Please file a bug at " +
-                        ISSUE_TRACKER_LINK
+                            "'${it.columnName}'. Query: ${query.original}. Please file a bug at " +
+                            ISSUE_TRACKER_LINK
                 }
                 scope.builder().addStatement(
                     "final $T $L = $L",
@@ -178,10 +186,10 @@ class PojoRowAdapter(
     }
 
     data class PojoMapping(
-        val pojo: Pojo,
-        val matchedFields: List<Field>,
-        val unusedColumns: List<String>,
-        val unusedFields: List<Field>
+        val pojo: Pojo,//字段是对象，生成pojo对象
+        val matchedFields: List<Field>,//sql查询字段匹配到pojo中的常规字段和嵌入表常规字段
+        val unusedColumns: List<String>,//sql查询字段在pojo中没有匹配上的字段
+        val unusedFields: List<Field>//pojo对象中没有被sql查询字段匹配上的表常规字段和嵌入表常规字段
     ) : QueryMappedRowAdapter.Mapping() {
         override val usedColumns = matchedFields.map { it.columnName }
     }

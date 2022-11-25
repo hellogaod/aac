@@ -24,7 +24,7 @@ import androidx.room.parser.SQLTypeAffinity
 import androidx.room.vo.EmbeddedField
 import androidx.room.vo.Field
 import java.util.Locale
-//@Entity修饰的类中的变量处理
+//pojo节点生成的变量处理
 class FieldProcessor(
     baseContext: Context,
     val containing: XType,
@@ -34,6 +34,7 @@ class FieldProcessor(
     val onBindingError: (field: Field, errorMsg: String) -> Unit
 ) {
     val context = baseContext.fork(element)
+
     fun process(): Field {
         val member = element.asMemberOf(containing)
         val type = member.typeName
@@ -45,9 +46,9 @@ class FieldProcessor(
         } else {
             name
         }
-        //字段名称规则：@Entity修饰的类（如果该类还是用了@AutoValue修饰，那么处理的是`AutoValue_原先类`）的有效变量，如果变量使用了@ColumInfo修饰并且name没有使用默认"[field-name]"，
-        // 那么当前@ColumInfo#name作为变量名；否则当前有效变量作为变量名
+        // 如果是嵌入表中的常规字段，将该字段加前缀
         val columnName = (fieldParent?.prefix ?: "") + rawCName
+
         val affinity = try {
             SQLTypeAffinity.fromAnnotationValue(columnInfo?.typeAffinity)
         } catch (ex: NumberFormatException) {
@@ -100,15 +101,13 @@ class FieldProcessor(
                 }
             }
             BindingScope.BIND_TO_STMT -> {
-                field.statementBinder = context.typeAdapterStore
-                    .findStatementValueBinder(field.type, field.affinity)
+                field.statementBinder = context.typeAdapterStore.findStatementValueBinder(field.type, field.affinity)
                 if (field.statementBinder == null) {
                     onBindingError(field, ProcessorErrors.CANNOT_FIND_STMT_BINDER)
                 }
             }
             BindingScope.READ_FROM_CURSOR -> {
-                field.cursorValueReader = context.typeAdapterStore
-                    .findCursorValueReader(field.type, field.affinity)
+                field.cursorValueReader = context.typeAdapterStore.findCursorValueReader(field.type, field.affinity)
                 if (field.cursorValueReader == null) {
                     onBindingError(field, ProcessorErrors.CANNOT_FIND_CURSOR_READER)
                 }

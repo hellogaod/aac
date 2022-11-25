@@ -24,7 +24,7 @@ import androidx.room.compiler.processing.XElement
 data class PrimaryKey(
     val declaredIn: XElement?,//主键所在父节点
     override val fields: Fields,//主键字段
-    val autoGenerateId: Boolean//是否字段生成id
+    val autoGenerateId: Boolean//是否字段生成id,默认false
 ) : HasSchemaIdentity, HasFields {
     companion object {
         val MISSING = PrimaryKey(null, Fields(), false)

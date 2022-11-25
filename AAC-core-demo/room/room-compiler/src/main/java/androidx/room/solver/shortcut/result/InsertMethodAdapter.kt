@@ -51,6 +51,10 @@ class InsertMethodAdapter private constructor(private val insertionType: Inserti
             return null
         }
 
+        //如果当前insert返回类型不支持：直接返回false；否则继续往下判断
+        //如果参数为空，或者参数大于1：在判断当前返回类型是否是kotlin.Unit.INSTANCE或void类型，如果不是，则返回false；否则继续往下判断
+        //如果第一个参数是集合或数组，只要其中的item类型在insert支持的返回类型中，都表示true；否则false
+        //如果第一个参数不是集合或数组，判断当前返回类型是void，object void或kotlin.Unit.INSTANCE，或long，如果是返回true，否则false
         private fun isInsertValid(
             insertionType: InsertionType?,
             params: List<ShortcutQueryParameter>
@@ -83,6 +87,13 @@ class InsertMethodAdapter private constructor(private val insertionType: Inserti
             )
         }
 
+        //返回类型支持：
+        // return void
+        //return kotlin.Unit.INSTANCE
+        //return long
+        //return long[]
+        //return Long[]
+        //return List<Long>
         @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
         private fun getInsertionType(returnType: XType): InsertionType? {
             return if (returnType.isVoid()) {

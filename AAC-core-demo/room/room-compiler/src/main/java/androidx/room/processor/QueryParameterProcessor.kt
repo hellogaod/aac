@@ -20,26 +20,30 @@ import androidx.room.compiler.processing.XType
 import androidx.room.compiler.processing.XVariableElement
 import androidx.room.parser.Section
 import androidx.room.vo.QueryParameter
-//query查询语句参数
+
+//dao方法参数转换成查询参数处理
 class QueryParameterProcessor(
     baseContext: Context,
-    val containing: XType,
-    val element: XVariableElement,
-    private val sqlName: String,
-    private val bindVarSection: Section.BindVar?
+    val containing: XType,//所在dao节点类型
+    val element: XVariableElement,//dao方法参数
+    private val sqlName: String,//dao方法参数名
+    private val bindVarSection: Section.BindVar?//变量筛选绑定
 ) {
     val context = baseContext.fork(element)
+
     fun process(): QueryParameter {
         val asMember = element.asMemberOf(containing)
         val parameterAdapter = context.typeAdapterStore.findQueryParameterAdapter(
             typeMirror = asMember,
             isMultipleParameter = bindVarSection?.isMultiple ?: false
         )
+        //sql查询字段类型必须能够适配表字段类型
         context.checker.check(
             parameterAdapter != null, element,
             ProcessorErrors.CANNOT_BIND_QUERY_PARAMETER_INTO_STMT
         )
 
+        //dao方法参数命名不允许使用"_"开头；
         val name = element.name
         context.checker.check(
             !name.startsWith("_"), element,

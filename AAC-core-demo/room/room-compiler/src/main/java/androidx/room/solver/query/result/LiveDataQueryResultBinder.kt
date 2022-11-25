@@ -27,6 +27,7 @@ import com.squareup.javapoet.FieldSpec
 
 /**
  * Converts the query into a LiveData and returns it. No query is run until necessary.
+ * androidx.lifecycle.LiveData生成的
  */
 class LiveDataQueryResultBinder(
     val typeArg: XType,

@@ -68,6 +68,7 @@ internal sealed class JavacMethodType(
         executableType = executableType
     ),
         XSuspendMethodType {
+        //suspend方法最后一个参数，该参数的第一个泛型类型
         override fun getSuspendFunctionReturnType(): XType {
             // the continuation parameter is always the last parameter of a suspend function and it
             // only has one type parameter, e.g Continuation<? super T>

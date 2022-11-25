@@ -39,17 +39,17 @@ import com.google.gson.annotations.SerializedName
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP_PREFIX)
 public open class EntityBundle(
     @SerializedName("tableName")
-    public open val tableName: String,
+    public open val tableName: String,//表名
     @SerializedName("createSql")
-    public open val createSql: String,
+    public open val createSql: String,//生成表和表字段的sql语句
     @SerializedName("fields")
-    public open val fields: List<FieldBundle>,
+    public open val fields: List<FieldBundle>,//表常规字段
     @SerializedName("primaryKey")
-    public open val primaryKey: PrimaryKeyBundle,
+    public open val primaryKey: PrimaryKeyBundle,//表主键字段
     @SerializedName("indices")
     public open val indices: List<IndexBundle>,
     @SerializedName("foreignKeys")
-    public open val foreignKeys: List<ForeignKeyBundle>
+    public open val foreignKeys: List<ForeignKeyBundle>//表外键字段
 ) : SchemaEquality<EntityBundle> {
 
     // Used by GSON

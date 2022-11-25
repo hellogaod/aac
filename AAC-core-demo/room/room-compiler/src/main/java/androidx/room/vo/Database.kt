@@ -29,17 +29,18 @@ import java.io.File
  * Holds information about a class annotated with Database.
  */
 data class Database(
-    val element: XTypeElement,
-    val type: XType,
-    val entities: List<Entity>,
-    val views: List<DatabaseView>,
-    val daoMethods: List<DaoMethod>,
-    val version: Int,
-    val exportSchema: Boolean,
-    val enableForeignKeys: Boolean
+    val element: XTypeElement,//@Database修饰的节点
+    val type: XType,//@Database修饰的节点类型
+    val entities: List<Entity>,//@Database#entities表生成的对象；
+    val views: List<DatabaseView>,//@@Database#views视图生成的对象
+    val daoMethods: List<DaoMethod>,//@Database修饰的节点中的xxxDao方法
+    val version: Int,//@Database#version
+    val exportSchema: Boolean,//@Database#exportSchema,默认true
+    val enableForeignKeys: Boolean//@Database#entities表只要有某一个存在外键
 ) {
     // This variable will be set once auto-migrations are processed given the DatabaseBundle from
     // this object. This is necessary for tracking the versions involved in the auto-migration.
+    //数据库迁移
     lateinit var autoMigrations: List<AutoMigration>
     val typeName: ClassName by lazy { element.className }
 
@@ -53,8 +54,11 @@ data class Database(
 
     val bundle by lazy {
         DatabaseBundle(
-            version, identityHash, entities.map(Entity::toBundle),
+            version,
+            identityHash,
+            entities.map(Entity::toBundle),
             views.map(DatabaseView::toBundle),
+            //新建一个room_master_table表，字段有id和identity_hash
             listOf(
                 RoomMasterTable.CREATE_QUERY,
                 RoomMasterTable.createInsertQuery(identityHash)
@@ -65,6 +69,8 @@ data class Database(
     /**
      * Create a has that identifies this database definition so that at runtime we can check to
      * ensure developer didn't forget to update the version.
+     *
+     * 创建一个标识此数据库定义的has，以便在运行时我们可以检查以确保开发人员不会忘记更新版本。
      */
     val identityHash: String by lazy {
         val idKey = SchemaIdentityKey()

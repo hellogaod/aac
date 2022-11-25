@@ -22,15 +22,15 @@ import androidx.room.parser.ParsedQuery
 import androidx.room.compiler.processing.XTypeElement
 import androidx.room.migration.bundle.VIEW_NAME_PLACEHOLDER
 
-//@DatabaseView修饰的节点生成对象
+//@DatabaseView修饰的节点生成视图对象
 class DatabaseView(
     element: XTypeElement,//@DatabaseView修饰的节点
     val viewName: String,//视图名称
     val query: ParsedQuery,//@DatabaseView#value查询语句生成的解析查询对象
-    type: XType,//@DatabaseView修饰的节点类型
-    fields: List<Field>,//@DatabaseView修饰的类下的所有有效节点
-    embeddedFields: List<EmbeddedField>,//@DatabaseView修饰的类中使用@Embedded修饰的有效字段生成的对象
-    constructor: Constructor?//@DatabaseView修饰的类构造函数
+    type: XType,//pojo节点类型
+    fields: List<Field>,//pojo节点表常规字段和嵌入表的常规字段
+    embeddedFields: List<EmbeddedField>,//pojo节点表嵌入字段
+    constructor: Constructor?//pojo节点构造函数
 ) : Pojo(element, type, fields, embeddedFields, emptyList(), constructor),
     HasSchemaIdentity,
     EntityOrView {
@@ -43,6 +43,8 @@ class DatabaseView(
 
     /**
      * List of all the underlying tables including those that are indirectly referenced.
+     *
+     * 所有基础表的列表，包括间接引用的表。
      *
      * This is populated by DatabaseProcessor. This cannot be an immutable constructor parameter
      * as it can only be known after all the other views are initialized and parsed.
@@ -57,6 +59,7 @@ class DatabaseView(
         return identityKey.hash()
     }
 
+    //生成视图和视图字段的sql
     private fun createViewQuery(viewName: String): String {
         // This query should match exactly like it is stored in sqlite_master. The query is
         // trimmed. "IF NOT EXISTS" should not be included.

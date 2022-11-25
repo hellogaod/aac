@@ -23,6 +23,8 @@ import androidx.room.vo.ShortcutQueryParameter
 
 /**
  * Processes parameters of methods that are annotated with Insert, Update or Delete.
+ *
+ * dao方法参数处理
  */
 class ShortcutParameterProcessor(
     baseContext: Context,
@@ -33,6 +35,7 @@ class ShortcutParameterProcessor(
     fun process(): ShortcutQueryParameter {
         val asMember = element.asMemberOf(containing)
         val name = element.name
+        //dao方法参数不允许使用"_"开头命名
         context.checker.check(
             !name.startsWith("_"), element,
             ProcessorErrors.QUERY_PARAMETERS_CANNOT_START_WITH_UNDERSCORE
@@ -48,11 +51,14 @@ class ShortcutParameterProcessor(
         )
     }
 
+    //当前传入的类型如果是Iterable或数组，那么返回的是Pari<xx,true>；xx表示当前item下的对象，如果该对象不是泛型类型；否则该对象如果是泛型类型，那么使用当前泛型类型（递归直到不存在泛型类型）
+    // 否则返回Pari<xx,false>，xx表示当前的对象，如果该对象不是泛型类型；否则该对象如果是泛型类型，那么使用当前泛型类型（递归直到不存在泛型类型）
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private fun extractPojoType(typeMirror: XType): Pair<XType?, Boolean> {
 
         val processingEnv = context.processingEnv
 
+        //如果是pojoType是泛型类型，生成的Pair对象的第一个参数使用当前泛型类型；否则直接使用pojoType
         fun verifyAndPair(pojoType: XType, isMultiple: Boolean): Pair<XType?, Boolean> {
             // kotlin may generate ? extends T so we should reduce it.
             val boundedVar = pojoType.extendsBound()
@@ -63,6 +69,7 @@ class ShortcutParameterProcessor(
             }
         }
 
+        //当前对象的非private iterator方法，该方法返回类型的第一个泛型参数类型
         fun extractPojoTypeFromIterator(iterableType: XType): XType {
             iterableType.typeElement!!.getAllNonPrivateInstanceMethods().forEach {
                 if (it.jvmName == "iterator") {

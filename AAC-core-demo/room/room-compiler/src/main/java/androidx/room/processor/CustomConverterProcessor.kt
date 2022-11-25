@@ -45,7 +45,7 @@ import java.util.LinkedHashSet
 class CustomConverterProcessor(
     val context: Context,
     val element: XTypeElement
-    ) {
+) {
     companion object {
         private fun XType.isInvalidReturnType() =
             isError() || isVoid() || isNone()
@@ -92,7 +92,7 @@ class CustomConverterProcessor(
             )
         }
 
-        //判断类型转换是否重复：判断依据是@TypeConverter修饰的方法的唯一参数类型 - > 当前方法返回类型，是否存在不止一个
+        //@TypeConverters#value中的typeConverters对象可以有多个，这些对象的所有typeConverter方法不允许出现方法返回类型和方法参数类型都一致的情况，表示重复的类型转换
         private fun reportDuplicates(context: Context, converters: List<CustomTypeConverter>) {
             converters
                 .groupBy { it.from.typeName to it.to.typeName }
@@ -126,24 +126,29 @@ class CustomConverterProcessor(
 
         val isProvidedConverter = element.hasAnnotation(ProvidedTypeConverter::class)
 
-        //@TypeConverters注解中的value属性中的item类中必须存在被@TypeConverter修饰的方法
+        //typeConverters对象中必须存在被@TypeConverter修饰的方法；
         context.checker.check(converterMethods.isNotEmpty(), element, TYPE_CONVERTER_EMPTY_CLASS)
 
         val allStatic = converterMethods.all { it.isStatic() }
         val constructors = element.getConstructors()
         val isKotlinObjectDeclaration = element.isKotlinObject()
 
-        //@TypeConverters注解中的value属性中的item类没有使用@ProvidedTypeConverter修饰
+        //typeConverters对象没有使用@ProvidedTypeConverter修饰
         if (!isProvidedConverter) {
 
-            //该item类如果是内部类，那么必须使用static修饰；
+            //typeConverters对象是内部类，除非使用@ProvidedTypeConverter修饰，否则必须使用static修饰；
             context.checker.check(
                 element.enclosingTypeElement == null || element.isStatic(),
                 element,
                 INNER_CLASS_TYPE_CONVERTER_MUST_BE_STATIC
             )
 
-            //该item类必须满足以下条件之一：①`object`或`companion object`kotlin类型；②@TypeConverter修饰的方法并且方法是static修饰；③不存在构造函数或只存在无参构造函数；
+            //typeConverters对象除非使用@ProvidedTypeConverter修饰，否则支持一下条件中的至少一个条件：
+            //
+            // - （1）typeConverters对象是`object`或`companion object`kotlin类型；
+            // - （2）typeConverter方法必须全部static修饰；
+            // - （3）typeConverters对象构造函数为空
+            // - （4）typeConverters对象构造函数存在，但是参数为空；
             context.checker.check(
                 isKotlinObjectDeclaration || allStatic || constructors.isEmpty() ||
                         constructors.any {
@@ -174,23 +179,23 @@ class CustomConverterProcessor(
         val returnType = asMember.returnType
         val invalidReturnType = returnType.isInvalidReturnType()
 
-        //该方法必须ublic修饰
+        //该方法必须public修饰
         context.checker.check(
             methodElement.isPublic(), methodElement, TYPE_CONVERTER_MUST_BE_PUBLIC
         )
-        //该方法返回类型不允许void（void最常用、error和none）类型
+        //typeConverter方法返回类型不允许void(error ,none)类型
         if (invalidReturnType) {
             context.logger.e(methodElement, TYPE_CONVERTER_BAD_RETURN_TYPE)
             return null
         }
         val returnTypeName = returnType.typeName
-        //该方法返回类型如果是泛型，那么必须是实体类型（如List<String>），不允许出现List<T>或List<?>类型
+        //typeConverter方法返回类型如果是泛型，必须是实体类型（如List<String>），不允许出现List< T>或List<?>类型；
         context.checker.notUnbound(
             returnTypeName, methodElement,
             TYPE_CONVERTER_UNBOUND_GENERIC
         )
         val params = methodElement.parameters
-        //该方法参数必须有且仅有一个
+        //typeConverter方法参数必须有且仅有一个
         if (params.size != 1) {
             context.logger.e(methodElement, TYPE_CONVERTER_MUST_RECEIVE_1_PARAM)
             return null
@@ -198,7 +203,7 @@ class CustomConverterProcessor(
         val param = params.map {
             it.asMemberOf(container)
         }.first()
-        //该方法的参数是当前方法所在的item类类型，并且item类必须是试题类型（如List<String>），不允许出现List<T>或List<?>类型
+        //typeConverter方法参数类型如果是泛型，必须是实体类型（如List<String>），不允许出现List< T>或List<?>类型；
         context.checker.notUnbound(param.typeName, params[0], TYPE_CONVERTER_UNBOUND_GENERIC)
 
         return CustomTypeConverter(

@@ -45,6 +45,7 @@ class RawQueryMethodProcessor(
             ProcessorErrors.MISSING_RAWQUERY_ANNOTATION
         )
 
+        //rawQuery方法返回类型可以是泛型，但是泛型类型必须是实体类，e.g.List< T>错误，List< String>正确
         val returnTypeName = returnType.typeName
         context.checker.notUnbound(
             returnTypeName, executableElement,
@@ -57,14 +58,17 @@ class RawQueryMethodProcessor(
             ProcessorErrors.suspendReturnsDeferredType(returnType.rawType.typeName.toString())
         )
 
+        //@RawQuery#observedEntities属性值观察的表集合，及其query解析
         val observedTableNames = processObservedTables()
         val query = SqlParser.rawQueryForTables(observedTableNames)
+
         // build the query but don't calculate result info since we just guessed it.
         val resultBinder = delegate.findResultBinder(returnType, query) {
             delegate.executableElement.getAnnotation(androidx.room.MapInfo::class)?.let {
                 val keyColumn = it.value.keyColumn.toString()
                 val valueColumn = it.value.valueColumn.toString()
 
+                //如果使用@MapInfo注解，不允许keyColumn和valueColumn两个属性同时唯恐
                 context.checker.check(
                     keyColumn.isNotEmpty() || valueColumn.isNotEmpty(),
                     executableElement,
@@ -75,6 +79,7 @@ class RawQueryMethodProcessor(
         }
 
         val runtimeQueryParam = findRuntimeQueryParameter(delegate.extractParams())
+
         val inTransaction = executableElement.hasAnnotation(Transaction::class)
         val rawQueryMethod = RawQueryMethod(
             element = executableElement,
@@ -95,6 +100,9 @@ class RawQueryMethodProcessor(
 
     private fun processObservedTables(): Set<String> {
         val annotation = executableElement.getAnnotation(RawQuery::class)
+        //@RawQuery#observedEntities属性值
+        //1. @Entity修饰的类；生成的表名称
+        //2. @DatabaseView修饰的类，生成的视图名（可以没有@DatabaseView修饰） + 表嵌入字段产生的表名 + 表关联字段关联的表名  - 为空，则报错；
         return annotation?.getAsTypeList("observedEntities")
             ?.mapNotNull {
                 it.typeElement.also { typeElement ->
@@ -136,9 +144,11 @@ class RawQueryMethodProcessor(
     private fun findRuntimeQueryParameter(
         extractParams: List<XVariableElement>
     ): RawQueryMethod.RuntimeQueryParameter? {
+        //方法参数有且仅有一个 && 方法参数不允许是可变数量参数
         if (extractParams.size == 1 && !executableElement.isVarArgs()) {
             val param = extractParams.first().asMemberOf(containing)
             val processingEnv = context.processingEnv
+            //参数不可为null值
             if (param.nullability == XNullability.NULLABLE) {
                 context.logger.e(
                     element = extractParams.first(),
@@ -150,6 +160,7 @@ class RawQueryMethodProcessor(
             // use nullable type to catch bad nullability. Because it is non-null by default in
             // KSP, assignability will fail and we'll print a generic error instead of a specific
             // one
+            //参数必须是`androidx.sqlite.db.SupportSQLiteQuery`类型
             val supportQueryType = processingEnv.requireType(SupportDbTypeNames.QUERY)
             val isSupportSql = supportQueryType.isAssignableFrom(param)
             if (isSupportSql) {
@@ -158,6 +169,7 @@ class RawQueryMethodProcessor(
                     type = supportQueryType.typeName
                 )
             }
+            //参数不允许是String类型
             val stringType = processingEnv.requireType("java.lang.String")
             val isString = stringType.isAssignableFrom(param)
             if (isString) {

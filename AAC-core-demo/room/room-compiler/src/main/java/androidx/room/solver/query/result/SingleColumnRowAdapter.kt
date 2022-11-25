@@ -21,6 +21,8 @@ import androidx.room.solver.types.CursorValueReader
 
 /**
  * Wraps a row adapter when there is only 1 item  with 1 column in the response.
+ *
+ * 当响应中只有1项和1列时，包装行适配器。
  */
 class SingleColumnRowAdapter(val reader: CursorValueReader) : RowAdapter(reader.typeMirror()) {
     override fun convert(outVarName: String, cursorVarName: String, scope: CodeGenScope) {

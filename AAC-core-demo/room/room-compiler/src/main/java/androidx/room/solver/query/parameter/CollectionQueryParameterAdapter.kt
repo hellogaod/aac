@@ -24,6 +24,8 @@ import com.squareup.javapoet.TypeName
 
 /**
  * Binds Collection<T> (e.g. List<T>) into String[] query args.
+ *
+ * 一个集合，当前集合存储了查询参数的适配，当前参数一定是表字段支持类型
  */
 class CollectionQueryParameterAdapter(val bindAdapter: StatementValueBinder) :
     QueryParameterAdapter(true) {

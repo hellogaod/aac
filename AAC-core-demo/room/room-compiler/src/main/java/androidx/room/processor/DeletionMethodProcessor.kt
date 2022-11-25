@@ -20,6 +20,7 @@ import androidx.room.compiler.processing.XMethodElement
 import androidx.room.compiler.processing.XType
 import androidx.room.vo.DeletionMethod
 
+//@Delete注解修饰的方法处理
 class DeletionMethodProcessor(
     baseContext: Context,
     val containing: XType,

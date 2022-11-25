@@ -185,9 +185,10 @@ class TypeAdapterStore private constructor(
             ByteArrayColumnTypeAdapter.create(context.processingEnv).forEach(::addColumnAdapter)
             //ByteBuffer类型字段适配
             ByteBufferColumnTypeAdapter.create(context.processingEnv).forEach(::addColumnAdapter)
+
+
             //boolean转换成int转换器
             PrimitiveBooleanToIntConverter.create(context.processingEnv).forEach(::addTypeConverter)
-
             // null aware converter is able to automatically null wrap converters so we don't
             // need this as long as we are running in KSP
             //Boolean转换成Integer转换器
@@ -209,24 +210,37 @@ class TypeAdapterStore private constructor(
         }
     }
 
+    //dao方法返回结果适配
     val queryResultBinderProviders: List<QueryResultBinderProvider> =
         mutableListOf<QueryResultBinderProvider>().apply {
-            add(CursorQueryResultBinderProvider(context))
-            add(LiveDataQueryResultBinderProvider(context))
+            add(CursorQueryResultBinderProvider(context))//android.database.Cursor
+            add(LiveDataQueryResultBinderProvider(context))//androidx.lifecycle.LiveData
+            //com.google.common.util.concurrent.ListenableFuture
             add(GuavaListenableFutureQueryResultBinderProvider(context))
+            //Rxjava2和Rxjava3的Flowable和Observable两个类适配
             addAll(RxQueryResultBinderProvider.getAll(context))
+            //Rxjava2和Rxjava3的Single和Mybe两个类适配
             addAll(RxCallableQueryResultBinderProvider.getAll(context))
+            //androidx.paging.PositionalDataSource
             add(DataSourceQueryResultBinderProvider(context))
+            //androidx.paging.DataSource.Factory并且两个泛型参数
             add(DataSourceFactoryQueryResultBinderProvider(context))
+            //androidx.paging.PagingSource
             add(PagingSourceQueryResultBinderProvider(context))
+            //kotlinx.coroutines.flow.Flow
             add(CoroutineFlowResultBinderProvider(context))
+            //其他任意类型都可
             add(InstantQueryResultBinderProvider(context))
         }
 
+    //insert、update和delete
     val preparedQueryResultBinderProviders: List<PreparedQueryResultBinderProvider> =
         mutableListOf<PreparedQueryResultBinderProvider>().apply {
+            //Rxjava2,single类、maybe类、completable类；Rxjava3，single类、maybe类、completable类；
             addAll(RxPreparedQueryResultBinderProvider.getAll(context))
+            //com.google.common.util.concurrent.ListenableFuture
             add(GuavaListenableFuturePreparedQueryResultBinderProvider(context))
+            //随意类型
             add(InstantPreparedQueryResultBinderProvider(context))
         }
 
@@ -246,6 +260,12 @@ class TypeAdapterStore private constructor(
 
     /**
      * Searches 1 way to bind a value into a statement.
+     *
+     * 搜索1种将值绑定到语句中的方法。
+     *
+     * （1）将input转换成表字段支持的类型，
+     * （2）如果input类型不在表字段支持的类型中，再去自定会转换器转换成表字段支持类型；
+     * （3）如果还不支持，那么input是枚举或者uuid类型；
      */
     fun findStatementValueBinder(
         input: XType,
@@ -254,6 +274,7 @@ class TypeAdapterStore private constructor(
         if (input.isError()) {
             return null
         }
+        //1. 使用的是当前表字段支持的类型，不包含自定义转化类型
         val adapter = findDirectAdapterFor(input, affinity)
         if (adapter != null) {
             return adapter
@@ -272,10 +293,13 @@ class TypeAdapterStore private constructor(
             return CompositeAdapter(input, columnAdapter, binder, null)
         }
 
+        //2. @TypeConverters自定义的转换类型，根据to类型最终转换成表字段支持的类型
         val adapterByTypeConverter = findTypeConverterAdapter()
         if (adapterByTypeConverter != null) {
             return adapterByTypeConverter
         }
+
+        //3. 一般情况下，如果类型是枚举或uuid类型。
         val defaultAdapter = createDefaultTypeAdapter(input)
         if (defaultAdapter != null) {
             return defaultAdapter
@@ -285,6 +309,12 @@ class TypeAdapterStore private constructor(
 
     /**
      * Searches 1 way to read it from cursor
+     *
+     * 根据给定类型，确定游标值读取
+     *
+     * 1. 给定类型是表字段支持类型，或能够通过转换器to方法转换成表字段支持类型，或是uuid或枚举类型；返回游标值读取器；
+     * 2. 给定类型，通过转换器from方法转换成表字段支持类型，返回游标值读取器；
+     * 3. 给定类型，是uuid或枚举类型；
      */
     fun findCursorValueReader(output: XType, affinity: SQLTypeAffinity?): CursorValueReader? {
         if (output.isError()) {
@@ -325,6 +355,8 @@ class TypeAdapterStore private constructor(
     /**
      * Finds a two way converter, if you need 1 way, use findStatementValueBinder or
      * findCursorValueReader.
+     *
+     * 表常规字段类型适配
      */
     fun findColumnTypeAdapter(
         out: XType,
@@ -334,13 +366,13 @@ class TypeAdapterStore private constructor(
         if (out.isError()) {
             return null
         }
-        //如果当前字段类型是否存在于typeAdapterStore字段适配类型集合中，如果存在直接返回
+        //如果当前字段类型是否存是表字段类型，如果存在直接返回
         val adapter = findDirectAdapterFor(out, affinity)
         if (adapter != null) {
             return adapter
         }
 
-        //如果当前字段类型不存在于typeAdapterStore字段适配类型中，那么在typeAdapterStore转换适配类型中查找，存在返回，不存在继续往下查找
+
         fun findTypeConverterAdapter(): ColumnTypeAdapter? {
             val targetTypes = affinity?.getTypeMirrors(context.processingEnv)
             val intoStatement = typeConverterStore.findConverterIntoStatement(
@@ -354,14 +386,14 @@ class TypeAdapterStore private constructor(
                 out, getAllColumnAdapters(intoStatement.to).first(), intoStatement, fromCursor
             )
         }
-
+        //当前字段在自定义转换器中能转换成表字段支持类型，返回，不存在继续往下查找
         val adapterByTypeConverter = findTypeConverterAdapter()
         if (adapterByTypeConverter != null) {
             return adapterByTypeConverter
         }
 
-        //基本上字段类型存在于typeAdapterStore的字段适配类型集合中或字段转换适配类型集合中，如果不存在，那么：
-        //在判断当前字段类型是否是枚举或UUID类型，如果是并且！BuiltInTypeConverters.State.DISABLED，那么又是一种场景
+        //特殊用法：
+        //在判断当前字段类型是否是枚举或UUID类型
         if (!skipDefaultConverter) {
             val defaultAdapter = createDefaultTypeAdapter(out)
             if (defaultAdapter != null) {
@@ -448,6 +480,7 @@ class TypeAdapterStore private constructor(
         return InsertMethodAdapter.create(typeMirror, params)
     }
 
+    //solver.query.result包下
     fun findQueryResultAdapter(
         typeMirror: XType,
         query: ParsedQuery,
@@ -456,35 +489,104 @@ class TypeAdapterStore private constructor(
         return findQueryResultAdapter(typeMirror, query, TypeAdapterExtras().apply(extrasCreator))
     }
 
+    /**
+     * 根据typeMirror类型，做查询结果适配
+     *
+     * 1. 如果typeMirror类型错误，直接返回null；否则继续；
+     *
+     * 2. 如果typeMirror是非byte数组类型，先执行findRowAdapter，传递数组item类型和query，返回ArrayQueryResultAdapter(rowAdapter)；否则继续；
+     *
+     * 3. 如果typeMirror不存在泛型类型，先执行findRowAdapter，传递typeMirror和query，返回SingleEntityQueryResultAdapter；否则继续；
+     *
+     * 4. 如果typeMirror是com.google.common.base.Optional，先执行findRowAdapter，传递typeMirror泛型参数类型和query，返回
+     *      GuavaOptionalQueryResultAdapter( typeArg = typeArg,  resultAdapter = SingleEntityQueryResultAdapter(rowAdapter) )
+     *
+     * 5. 如果typeMirror是java.util.Optional，，先执行findRowAdapter，传递typeMirror泛型参数类型和query，返回
+     *      OptionalQueryResultAdapter(typeArg = typeArg,resultAdapter = SingleEntityQueryResultAdapter(rowAdapter))
+     *
+     * 6. 如果typeMirror是ImmutableList,先执行findRowAdapter，传递typeMirror泛型参数类型和query，返回
+     *      ImmutableListQueryResultAdapter(typeArg = typeArg,rowAdapter = rowAdapter)
+     *
+     * 7.如果typeMirror是List,先执行findRowAdapter，传递typeMirror泛型参数类型和query，返回
+     *      ListQueryResultAdapter(typeArg = typeArg,rowAdapter = rowAdapter)
+     * 8.如果typeMirror是ImmutableMap<k,v>,转换成Map<k,v>,对当前Map<k,v>执行当前findQueryResultAdapter方法，MapType作为typeMirror类型查找QueryResultAdapter对象，并且返回
+     *             ImmutableMapQueryResultAdapter(
+     *               keyTypeArg = keyTypeArg,
+     *               valueTypeArg = valueTypeArg,
+     *              resultAdapter = resultAdapter
+     *           )
+     *
+     * 9.如果typeMirror是ImmutableSetMultimap，ImmutableListMultimap，<k,v>中的V必须是一个类；分别对k和v配合query执行findRowAdapter方法;返回
+     *          GuavaImmutableMultimapQueryResultAdapter(
+     *                keyTypeArg = keyTypeArg,
+     *                valueTypeArg = valueTypeArg,
+     *                keyRowAdapter = keyRowAdapter,
+     *                valueRowAdapter = valueRowAdapter,
+     *                immutableClassName = immutableClassName
+     *            )
+     *当前校验@MapInfo：如果没有使用@MapInfo，或者说@MapInfo#keyColumn为空，
+     * 那么k必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；v同理；
+     *rawQuery方法返回类型不允许使用 ImmutableMultimap
+
+     * 10. Map、androidx.collection.ArrayMap、androidx.collection.LongSparseArray、androidx.collection.SparseArrayCompat
+     *如果typeMirror是Map、androidx.collection.ArrayMap、androidx.collection.LongSparseArray、androidx.collection.SparseArrayCompat类型，那么
+     *① 如果是androidx.collection.LongSparseArray将long作为k、androidx.collection.SparseArrayCompat将int作为k；泛型参数作为v；
+     *② <k,v>,v必须是一个类；如果v是一个集合，那么只能是Set或List，并且对item类型作为v校验，
+     *③ 对k和v作为参数和query一起执行findRowAdapter方法，返回
+     * 那么k必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；v同理；
+     *                  MapQueryResultAdapter(
+     *                        keyTypeArg = keyTypeArg,
+     *                        valueTypeArg = valueTypeArg,
+     *                        keyRowAdapter = keyRowAdapter,
+     *                        valueRowAdapter = valueRowAdapter,
+     *                        valueCollectionType = mapValueTypeArg,如果v不是list或set集合，当前属性为null；
+     *                        isArrayMap = typeMirror.rawType.typeName == ARRAY_MAP,
+     *                        isSparseArray = isSparseArray
+     *                    )
+     *当前校验@MapInfo：如果没有使用@MapInfo，或者说@MapInfo#keyColumn为空，
+     * 那么k必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；v同理；
+     */
     fun findQueryResultAdapter(
         typeMirror: XType,
         query: ParsedQuery,
         extras: TypeAdapterExtras
     ): QueryResultAdapter? {
+
         if (typeMirror.isError()) {
             return null
         }
 
         // TODO: (b/192068912) Refactor the following since this if-else cascade has gotten large
+        //非byte类型数组
         if (typeMirror.isArray() && typeMirror.componentType.isNotByte()) {
             val rowAdapter =
                 findRowAdapter(typeMirror.componentType, query) ?: return null
             return ArrayQueryResultAdapter(rowAdapter)
-        } else if (typeMirror.typeArguments.isEmpty()) {
+        }
+
+        //没有泛型类型
+        else if (typeMirror.typeArguments.isEmpty()) {
             val rowAdapter = findRowAdapter(typeMirror, query) ?: return null
             return SingleEntityQueryResultAdapter(rowAdapter)
-        } else if (typeMirror.rawType.typeName == GuavaBaseTypeNames.OPTIONAL) {
+        }
+
+        //com.google.common.base.Optional
+        else if (typeMirror.rawType.typeName == GuavaBaseTypeNames.OPTIONAL) {
             // Handle Guava Optional by unpacking its generic type argument and adapting that.
             // The Optional adapter will reappend the Optional type.
             val typeArg = typeMirror.typeArguments.first()
             // use nullable when finding row adapter as non-null adapters might return
             // default values
+            //Optinal<T>的T处理
             val rowAdapter = findRowAdapter(typeArg.makeNullable(), query) ?: return null
+
             return GuavaOptionalQueryResultAdapter(
                 typeArg = typeArg,
                 resultAdapter = SingleEntityQueryResultAdapter(rowAdapter)
             )
-        } else if (typeMirror.rawType.typeName == CommonTypeNames.OPTIONAL) {
+        }
+        //java.util.Optional
+        else if (typeMirror.rawType.typeName == CommonTypeNames.OPTIONAL) {
             // Handle java.util.Optional similarly.
             val typeArg = typeMirror.typeArguments.first()
             // use nullable when finding row adapter as non-null adapters might return
@@ -494,21 +596,33 @@ class TypeAdapterStore private constructor(
                 typeArg = typeArg,
                 resultAdapter = SingleEntityQueryResultAdapter(rowAdapter)
             )
-        } else if (typeMirror.isTypeOf(ImmutableList::class)) {
+        }
+        //ImmutableList
+        else if (typeMirror.isTypeOf(ImmutableList::class)) {
             val typeArg = typeMirror.typeArguments.first().extendsBoundOrSelf()
             val rowAdapter = findRowAdapter(typeArg, query) ?: return null
             return ImmutableListQueryResultAdapter(
                 typeArg = typeArg,
                 rowAdapter = rowAdapter
             )
-        } else if (typeMirror.isTypeOf(java.util.List::class)) {
+        }
+        //List
+        else if (typeMirror.isTypeOf(java.util.List::class)) {
             val typeArg = typeMirror.typeArguments.first().extendsBoundOrSelf()
             val rowAdapter = findRowAdapter(typeArg, query) ?: return null
             return ListQueryResultAdapter(
                 typeArg = typeArg,
                 rowAdapter = rowAdapter
             )
-        } else if (typeMirror.isTypeOf(ImmutableMap::class)) {
+        }
+        //ImmutableMap
+        //如果typeMirror是ImmutableMap<k,v>,转换成Map<k,v>,对当前Map<k,v>执行当前findQueryResultAdapter方法，MapType作为typeMirror类型查找QueryResultAdapter对象，并且返回
+        //              ImmutableMapQueryResultAdapter(
+        //                keyTypeArg = keyTypeArg,
+        //                valueTypeArg = valueTypeArg,
+        //                resultAdapter = resultAdapter
+        //            )
+        else if (typeMirror.isTypeOf(ImmutableMap::class)) {
             val keyTypeArg = typeMirror.typeArguments[0].extendsBoundOrSelf()
             val valueTypeArg = typeMirror.typeArguments[1].extendsBoundOrSelf()
 
@@ -527,13 +641,27 @@ class TypeAdapterStore private constructor(
                 valueTypeArg = valueTypeArg,
                 resultAdapter = resultAdapter
             )
-        } else if (typeMirror.isTypeOf(ImmutableSetMultimap::class) ||
+        }
+
+        //如果typeMirror是ImmutableSetMultimap，ImmutableListMultimap，<k,v>中的V必须是一个类；分别对k和v配合query执行findRowAdapter方法;返回
+        //          GuavaImmutableMultimapQueryResultAdapter(
+        //                keyTypeArg = keyTypeArg,
+        //                valueTypeArg = valueTypeArg,
+        //                keyRowAdapter = keyRowAdapter,
+        //                valueRowAdapter = valueRowAdapter,
+        //                immutableClassName = immutableClassName
+        //            )
+        //当前校验@MapInfo：如果没有使用@MapInfo，或者说@MapInfo#keyColumn为空，
+        // 那么k必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；v同理；
+        //rawQuery方法返回类型不允许使用 ImmutableMultimap
+        else if (typeMirror.isTypeOf(ImmutableSetMultimap::class) ||
             typeMirror.isTypeOf(ImmutableListMultimap::class) ||
             typeMirror.isTypeOf(ImmutableMultimap::class)
         ) {
             val keyTypeArg = typeMirror.typeArguments[0].extendsBoundOrSelf()
             val valueTypeArg = typeMirror.typeArguments[1].extendsBoundOrSelf()
 
+            //rawQuery方法返回类型如果是`ImmutableSetMultimap，ImmutableListMultimap，ImmutableMultimap`，那么<K,V>中的V必须是一个类；
             if (valueTypeArg.typeElement == null) {
                 context.logger.e(
                     "Guava multimap 'value' type argument does not represent a class. " +
@@ -542,6 +670,7 @@ class TypeAdapterStore private constructor(
                 return null
             }
 
+            //rawQuery方法返回类型不允许使用ImmutableMultimap
             val immutableClassName = if (typeMirror.isTypeOf(ImmutableListMultimap::class)) {
                 ClassName.get(ImmutableListMultimap::class.java)
             } else if (typeMirror.isTypeOf(ImmutableSetMultimap::class)) {
@@ -574,6 +703,7 @@ class TypeAdapterStore private constructor(
                 mapInfo = mapInfo,
                 logger = context.logger
             )
+
             return GuavaImmutableMultimapQueryResultAdapter(
                 keyTypeArg = keyTypeArg,
                 valueTypeArg = valueTypeArg,
@@ -581,7 +711,26 @@ class TypeAdapterStore private constructor(
                 valueRowAdapter = valueRowAdapter,
                 immutableClassName = immutableClassName
             )
-        } else if (typeMirror.isTypeOf(java.util.Map::class) ||
+        }
+
+        //Map、androidx.collection.ArrayMap、androidx.collection.LongSparseArray、androidx.collection.SparseArrayCompat
+        //如果typeMirror是Map、androidx.collection.ArrayMap、androidx.collection.LongSparseArray、androidx.collection.SparseArrayCompat类型，那么
+        //① 如果是androidx.collection.LongSparseArray将long作为k、androidx.collection.SparseArrayCompat将int作为k；泛型参数作为v；
+        //② <k,v>,v必须是一个类；如果v是一个集合，那么只能是Set或List，并且对item类型作为v校验，
+        //③ 对k和v作为参数和query一起执行findRowAdapter方法，返回
+        // 那么k必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；v同理；
+        //                  MapQueryResultAdapter(
+        //                        keyTypeArg = keyTypeArg,
+        //                        valueTypeArg = valueTypeArg,
+        //                        keyRowAdapter = keyRowAdapter,
+        //                        valueRowAdapter = valueRowAdapter,
+        //                        valueCollectionType = mapValueTypeArg,如果v不是list或set集合，当前属性为null；
+        //                        isArrayMap = typeMirror.rawType.typeName == ARRAY_MAP,
+        //                        isSparseArray = isSparseArray
+        //                    )
+        //当前校验@MapInfo：如果没有使用@MapInfo，或者说@MapInfo#keyColumn为空，
+        // 那么k必须是表字段支持类型或者是自定义转换类型转换成表字段支持类型；v同理；
+        else if (typeMirror.isTypeOf(java.util.Map::class) ||
             typeMirror.rawType.typeName == ARRAY_MAP ||
             typeMirror.rawType.typeName == LONG_SPARSE_ARRAY ||
             typeMirror.rawType.typeName == INT_SPARSE_ARRAY
@@ -608,6 +757,7 @@ class TypeAdapterStore private constructor(
                 typeMirror.typeArguments[1].extendsBoundOrSelf()
             }
 
+            //如果rawQuery方法返回类型是LongSparseArray或SparseArrayCompat，判断当前泛型类型必须是一个类，作为value值；如果方法返回类型是Map或ArrayMap，判断<K,V> 的V必须是一个类，作为value值；
             if (mapValueTypeArg.typeElement == null) {
                 context.logger.e(
                     "Multimap 'value' collection type argument does not represent a class. " +
@@ -623,6 +773,7 @@ class TypeAdapterStore private constructor(
             if (collectionTypeRaw.isAssignableFrom(mapValueTypeArg.rawType)) {
                 // The Map's value type argument is assignable to a Collection, we need to make
                 // sure it is either a list or a set.
+                //如果value值是collection集合，那么只允许是List或Set集合；
                 if (
                     mapValueTypeArg.isTypeOf(java.util.List::class) ||
                     mapValueTypeArg.isTypeOf(java.util.Set::class)
@@ -701,24 +852,49 @@ class TypeAdapterStore private constructor(
     /**
      * Find a converter from cursor to the given type mirror.
      * If there is information about the query result, we try to use it to accept *any* POJO.
+     *
+     * 根据typeMirror类型，查找Row表字段适配
+     *
+     * 0. 如果当前typeMirror是错误类型，直接返回null；
+     *
+     * 1. 如果typeMirror不是基础类型：
+     * 1.1 当前typeMirror如果是泛型，则直接返回null，当前room版本不支持
+     * 1.2 query查询结果为空：判断typeMirror表示的节点是否是@Entity修饰的类，如果是生成EntityRowAdapter对象，并返回；否则继续往下校验；
+     * 1.3 query查询结果不为空 && sql查询语句正确 && sql查询结果正确，并且typeMirror生成pojo对象过程中没有产生错误日志：typeMirror表示的节点生成pojo对象，然后生成PojoRowAdapter对象；否则继续往下校验
+     * 1.4 columnName不为空，当前columnName去query查询结果中查找，找到作为匹配类型（找不到不用管）：在① 表字段支持类型；② 自定义转换类型中去匹配，匹配成功，返回SingleNamedColumnRowAdapter；否则继续往下校验
+     * 1.5 query查找结果有且仅有一个字段，当前字段类型在① 表字段支持类型；② 自定义转换类型中去匹配，匹配成功，返回SingleColumnRowAdapter；否则继续往下校验；
+     * 1.6 query查询结果不为空 && sql查询语句正确 && sql查询结果正确,但是typeMirror生成pojo对象是出错：返回rawAdapter，并且返回错误信息;否则继续往下校验；
+     * 1.7 如果query查询结果为空，typeMirror类型不是void && 不是voidObject && 不是kotlinUnit,当前typeMirror生成pojo对象，并且最终返回PojoRowAdapter对象；否则继续往下；
+     * 1.8 以上都不满足返回null
+     *
+     *
+     * 2. 如果typrMirror是基础类型：
+     * 2.1 columnName != null，并且columnName在sql查询字段中能匹配到表字段（当前表字段类型作为偏向类型校验，如果匹配失败，则不作偏向类型校验），根据typeMirror去匹配：（1）表字段支持类型；（2）自定义类型转换表字段支持类型，（3）枚举或UUID类型
+     *      匹配成功再校验偏向类型，成功则返回SingleNamedColumnRowAdapter，否则继续往下匹配；
+     * 2.2 columnName = null 或 2.1中匹配失败：当前typeMirror适配（1）表字段支持类型；（2）自定义类型转换表字段支持类型，（3）枚举或UUID类型
+     *      匹配成功返回SingleColumnRowAdapter；否则返回null，表示匹配失败。
      */
     fun findRowAdapter(
         typeMirror: XType,
         query: ParsedQuery,
         columnName: String? = null
     ): RowAdapter? {
+        //错误类型直接返回null
         if (typeMirror.isError()) {
             return null
         }
 
         val typeElement = typeMirror.typeElement
+        //节点类型不是基础类型
         if (typeElement != null && !typeMirror.typeName.isPrimitive) {
+            //当前节点如果是泛型，则直接返回null
             if (typeMirror.typeArguments.isNotEmpty()) {
                 // TODO one day support this
                 return null
             }
             val resultInfo = query.resultInfo
 
+            //query查询结果不为空 && sql查询语句正确 && sql查询结果正确：typeMirror表示的节点生成pojo对象，然后生成PojoRowAdapter对象；
             val (rowAdapter, rowAdapterLogs) = if (resultInfo != null && query.errors.isEmpty() &&
                 resultInfo.error == null
             ) {
@@ -730,6 +906,7 @@ class TypeAdapterStore private constructor(
                         bindingScope = FieldProcessor.BindingScope.READ_FROM_CURSOR,
                         parent = null
                     ).process()
+
                     PojoRowAdapter(
                         context = subContext,
                         info = resultInfo,
@@ -742,6 +919,7 @@ class TypeAdapterStore private constructor(
                 Pair(null, null)
             }
 
+            //query查询结果为空：判断typeMirror表示的节点是否是@Entity修饰的类，如果是生成EntityRowAdapter对象，并返回；
             if (rowAdapter == null && query.resultInfo == null) {
                 // we don't know what query returns. Check for entity.
                 if (typeElement.isEntityElement()) {
@@ -754,11 +932,13 @@ class TypeAdapterStore private constructor(
                 }
             }
 
+            //rawAdapter生成过程中没有生成错误日志，返回rowAdapter
             if (rowAdapter != null && rowAdapterLogs?.hasErrors() != true) {
                 rowAdapterLogs?.writeTo(context)
                 return rowAdapter
             }
 
+            //columnName不为空，当前columnName去query查询结果中查找，找到作为匹配类型（找不到不用管）：在① 表字段支持类型；② 自定义转换类型中去匹配，匹配成功，返回SingleNamedColumnRowAdapter；
             if (columnName != null) {
                 val singleNamedColumn = findCursorValueReader(
                     typeMirror,
@@ -771,6 +951,7 @@ class TypeAdapterStore private constructor(
                 }
             }
 
+            //query查找结果有且仅有一个字段，当前字段类型在① 表字段支持类型；② 自定义转换类型中去匹配，匹配成功，返回SingleColumnRowAdapter；
             if ((resultInfo?.columns?.size ?: 1) == 1) {
                 val singleColumn = findCursorValueReader(
                     typeMirror,
@@ -781,6 +962,7 @@ class TypeAdapterStore private constructor(
                 }
             }
             // if we tried, return its errors
+            //query查询结果不为空 && sql查询语句正确 && sql查询结果正确,但是typeMirror生成pojo对象是出错：返回rawAdapter，并且返回错误信息
             if (rowAdapter != null) {
                 rowAdapterLogs?.writeTo(context)
                 return rowAdapter
@@ -788,6 +970,7 @@ class TypeAdapterStore private constructor(
 
             // use pojo adapter as a last resort.
             // this happens when @RawQuery or @SkipVerification is used.
+            //如果query查询结果为空，typeMirror类型不是void && 不是voidObject && 不是kotlinUnit,当前typeMirror生成pojo对象，并且最终返回PojoRowAdapter对象
             if (query.resultInfo == null &&
                 typeMirror.isNotVoid() &&
                 typeMirror.isNotVoidObject() &&
@@ -807,6 +990,7 @@ class TypeAdapterStore private constructor(
                     out = typeMirror
                 )
             }
+            //否则返回null
             return null
         } else {
             if (columnName != null) {
@@ -823,10 +1007,16 @@ class TypeAdapterStore private constructor(
         }
     }
 
+    //查询参数：有三种类型
+    // 1. collection集合，查看集合中的泛型对象类型
+    // 2. 非byte数组；数组对象类型
+    // 3. 不是1，也不是2，对象类型
+    //以上三种按照顺序，对对象类型适配，要么支持表字段类型；否则，支持自定义转换类型，再转换成表字段支持类型；否则，对象类型是枚举或UUID（这种情况是特例，可以忽略不计）
     fun findQueryParameterAdapter(
         typeMirror: XType,
-        isMultipleParameter: Boolean
+        isMultipleParameter: Boolean//参数是否集合类型
     ): QueryParameterAdapter? {
+        //如果是Collection类
         if (context.COMMON_TYPES.READONLY_COLLECTION.rawType.isAssignableFrom(typeMirror)) {
             val typeArg = typeMirror.typeArguments.first().extendsBoundOrSelf()
             // An adapter for the collection type arg wrapped in the built-in collection adapter.
@@ -841,16 +1031,21 @@ class TypeAdapterStore private constructor(
             // Prioritize built-in collection adapters when finding an adapter for a multi-value
             // binding param since it is likely wrong to use a collection to single value converter
             // for an expression that takes in multiple values.
+            //如果当前查询参数是集合
             return if (isMultipleParameter) {
                 wrappedCollectionAdapter ?: directCollectionAdapter
             } else {
                 directCollectionAdapter ?: wrappedCollectionAdapter
             }
-        } else if (typeMirror.isArray() && typeMirror.componentType.isNotByte()) {
+        }
+        //如果是非byte数组类型
+        else if (typeMirror.isArray() && typeMirror.componentType.isNotByte()) {
             val component = typeMirror.componentType
             val binder = findStatementValueBinder(component, null) ?: return null
             return ArrayQueryParameterAdapter(binder)
-        } else {
+        }
+        //其他类型
+        else {
             val binder = findStatementValueBinder(typeMirror, null) ?: return null
             return BasicQueryParameterAdapter(binder)
         }

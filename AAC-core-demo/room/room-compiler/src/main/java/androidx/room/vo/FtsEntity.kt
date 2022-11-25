@@ -33,7 +33,7 @@ class FtsEntity(
     embeddedFields: List<EmbeddedField>,
     primaryKey: PrimaryKey,
     constructor: Constructor?,
-    shadowTableName: String?,
+    shadowTableName: String?,//影子表名称
     val ftsVersion: FtsVersion,
     val ftsOptions: FtsOptions
 ) : Entity(
@@ -45,11 +45,12 @@ class FtsEntity(
         createTableQuery(tableName)
     }
 
+    // 表字段中排除rowid主键和language id
     val nonHiddenFields by lazy {
         fields.filterNot {
             // 'rowid' primary key column and language id column are hidden columns
             primaryKey.fields.isNotEmpty() && primaryKey.fields.first() == it ||
-                ftsOptions.languageIdColumnName == it.columnName
+                    ftsOptions.languageIdColumnName == it.columnName
         }
     }
 
@@ -88,9 +89,9 @@ class FtsEntity(
 
     private fun createTableQuery(tableName: String, includeTokenizer: Boolean = true): String {
         val definitions = nonHiddenFields.map { it.databaseDefinition(false) } +
-            ftsOptions.databaseDefinition(includeTokenizer)
+                ftsOptions.databaseDefinition(includeTokenizer)
         return "CREATE VIRTUAL TABLE IF NOT EXISTS `$tableName` " +
-            "USING ${ftsVersion.name}(${definitions.joinToString(", ")})"
+                "USING ${ftsVersion.name}(${definitions.joinToString(", ")})"
     }
 
     private fun createSyncTriggers(contentTable: String): List<String> {
@@ -107,9 +108,9 @@ class FtsEntity(
         tableName: String,
         contentTableName: String
     ) = "CREATE TRIGGER IF NOT EXISTS ${createTriggerName(tableName, "BEFORE_$triggerOp")} " +
-        "BEFORE $triggerOp ON `$contentTableName` BEGIN " +
-        "DELETE FROM `$tableName` WHERE `docid`=OLD.`rowid`; " +
-        "END"
+            "BEFORE $triggerOp ON `$contentTableName` BEGIN " +
+            "DELETE FROM `$tableName` WHERE `docid`=OLD.`rowid`; " +
+            "END"
 
     private fun createAfterTrigger(
         triggerOp: String,
@@ -117,12 +118,12 @@ class FtsEntity(
         contentTableName: String,
         columnNames: List<String>
     ) = "CREATE TRIGGER IF NOT EXISTS ${createTriggerName(tableName, "AFTER_$triggerOp")} " +
-        "AFTER $triggerOp ON `$contentTableName` BEGIN " +
-        "INSERT INTO `$tableName`(" +
-        (listOf("docid") + columnNames).joinToString(separator = ", ") { "`$it`" } + ") " +
-        "VALUES (" +
-        (listOf("rowid") + columnNames).joinToString(separator = ", ") { "NEW.`$it`" } + "); " +
-        "END"
+            "AFTER $triggerOp ON `$contentTableName` BEGIN " +
+            "INSERT INTO `$tableName`(" +
+            (listOf("docid") + columnNames).joinToString(separator = ", ") { "`$it`" } + ") " +
+            "VALUES (" +
+            (listOf("rowid") + columnNames).joinToString(separator = ", ") { "NEW.`$it`" } + "); " +
+            "END"
 
     // If trigger name prefix is changed be sure to update DBUtil#dropFtsSyncTriggers
     private fun createTriggerName(tableName: String, triggerOp: String) =

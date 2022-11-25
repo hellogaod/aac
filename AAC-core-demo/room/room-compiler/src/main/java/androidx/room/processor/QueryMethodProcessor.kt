@@ -62,6 +62,8 @@ class QueryMethodProcessor(
          * fix them for the developer.
          */
         val (initialResult, logs) = context.collectLogs {
+
+            111
             InternalQueryProcessor(
                 context = it,
                 executableElement = executableElement,
@@ -109,6 +111,7 @@ private class InternalQueryProcessor(
         val delegate = MethodProcessorDelegate.createFor(context, containing, executableElement)
         val returnType = delegate.extractReturnType()
 
+        // query方法不允许是挂起延时方法
         context.checker.check(
             !delegate.isSuspendAndReturnsDeferredType(),
             executableElement,
@@ -124,6 +127,7 @@ private class InternalQueryProcessor(
             )
             validateQuery(query)
 
+            //返回类型是有效可解析类型
             context.checker.check(
                 returnType.isNotError(),
                 executableElement, ProcessorErrors.CANNOT_RESOLVE_RETURN_TYPE,
@@ -134,7 +138,7 @@ private class InternalQueryProcessor(
             ParsedQuery.MISSING
         }
 
-        //@Query修饰的方法返回类型，如果是泛型，那么当前泛型必须是实体绑定类型，e.g.List<String>可以，但是List<?>不可以；
+        //Dao方法类型如果是泛型，那么必须是存在泛型参数，e.g.List<实际对象>是正确的，List、List< T>或List<?>都是错误的
         val returnTypeName = returnType.typeName
         context.checker.notUnbound(
             returnTypeName, executableElement,
@@ -146,6 +150,7 @@ private class InternalQueryProcessor(
         val queryMethod = if (isPreparedQuery) {
             getPreparedQueryMethod(delegate, returnType, query)
         } else {
+            //表示select查询
             getQueryMethod(delegate, returnType, query)
         }
 
@@ -187,13 +192,15 @@ private class InternalQueryProcessor(
         }
     }
 
+    //表示insert ,delete, update操作
     private fun getPreparedQueryMethod(
         delegate: MethodProcessorDelegate,
         returnType: XType,
         query: ParsedQuery
     ): WriteQueryMethod {
         val resultBinder = delegate.findPreparedResultBinder(returnType, query)
-        //@Query修饰的方法返回类型必须是Rxjava2，Rxjava3中的single、maybe、completable等类
+
+        //必须适配成功
         context.checker.check(
             resultBinder.adapter != null,
             executableElement,
@@ -215,38 +222,47 @@ private class InternalQueryProcessor(
         returnType: XType,
         query: ParsedQuery
     ): QueryMethod {
+
+
         val resultBinder = delegate.findResultBinder(returnType, query) {
-            delegate.executableElement.getAnnotation(androidx.room.MapInfo::class)?.let {
-                mapInfoAnnotation ->
-                // Check if method is annotated with @MapInfo, parse annotation and put information in
-                // bag of extras, it will be later used by the TypeAdapterStore
-                val resultColumns = query.resultInfo?.columns?.map { it.name } ?: emptyList()
-                val keyColumn = mapInfoAnnotation.value.keyColumn.toString()
-                val valueColumn = mapInfoAnnotation.value.valueColumn.toString()
-                context.checker.check(
-                    keyColumn.isEmpty() || resultColumns.contains(keyColumn),
-                    delegate.executableElement,
-                    cannotMapInfoSpecifiedColumn(keyColumn, resultColumns)
-                )
-                context.checker.check(
-                    valueColumn.isEmpty() || resultColumns.contains(valueColumn),
-                    delegate.executableElement,
-                    cannotMapInfoSpecifiedColumn(valueColumn, resultColumns)
-                )
-                context.checker.check(
-                    keyColumn.isNotEmpty() || valueColumn.isNotEmpty(),
-                    executableElement,
-                    ProcessorErrors.MAP_INFO_MUST_HAVE_AT_LEAST_ONE_COLUMN_PROVIDED
-                )
-                putData(MapInfo::class, MapInfo(keyColumn, valueColumn))
-            }
+            delegate.executableElement.getAnnotation(androidx.room.MapInfo::class)
+                ?.let { mapInfoAnnotation ->
+                    // Check if method is annotated with @MapInfo, parse annotation and put information in
+                    // bag of extras, it will be later used by the TypeAdapterStore
+                    val resultColumns = query.resultInfo?.columns?.map { it.name } ?: emptyList()
+                    val keyColumn = mapInfoAnnotation.value.keyColumn.toString()
+                    val valueColumn = mapInfoAnnotation.value.valueColumn.toString()
+
+                    //如果@MapInfo#keyColumn不为空，那么该属性值字段必须包含在select查询结果中
+                    context.checker.check(
+                        keyColumn.isEmpty() || resultColumns.contains(keyColumn),
+                        delegate.executableElement,
+                        cannotMapInfoSpecifiedColumn(keyColumn, resultColumns)
+                    )
+                    //如果@MapInfo#valueColumn不为空，那么该属性值字段必须包含在select查询结果中
+                    context.checker.check(
+                        valueColumn.isEmpty() || resultColumns.contains(valueColumn),
+                        delegate.executableElement,
+                        cannotMapInfoSpecifiedColumn(valueColumn, resultColumns)
+                    )
+                    //@MapInfo#keyColumn 和 @MapInfo#keyColumn#valueColumn不能同时为空；
+                    context.checker.check(
+                        keyColumn.isNotEmpty() || valueColumn.isNotEmpty(),
+                        executableElement,
+                        ProcessorErrors.MAP_INFO_MUST_HAVE_AT_LEAST_ONE_COLUMN_PROVIDED
+                    )
+                    putData(MapInfo::class, MapInfo(keyColumn, valueColumn))
+                }
         }
+
         context.checker.check(
             resultBinder.adapter != null,
             executableElement,
             ProcessorErrors.cannotFindQueryResultAdapter(returnType.typeName)
         )
 
+        //query方法是select方法，方法返回类型（如果是挂起方法那么是方法最后一个参数，该参数的第一个泛型类型）经过查询结果适配（术语解释）剥离后的类型
+        // 是一个非void非kotlinUnit非基础类型对象（那么当前对象能生成Pojo对象），生成的Pojo对象如果存在表关联字段，那么当前query方法最好使用@Transaction注解，否则会报警告；
         val inTransaction = executableElement.hasAnnotation(Transaction::class)
         if (query.type == QueryType.SELECT && !inTransaction) {
             // put a warning if it is has relations and not annotated w/ transaction

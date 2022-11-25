@@ -25,6 +25,7 @@ import androidx.room.solver.query.result.LiveDataQueryResultBinder
 import androidx.room.solver.query.result.QueryResultAdapter
 import androidx.room.solver.query.result.QueryResultBinder
 
+//androidx.lifecycle.LiveData
 class LiveDataQueryResultBinderProvider(context: Context) :
     ObservableQueryResultBinderProvider(context) {
     private val liveDataType: XRawType? by lazy {

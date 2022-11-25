@@ -213,21 +213,21 @@ object KotlinTypeNames {
 }
 
 val DEFERRED_TYPES = listOf(
-    LifecyclesTypeNames.LIVE_DATA,
-    LifecyclesTypeNames.COMPUTABLE_LIVE_DATA,
-    RxJava2TypeNames.FLOWABLE,
-    RxJava2TypeNames.OBSERVABLE,
-    RxJava2TypeNames.MAYBE,
-    RxJava2TypeNames.SINGLE,
-    RxJava2TypeNames.COMPLETABLE,
-    RxJava3TypeNames.FLOWABLE,
-    RxJava3TypeNames.OBSERVABLE,
-    RxJava3TypeNames.MAYBE,
-    RxJava3TypeNames.SINGLE,
-    RxJava3TypeNames.COMPLETABLE,
-    GuavaUtilConcurrentTypeNames.LISTENABLE_FUTURE,
-    KotlinTypeNames.FLOW,
-    ReactiveStreamsTypeNames.PUBLISHER
+    LifecyclesTypeNames.LIVE_DATA,//androidx.lifecycle.LiveData
+    LifecyclesTypeNames.COMPUTABLE_LIVE_DATA,//androidx.lifecycle.ComputableLiveData
+    RxJava2TypeNames.FLOWABLE,//io.reactivex.Flowable
+    RxJava2TypeNames.OBSERVABLE,//io.reactivex.Observable
+    RxJava2TypeNames.MAYBE,//io.reactivex.Maybe
+    RxJava2TypeNames.SINGLE,//io.reactivex.Single
+    RxJava2TypeNames.COMPLETABLE,//io.reactivex.Completable
+    RxJava3TypeNames.FLOWABLE,//io.reactivex.rxjava3.core.Flowable
+    RxJava3TypeNames.OBSERVABLE,//io.reactivex.rxjava3.core.Observable
+    RxJava3TypeNames.MAYBE,//io.reactivex.rxjava3.core.Maybe
+    RxJava3TypeNames.SINGLE,//io.reactivex.rxjava3.core.Single
+    RxJava3TypeNames.COMPLETABLE,//io.reactivex.rxjava3.core.Completable
+    GuavaUtilConcurrentTypeNames.LISTENABLE_FUTURE,//com.google.common.util.concurrent.ListenableFuture
+    KotlinTypeNames.FLOW,//kotlinx.coroutines.flow.Flow
+    ReactiveStreamsTypeNames.PUBLISHER//org.reactivestreams.Publisher
 )
 
 fun TypeName.defaultValue(): String {

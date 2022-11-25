@@ -26,6 +26,7 @@ import androidx.room.solver.RxType
 import androidx.room.solver.prepared.binder.CallablePreparedQueryResultBinder.Companion.createPreparedBinder
 import androidx.room.solver.prepared.binder.PreparedQueryResultBinder
 
+//Rxjava2,single类、maybe类；Rxjava3，single类、maybe类返回类型匹配
 open class RxPreparedQueryResultBinderProvider internal constructor(
     val context: Context,
     private val rxType: RxType
@@ -35,6 +36,7 @@ open class RxPreparedQueryResultBinderProvider internal constructor(
         context.processingEnv.findTypeElement(rxType.version.rxRoomClassName) != null
     }
 
+    //匹配
     override fun matches(declared: XType): Boolean =
         declared.typeArguments.size == 1 && matchesRxType(declared)
 
@@ -42,6 +44,7 @@ open class RxPreparedQueryResultBinderProvider internal constructor(
         return declared.rawType.typeName == rxType.className
     }
 
+    //返回类型中的泛型类型生成PreparedQueryResultBinder对象
     override fun provide(declared: XType, query: ParsedQuery): PreparedQueryResultBinder {
         if (!hasRxJavaArtifact) {
             context.logger.e(rxType.version.missingArtifactMessage)
@@ -60,8 +63,7 @@ open class RxPreparedQueryResultBinderProvider internal constructor(
     companion object {
 
         fun getAll(context: Context) = listOf(
-            //Rxjava2,single类、maybe类、completable类；
-            //Rxjava3，single类、maybe类、completable类；
+            //Rxjava2,single类、maybe类、completable类；Rxjava3，single类、maybe类、completable类；
             RxPreparedQueryResultBinderProvider(context, RxType.RX2_SINGLE),
             RxPreparedQueryResultBinderProvider(context, RxType.RX2_MAYBE),
             RxCompletablePreparedQueryResultBinderProvider(context, RxType.RX2_COMPLETABLE),
@@ -72,6 +74,7 @@ open class RxPreparedQueryResultBinderProvider internal constructor(
     }
 }
 
+//Rxjava2：completable类；Rxjava3：completable类；
 private class RxCompletablePreparedQueryResultBinderProvider(
     context: Context,
     rxType: RxType

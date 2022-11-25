@@ -29,6 +29,8 @@ import kotlin.reflect.KClass
 
 /**
  * Common functionality for shortcut method processors
+ *
+ * dao方法通用功能
  */
 class ShortcutMethodProcessor(
     baseContext: Context,
@@ -38,12 +40,14 @@ class ShortcutMethodProcessor(
     val context = baseContext.fork(executableElement)
     private val delegate = MethodProcessorDelegate.createFor(context, containing, executableElement)
 
+    //摘取注解
     fun <T : Annotation> extractAnnotation(klass: KClass<T>, errorMsg: String): XAnnotationBox<T>? {
         val annotation = executableElement.getAnnotation(klass)
         context.checker.check(annotation != null, executableElement, errorMsg)
         return annotation
     }
 
+    //摘取返回类型，不允许是挂起延时方法；
     fun extractReturnType(): XType {
         val returnType = delegate.extractReturnType()
         context.checker.check(
@@ -54,6 +58,7 @@ class ShortcutMethodProcessor(
         return returnType
     }
 
+    //摘取参数
     fun extractParams(
         targetEntityType: XType?,
         missingParamError: String,
@@ -66,8 +71,10 @@ class ShortcutMethodProcessor(
                 element = it
             ).process()
         }
+        //dao方法必须存在参数
         context.checker.check(params.isNotEmpty(), executableElement, missingParamError)
 
+        //@Insert、@Update或@Delete的entity属性如果存在，那么当前属性对象必须是@Entity修饰的类
         val targetEntity = if (targetEntityType != null &&
             !targetEntityType.isTypeOf(Any::class)
         ) {
@@ -105,6 +112,7 @@ class ShortcutMethodProcessor(
         return Pair(entities, params)
     }
 
+    //摘取关联的表信息
     private fun extractPartialEntities(
         targetEntity: Entity,
         params: List<ShortcutQueryParameter>,
@@ -112,6 +120,7 @@ class ShortcutMethodProcessor(
     ) = params.associateBy(
         { it.name },
         { param ->
+            //dao方法的entity属性和参数类型一致
             if (targetEntity.type.isSameType(param.pojoType!!)) {
                 ShortcutEntity(entity = targetEntity, partialEntity = null)
             } else {
@@ -144,6 +153,7 @@ class ShortcutMethodProcessor(
                                 )
                             }
 
+                        //不允许有表关联字段
                         if (pojo.relations.isNotEmpty()) {
                             // TODO: Support Pojos with relations.
                             context.logger.e(
@@ -151,7 +161,7 @@ class ShortcutMethodProcessor(
                                 ProcessorErrors.INVALID_RELATION_IN_PARTIAL_ENTITY
                             )
                         }
-
+                        //表常规字段或嵌入表常规字段不允许为空
                         if (pojo.fields.isEmpty()) {
                             context.logger.e(
                                 executableElement,
@@ -168,9 +178,11 @@ class ShortcutMethodProcessor(
         }
     )
 
+    //摘取entity表
     private fun extractEntities(params: List<ShortcutQueryParameter>) =
         params.mapNotNull {
             val entitiyTypeElement = it.pojoType?.typeElement
+            //dao方法参数类型必须是@Entity修饰的类，如果方法参数是集合或数组，那么判断当前集合或数组的item类型必须是@Entity修饰的类
             if (entitiyTypeElement == null) {
                 context.logger.e(
                     it.element,
@@ -192,6 +204,7 @@ class ShortcutMethodProcessor(
             }
         }.toMap()
 
+    //处理entity
     private inline fun processEntity(element: XTypeElement, onInvalid: () -> Unit) =
         if (element.isEntityElement()) {
             EntityProcessor(

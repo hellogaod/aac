@@ -41,6 +41,7 @@ abstract class ClassWriter(private val className: ClassName) {
     private val sharedMethodNames = mutableSetOf<String>()
     private val metadata = mutableMapOf<KClass<*>, Any>()
 
+    //创建类
     abstract fun createTypeSpecBuilder(): TypeSpec.Builder
 
     /**
@@ -65,16 +66,23 @@ abstract class ClassWriter(private val className: ClassName) {
     }
 
     fun write(processingEnv: XProcessingEnv) {
+
         val builder = createTypeSpecBuilder()
+
+        //创建变量和方法
         sharedFieldSpecs.values.forEach { builder.addField(it) }
         sharedMethodSpecs.values.forEach { builder.addMethod(it) }
+
         addGeneratedAnnotationIfAvailable(builder, processingEnv)
+
         addSuppressWarnings(builder)
+
         JavaFile.builder(className.packageName(), builder.build())
             .build()
             .writeTo(processingEnv.filer)
     }
 
+    //添加警告
     private fun addSuppressWarnings(builder: TypeSpec.Builder) {
         val suppressSpec = AnnotationSpec.builder(SuppressWarnings::class.typeName)
             .addMember(
@@ -85,6 +93,7 @@ abstract class ClassWriter(private val className: ClassName) {
         builder.addAnnotation(suppressSpec)
     }
 
+    //添加注解
     private fun addGeneratedAnnotationIfAvailable(
         adapterTypeSpecBuilder: TypeSpec.Builder,
         processingEnv: XProcessingEnv

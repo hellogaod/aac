@@ -73,17 +73,20 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             element//使用Database注解修饰的节点
         )
 
-        //views
+        //views视图
         val viewsMap = processDatabaseViews(dbAnnotation)
 
+        //外键校验
         validateForeignKeys(element, entities)
 
         validateExternalContentFts(element, entities)
 
+        //@Database修饰的类必须继承`androidx.room.RoomDatabase`类；
         val extendsRoomDb = roomDatabaseType.isAssignableFrom(element.type)
         context.checker.check(extendsRoomDb, element, ProcessorErrors.DB_MUST_EXTEND_ROOM_DB)
 
         val views = resolveDatabaseViews(viewsMap.values.toList())
+
         //数据库验证器
         val dbVerifier = if (element.hasAnnotation(SkipQueryVerification::class)) {
             null
@@ -95,6 +98,8 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             context.attachDatabaseVerifier(dbVerifier)
             verifyDatabaseViews(viewsMap, dbVerifier)
         }
+
+        //一定要确保每个数据库文件中的@Database#entities和@Database#views中的表和视图名称不重复
         validateUniqueTableAndViewNames(element, entities, views)
 
         val declaredType = element.type
@@ -123,16 +128,19 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                     )
                 }
 
+                //操作数据库
                 val dao = DaoProcessor(
                     context,
-                    daoElement,//方法返回类型节点
-                    declaredType,//方法所在父级节点，即@Database修饰的节点
+                    daoElement,//dao节点
+                    declaredType,//dao节点所在父级节点，即@Database修饰的节点
                     dbVerifier
                 )
                     .process()
+
                 DaoMethod(executable, dao)
             }
         }.toList()
+
 
         validateUniqueDaoClasses(element, daoMethods, entities)
         validateUniqueIndices(element, entities)
@@ -162,7 +170,9 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         val autoMigrationList = dbAnnotation
             .getAsAnnotationBoxArray<AutoMigration>("autoMigrations")
 
+        //@Database#autoMigrations表示迁移，如果当前属性不为空，那么
         if (autoMigrationList.isNotEmpty()) {
+            //@Database#exportSchema属性只能是true；
             if (!dbAnnotation.value.exportSchema) {
                 context.logger.e(
                     element,
@@ -170,6 +180,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 return emptyList()
             }
+            //当前项目必须能引用`room.schemaLocation`包下的类
             if (context.schemaOutFolderPath == null) {
                 context.logger.e(
                     element,
@@ -180,10 +191,12 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         }
 
         return autoMigrationList.mapNotNull {
+            //room.schemaLocation
             val databaseSchemaFolderPath = Path.of(
                 context.schemaOutFolderPath!!,
                 element.className.canonicalName()
             )
+
             val autoMigration = it.value
             val validatedFromSchemaFile = getValidatedSchemaFile(
                 autoMigration.from,
@@ -220,6 +233,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                         return@mapNotNull null
                     }
                 }
+                //无法自动生成迁移
                 if (fromSchemaBundle !is DatabaseBundle || toSchemaBundle !is DatabaseBundle) {
                     context.logger.e(
                         element,
@@ -243,6 +257,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         }
     }
 
+    //当前@Database##autoMigrations是AutoMigration注解，必须存在@AutoMigratio#from属性，当前属性会生成`$from.json`文件；
     private fun getValidatedSchemaFile(version: Int, schemaFolderPath: Path): File? {
         val schemaFile = SchemaFileResolver.RESOLVER.getFile(
             schemaFolderPath.resolve("$version.json")
@@ -275,6 +290,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         val byTableName = entities.associateBy { it.tableName }
         entities.forEach { entity ->
             entity.foreignKeys.forEach foreignKeyLoop@{ foreignKey ->
+                //外键指向的表必须存在于@DatabaseView#entities中
                 val parent = byTableName[foreignKey.parentTable]
                 if (parent == null) {
                     context.logger.e(
@@ -287,6 +303,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                     )
                     return@foreignKeyLoop
                 }
+                //外键表字段必须存在于外键表中
                 val parentFields = foreignKey.parentColumns.mapNotNull { columnName ->
                     val parentField = parent.findFieldByColumnName(columnName)
                     if (parentField == null) {
@@ -305,6 +322,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                     return@foreignKeyLoop
                 }
                 // ensure that it is indexed in the parent
+                //表外键字段指向外键表字段：该外键表字段要么是主键，要么创建了唯一性索引；否则会报警告；
                 if (!parent.isUnique(foreignKey.parentColumns)) {
                     context.logger.e(
                         parent.element,
@@ -323,6 +341,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         }
     }
 
+    //@Database#entities属性中的所有表创建的索引，索引名不允许重复；
     private fun validateUniqueIndices(element: XTypeElement, entities: List<Entity>) {
         entities
             .flatMap { entity ->
@@ -351,6 +370,8 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         entities: List<Entity>
     ) {
         val entityTypeNames = entities.map { it.typeName }.toSet()
+
+        //同一个database节点中不允许相同返回对象的方法，表示重复dao操作；
         daoMethods.groupBy { it.dao.typeName }
             .forEach {
                 if (it.value.size > 1) {
@@ -367,6 +388,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                     context.logger.e(dbElement, error)
                 }
             }
+
         val check = fun(
             element: XElement,
             dao: Dao,
@@ -385,6 +407,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 }
             }
         }
+
         daoMethods.forEach { daoMethod ->
             daoMethod.dao.shortcutMethods.forEach { method ->
                 method.entities.forEach {
@@ -427,6 +450,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             }
     }
 
+    //@Fts4#contentEntity中的对象必须存在于@Database#entities中
     private fun validateExternalContentFts(dbElement: XTypeElement, entities: List<Entity>) {
         // Validate FTS external content entities are present in the same database.
         //验证FTS外部内容实体是否存在于同一数据库中。
@@ -524,7 +548,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
      * Resolves all the underlying tables for each of the [DatabaseView]. All the tables
      * including those that are indirectly referenced are included.
      *
-     * 解析视图引用的表信息
+     * 解析每个[DatabaseView]的所有底层表。包括间接引用的所有表。
      *
      * @param views The list of all the [DatabaseView]s in this database. The order in this list is
      * important. A view always comes after all of the tables and views that it depends on.
@@ -534,7 +558,9 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             return emptyList()
         }
         val viewNames = views.map { it.viewName }
+
         fun isTable(name: String) = viewNames.none { it.equals(name, ignoreCase = true) }
+
         for (view in views) {
             // Some of these "tables" might actually be views.
             view.tables.addAll(view.query.tables.map { (name, _) -> name })
@@ -547,6 +573,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             for ((viewName, tables) in resolvedViews) {
                 for (view in unresolvedViews) {
                     // If we find a nested view, replace it with the list of concrete tables.
+                    //如果我们找到一个嵌套视图，请将其替换为具体表的列表。
                     if (view.tables.removeIf { it.equals(viewName, ignoreCase = true) }) {
                         view.tables.addAll(tables)
                     }

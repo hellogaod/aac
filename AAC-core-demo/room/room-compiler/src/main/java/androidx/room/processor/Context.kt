@@ -161,6 +161,7 @@ class Context private constructor(
         val subBuiltInConverterFlags = typeConverters.builtInConverterFlags.withNext(
             processConvertersResult.builtInConverterFlags
         )
+        //@TypeConverter#builtInTypeConverters属性值是@BuiltInTypeConverters注解，如果BuiltInTypeConverters#enums = State.ENABLED && BuiltInTypeConverters#uuid = State.ENABLED（默认这两个值都是State.INHERITED）
         val canReUseAdapterStore =
             subBuiltInConverterFlags == typeConverters.builtInConverterFlags &&
                     processConvertersResult.classes.isEmpty()
@@ -170,6 +171,7 @@ class Context private constructor(
         val subTypeConverters = if (canReUseAdapterStore) {
             this.typeConverters
         } else {
+            //先使用当前转换器（如果不存在），再使用前面存在的转换器
             processConvertersResult + this.typeConverters
         }
         val subSuppressedWarnings =

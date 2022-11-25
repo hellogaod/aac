@@ -44,14 +44,14 @@ class DiffException(val errorMessage: String) : RuntimeException(errorMessage)
  * Contains the changes detected between the two schema versions provided.
  */
 data class SchemaDiffResult(
-    val addedColumns: List<AutoMigration.AddedColumn>,
-    val deletedColumns: List<AutoMigration.DeletedColumn>,
+    val addedColumns: List<AutoMigration.AddedColumn>,//新增了哪些字段
+    val deletedColumns: List<AutoMigration.DeletedColumn>,//删除了哪些字段
     val addedTables: Set<AutoMigration.AddedTable>,
-    val renamedTables: Map<String, String>,
-    val complexChangedTables: Map<String, AutoMigration.ComplexChangedTable>,
-    val deletedTables: List<String>,
-    val fromViews: List<DatabaseViewBundle>,
-    val toViews: List<DatabaseViewBundle>
+    val renamedTables: Map<String, String>,//重命名了哪些表名
+    val complexChangedTables: Map<String, AutoMigration.ComplexChangedTable>,//哪些表架构做了调整
+    val deletedTables: List<String>,//删除了哪些表
+    val fromViews: List<DatabaseViewBundle>,//旧数据库中的视图
+    val toViews: List<DatabaseViewBundle>//新数据库中的视图
 )
 
 /**
@@ -70,25 +70,31 @@ data class SchemaDiffResult(
  * @param deleteTableEntries List of repeatable annotations specifying table deletes
  */
 class SchemaDiffer(
-    private val fromSchemaBundle: DatabaseBundle,
-    private val toSchemaBundle: DatabaseBundle,
-    private val className: String?,
-    private val renameColumnEntries: List<AutoMigration.RenamedColumn>,
-    private val deleteColumnEntries: List<AutoMigration.DeletedColumn>,
-    private val renameTableEntries: List<AutoMigration.RenamedTable>,
-    private val deleteTableEntries: List<AutoMigration.DeletedTable>
+    private val fromSchemaBundle: DatabaseBundle,// @AutoMigratio#from生成的对象
+    private val toSchemaBundle: DatabaseBundle,// @AutoMigratio#to生成的对象
+    private val className: String?,//@AutoMigratio#spec中的类名
+    private val renameColumnEntries: List<AutoMigration.RenamedColumn>,//@AutoMigratio#spec中的类,修改表字段名
+    private val deleteColumnEntries: List<AutoMigration.DeletedColumn>,//@AutoMigratio#spec中的类,表需要删减的表字段
+    private val renameTableEntries: List<AutoMigration.RenamedTable>,//@AutoMigratio#spec中的类，修改表名
+    private val deleteTableEntries: List<AutoMigration.DeletedTable>//@AutoMigratio#spec中的类,当前需要删减的表
 ) {
+    //可能被删除的表
     private val potentiallyDeletedTables = mutableSetOf<String>()
+
     // Maps FTS tables in the to version to the name of their content tables in the from version
     // for easy lookup.
+    //收集旧数据库中的fts表，k：fts关联的表名，V：fts表对象
     private val contentTableToFtsEntities = mutableMapOf<String, MutableList<EntityBundle>>()
 
     private val addedTables = mutableSetOf<AutoMigration.AddedTable>()
+
     // Any table that has been renamed, but also does not contain any complex changes.
+    //收集重命名的表，但是这个表结构没有改动，仅仅改了名称
     private val renamedTables = mutableMapOf<String, String>()
 
     // Map of tables with complex changes, keyed by the table name, note that if the table is
     // renamed, the original table name is used as key.
+    //表结构发生了变化，k：旧数据库表名，v：改动对象
     private val complexChangedTables =
         mutableMapOf<String, AutoMigration.ComplexChangedTable>()
     private val deletedTables = deleteTableEntries.map { it.deletedTableName }.toSet()
@@ -102,19 +108,26 @@ class SchemaDiffer(
      * Compares the two versions of the database based on the schemas provided, and detects
      * schema changes.
      *
+     * 根据提供的模式比较数据库的两个版本，并检测模式更改。
+     *
      * @return the AutoMigrationResult containing the schema changes detected
      */
     fun diffSchemas(): SchemaDiffResult {
+        //存储新版本数据库 表 -> 表字段 信息
         val processedTablesAndColumnsInNewVersion = mutableMapOf<String, List<String>>()
 
         // Check going from the original version of the schema to the new version for changed and
         // deleted columns/tables
         fromSchemaBundle.entitiesByTableName.values.forEach { fromTable ->
+
             val toTable = detectTableLevelChanges(fromTable)
 
             // Check for column related changes. Since we require toTable to not be null, any
             // deleted tables will be skipped here.
+            //当前数据库中的表要么做了重命名操作，要么在旧数据库中被当前数据库沿用
             if (toTable != null) {
+
+                //将目标版本中的FTS表映射到源版本中其内容表的名称，以便于查找
                 if (fromTable is FtsEntityBundle &&
                     fromTable.ftsOptions.contentTable.isNotEmpty()
                 ) {
@@ -123,6 +136,7 @@ class SchemaDiffer(
                     }.add(fromTable)
                 }
 
+                //当前表的表字段是否更改
                 val fromColumns = fromTable.fieldsByColumnName
                 val processedColumnsInNewVersion = fromColumns.values.mapNotNull { fromColumn ->
                     detectColumnLevelChanges(
@@ -138,6 +152,7 @@ class SchemaDiffer(
 
         // Check going from the new version of the schema to the original version for added
         // tables/columns. Skip the columns that have been processed already.
+        //新增了哪些表和表字段
         toSchemaBundle.entitiesByTableName.forEach { toTable ->
             processAddedTableAndColumns(toTable.value, processedTablesAndColumnsInNewVersion)
         }
@@ -169,6 +184,8 @@ class SchemaDiffer(
     /**
      * Checks if any content tables have been renamed, and if so, marks the FTS table referencing
      * the content table as a complex changed table.
+     *
+     * 被删除的表，如果是把表改成fts表了，并且不存在于 改动表架构集合中，将其收集到改动表架构集合中
      */
     private fun processContentTables() {
         renameTableEntries.forEach { renamedTable ->
@@ -191,6 +208,11 @@ class SchemaDiffer(
      * Detects any changes at the table-level, independent of any changes that may be present at
      * the column-level (e.g. column add/rename/delete).
      *
+     * 数据库中的表：
+     * 1. 要么出现在@RenameTable#newTableName中，表示表重命名；
+     * 2. 要么出现在toSchema中表示当前表迁移时沿用之前的；
+     * 3. 要么以上都没有出现，表示当前表在新版数据库中被删除；
+     *
      * @param fromTable The original version of the table
      * @return The EntityBundle of the table in the new version of the database. If the
      * table was renamed, this will be reflected in the return value. If the table was removed, a
@@ -204,6 +226,7 @@ class SchemaDiffer(
         val renamedTable = isTableRenamed(fromTable.tableName)
 
         if (renamedTable != null) {
+            //@RenameTable#toTableName表示新命名的表，当前新表名必须存在于新版数据库中；
             val toTable = toSchemaBundle.entitiesByTableName[renamedTable.newTableName]
             if (toTable != null) {
                 val isComplexChangedTable = tableContainsComplexChanges(
@@ -212,10 +235,13 @@ class SchemaDiffer(
                 )
                 val isFtsEntity = fromTable is FtsEntityBundle
                 if (isComplexChangedTable || isFtsEntity) {
+                    //@RenameTable#toTableName属性表示新命名一个表名，但是这个表名不允许存在于新版本的数据库中 - 这样表示表名重复；
                     if (toSchemaBundle.entitiesByTableName.containsKey(toTable.newTableName)) {
                         diffError(tableWithConflictingPrefixFound(toTable.newTableName))
                     }
+
                     renamedTables.remove(renamedTable.originalTableName)
+
                     complexChangedTables[renamedTable.originalTableName] =
                         AutoMigration.ComplexChangedTable(
                             tableName = toTable.tableName,
@@ -239,6 +265,8 @@ class SchemaDiffer(
             }
             return toTable
         }
+
+        //如果旧数据库中的表在@RenameTable不存在，表示没有对当前数据库中修改；当前表在新数据库中被沿用，那么不允许出现在@DeleteTable#tableName中（表示表被删除了，肯定报错）；
         val toTable = toSchemaBundle.entitiesByTableName[fromTable.tableName]
         val isDeletedTable = deletedTables.contains(fromTable.tableName)
         if (toTable != null) {
@@ -277,6 +305,12 @@ class SchemaDiffer(
     /**
      * Detects any changes at the column-level.
      *
+     * 表字段迁移，前提条件是当前表一定要存在：
+     *
+     * 1. 表字段出现在@RenameColumn#fromColumnName中，表示当前表字段重命名；
+     * 2. 表字段在新表中还存在，表示当前表字段沿用；
+     * 3. 条件1和2都不满足，表示当前表字段被删除；
+     *
      * @param fromTable The original version of the table
      * @param toTable The new version of the table
      * @param fromColumn The original version of the column
@@ -297,10 +331,14 @@ class SchemaDiffer(
             )
             // Make sure there are no conflicts in the new version of the table with the
             // temporary new table name
+            //还需要判断，@RenameColumn#toColumnName在新表中是否已经存在，如果存在表示表字段重复错误；
             if (toSchemaBundle.entitiesByTableName.containsKey(toTable.newTableName)) {
                 diffError(tableWithConflictingPrefixFound(toTable.newTableName))
             }
+
             renamedTables.remove(fromTable.tableName)
+
+            //表字段更改了，那么当前表当然也算做了更改
             complexChangedTables[fromTable.tableName] =
                 AutoMigration.ComplexChangedTable(
                     tableName = fromTable.tableName,
@@ -313,9 +351,11 @@ class SchemaDiffer(
         }
         // The column was not renamed. So we check if the column was deleted, and
         // if not, we check for column level complex changes.
+        //当前表字段不存在于修改表字段注解中（@RenameColumn），存在于新表中，表示沿用；
         val match = toTable.fieldsByColumnName[fromColumn.columnName]
         if (match != null) {
             val columnChanged = !match.isSchemaEqual(fromColumn)
+            //如果表字段改变了，并且当前 改变表集合中不存在该表信息
             if (columnChanged && !complexChangedTables.containsKey(fromTable.tableName)) {
                 // Make sure there are no conflicts in the new version of the table with the
                 // temporary new table name
@@ -339,6 +379,7 @@ class SchemaDiffer(
             it.tableName == fromTable.tableName && it.columnName == fromColumn.columnName
         }
 
+        //旧数据库中的表字段，如果没有更改表字段名称（使用@RenameColumn注解）并且当前表字段在新数据库中的表中不存在，那么该表字段必须存在于@DeleteColumn注解中，@DeleteColumn#tableName表示表名，@DeleteColumn#columnName表示被删除的表字段；
         if (!isColumnDeleted) {
             // We have encountered an ambiguous scenario, need more input from the user.
             diffError(
@@ -358,6 +399,8 @@ class SchemaDiffer(
      * Checks for complex schema changes at a Table level and returns a ComplexTableChange
      * including information on which table changes were found on, and whether foreign key or
      * index related changes have occurred.
+     *
+     * 判断表是否做了结构更改，如果是则返回true
      *
      * @param fromTable The original version of the table
      * @param toTable The new version of the table
@@ -392,6 +435,7 @@ class SchemaDiffer(
             return true
         }
         // Check if any foreign keys are referencing a renamed table.
+        //当前外键是否引用新命名的表
         return fromTable.foreignKeys.any { foreignKey ->
             renameTableEntries.any {
                 it.originalTableName == foreignKey.table
@@ -411,6 +455,8 @@ class SchemaDiffer(
     /**
      * Takes in two ForeignKeyBundle lists, attempts to find potential matches based on the columns
      * of the Foreign Keys. Processes these potential matches by checking for schema equality.
+     *
+     * 判断两个外键信息是否更改，false表示更改；true表示未更改；
      *
      * @param fromBundle List of foreign keys in the old schema version
      * @param toBundle List of foreign keys in the new schema version
@@ -442,6 +488,8 @@ class SchemaDiffer(
      * Takes in two IndexBundle lists, attempts to find potential matches based on the names
      * of the indexes. Processes these potential matches by checking for schema equality.
      *
+     * 判断两个索引信息是否更改，false表示更改；true表示未更改；
+     *
      * @param fromBundle List of indexes in the old schema version
      * @param toBundle List of indexes in the new schema version
      * @return true if the two lists of indexes are equal
@@ -468,6 +516,12 @@ class SchemaDiffer(
     /**
      * Checks if the table provided has been renamed in the new version of the database.
      *
+     * 更改表名，首先确保表名不会和当前数据库其他表名冲突：
+     *
+     * 1. @RenameTable修改表对象没有找到，返回null；
+     * 2. @RenameTable修改表对象找到了一个，返回当前对象；
+     * 3. @RenameTable#fromTableName属性值相同的情况不允许出现，当前表示对同一个表做了多次重命名操作
+     *
      * @param tableName Name of the table in the original database version
      * @return A RenameTable object if the table has been renamed, otherwise null
      */
@@ -478,6 +532,7 @@ class SchemaDiffer(
         }
 
         // Make sure there aren't multiple renames on the same table
+        //@RenameTable可以多次使用，@RenameTable#fromTableName属性值相同的情况不允许出现，因为这样表示对同一个表做了多次重命名操作；
         if (renamedTableAnnotations.size > 1) {
             diffError(
                 conflictingRenameTableAnnotationsFound(
@@ -499,12 +554,14 @@ class SchemaDiffer(
         columnName: String,
         tableName: String
     ): AutoMigration.RenamedColumn? {
+        //旧版本表中的表字段 去匹配@RenameColumn#fromColumnName中的所有字段，
         val annotations = renameColumnEntries
         val renamedColumnAnnotations = annotations.filter {
             it.originalColumnName == columnName && it.tableName == tableName
         }
 
         // Make sure there aren't multiple renames on the same column
+        //@RenameColumn注解可以有多个，如果出现@RenameColumn#tableName相同表示操作同一个表，那么这种情况下@RenameColumn#fromColumnName不允许相同，这样表示同一个表重命名同一个表字段，是不被允许的；
         if (renamedColumnAnnotations.size > 1) {
             diffError(
                 conflictingRenameColumnAnnotationsFound(renamedColumnAnnotations.joinToString(","))
@@ -516,6 +573,8 @@ class SchemaDiffer(
     /**
      * Looks for any new tables and columns that have been added between versions.
      *
+     * 查找在版本之间添加的任何新表和列。
+     *
      * @param toTable The new version of the table
      * @param processedTablesAndColumnsInNewVersion List of all columns in the new version of the
      * database that have been already processed
@@ -525,6 +584,7 @@ class SchemaDiffer(
         processedTablesAndColumnsInNewVersion: MutableMap<String, List<String>>
     ) {
         // Old table bundle will be found even if table is renamed.
+        //@RenameTable修改表名集合，该集合中是否能匹配上新数据库中的表名
         val isRenamed = renameTableEntries.firstOrNull {
             it.newTableName == toTable.tableName
         }
@@ -533,12 +593,13 @@ class SchemaDiffer(
         } else {
             fromSchemaBundle.entitiesByTableName[toTable.tableName]
         }
-
+        //在旧数据库中找存在于新数据库中的表，如果不存在，表示当前表是新家的
         if (fromTable == null) {
             // It's a new table
             addedTables.add(AutoMigration.AddedTable(toTable))
             return
         }
+        //当前表存在于旧数据库中，那么在对表字段就行检查，如果不存在于旧数据库表字段中，那么添加；
         val fromColumns = fromTable.fieldsByColumnName
         val toColumns =
             processedTablesAndColumnsInNewVersion[toTable.tableName]?.let { processedColumns ->
@@ -548,6 +609,7 @@ class SchemaDiffer(
         toColumns.values.forEach { toColumn ->
             val match = fromColumns[toColumn.columnName]
             if (match == null) {
+                //新增的表字段如果是非空，那么必须有默认值；
                 if (toColumn.isNonNull && toColumn.defaultValue == null) {
                     diffError(
                         newNotNullColumnMustHaveDefaultValue(toColumn.columnName)
@@ -571,6 +633,8 @@ class SchemaDiffer(
     /**
      * Goes through the deleted columns list and marks the table of each as a complex changed
      * table if it was not already.
+     *
+     * 被删除的字段，不存在于表架构更改集合中，那么将其添加到表架构更改集合中
      */
     private fun processDeletedColumns() {
         deletedColumns.filterNot {

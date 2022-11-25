@@ -56,21 +56,21 @@ sealed class QueryMethod(
  * A query method who's query is a SELECT statement.
  */
 class ReadQueryMethod(
-    element: XMethodElement,
-    query: ParsedQuery,
-    returnType: XType,
-    parameters: List<QueryParameter>,
-    val inTransaction: Boolean,
-    val queryResultBinder: QueryResultBinder
+    element: XMethodElement,//query方法节点
+    query: ParsedQuery,//query方法sql解析
+    returnType: XType,//query方法返回类型
+    parameters: List<QueryParameter>,//query方法参数
+    val inTransaction: Boolean,//query方法是否使用了@Transaction注解
+    val queryResultBinder: QueryResultBinder//query方法绑定对象
 ) : QueryMethod(element, query, returnType, parameters)
 
 /**
  * A query method who's query is a INSERT, UPDATE or DELETE statement.
  */
 class WriteQueryMethod(
-    element: XMethodElement,
-    query: ParsedQuery,
-    returnType: XType,
-    parameters: List<QueryParameter>,
-    val preparedQueryResultBinder: PreparedQueryResultBinder
+    element: XMethodElement,//Dao方法节点
+    query: ParsedQuery,//当前方法sql解析对象
+    returnType: XType,//Dao方法返回类型
+    parameters: List<QueryParameter>,//@Query修饰的Dao方法参数生成的对象
+    val preparedQueryResultBinder: PreparedQueryResultBinder//连接准备好的查询（INSERT、DELETE或UPDATE）、数据库和ResultAdapter。
 ) : QueryMethod(element, query, returnType, parameters)

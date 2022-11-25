@@ -25,6 +25,8 @@ interface HasSchemaIdentity {
 
 /**
  * A class that can be converted into a unique identifier for an object
+ *
+ * 可以转换为对象唯一标识符的类
  */
 class SchemaIdentityKey {
     companion object {

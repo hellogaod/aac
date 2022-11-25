@@ -34,9 +34,10 @@ class TransactionMethodProcessor(
     fun process(): TransactionMethod {
         val delegate = MethodProcessorDelegate.createFor(context, containingType, executableElement)
         val hasKotlinDefaultImpl = executableElement.hasKotlinDefaultImpl()
+        // transaction方法不能使用private、final、static；如果想使用abstract修饰,那么当前transaction方法在kotlin类中必须存在默认实现
         context.checker.check(
             executableElement.isOverrideableIgnoringContainer() &&
-                (!executableElement.isAbstract() || hasKotlinDefaultImpl),
+                    (!executableElement.isAbstract() || hasKotlinDefaultImpl),
             executableElement, ProcessorErrors.TRANSACTION_METHOD_MODIFIERS
         )
 
