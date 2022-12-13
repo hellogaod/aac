@@ -63,7 +63,6 @@ class QueryMethodProcessor(
          */
         val (initialResult, logs) = context.collectLogs {
 
-            111
             InternalQueryProcessor(
                 context = it,
                 executableElement = executableElement,
@@ -138,7 +137,7 @@ private class InternalQueryProcessor(
             ParsedQuery.MISSING
         }
 
-        //Dao方法类型如果是泛型，那么必须是存在泛型参数，e.g.List<实际对象>是正确的，List、List< T>或List<?>都是错误的
+        //Dao普通方法如果返回类型（如果当前方法是suspend挂起方法，判断的是最后一个参数的第一个泛型类型）是泛型，泛型参数必须是实际参数类型，e.g.List<String>是实际String类型，但是List< T>不是实际类型；
         val returnTypeName = returnType.typeName
         context.checker.notUnbound(
             returnTypeName, executableElement,
@@ -261,8 +260,8 @@ private class InternalQueryProcessor(
             ProcessorErrors.cannotFindQueryResultAdapter(returnType.typeName)
         )
 
-        //query方法是select方法，方法返回类型（如果是挂起方法那么是方法最后一个参数，该参数的第一个泛型类型）经过查询结果适配（术语解释）剥离后的类型
-        // 是一个非void非kotlinUnit非基础类型对象（那么当前对象能生成Pojo对象），生成的Pojo对象如果存在表关联字段，那么当前query方法最好使用@Transaction注解，否则会报警告；
+        // 如果query方法是select类型，并且方法返回类型（如果方法是挂起方法，判断的当然是该方法的最后一个参数的第一个反省类型）是一个对象（如果是泛型，将泛型进过一系列骚操作得到的对象），
+        // 如果该对象生成的pojo对象存在关联表，那么当前query方法最好使用@Transaction注解，否则警告。
         val inTransaction = executableElement.hasAnnotation(Transaction::class)
         if (query.type == QueryType.SELECT && !inTransaction) {
             // put a warning if it is has relations and not annotated w/ transaction
@@ -292,6 +291,9 @@ private class InternalQueryProcessor(
             val pojoUnusedFields = pojoMappings
                 .filter { it.unusedFields.isNotEmpty() }
                 .associate { it.pojo.typeName to it.unusedFields }
+
+            //query如果是select查询类型，那么select查询的字段最好包含在方法返回类型（①suspend方法，返回类型表示的是参数最后一个参数的第一个泛型类型，②返回类型如果是泛型，经过一系列骚操作后的对象）的字段中
+            //query方法返回类型（①suspend方法，返回类型表示的是参数最后一个参数的第一个泛型类型，②返回类型如果是泛型，经过一系列骚操作后的对象）中的字段最好
             if (unusedColumns.isNotEmpty() || pojoUnusedFields.isNotEmpty()) {
                 val warningMsg = ProcessorErrors.cursorPojoMismatch(
                     pojoTypeNames = pojoMappings.map { it.pojo.typeName },

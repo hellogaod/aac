@@ -49,6 +49,11 @@ open class Pojo(
     /**
      * All table or view names that are somehow accessed by this Pojo.
      * Might be via Embedded or Relation.
+     *
+     * @RawQuery#observedEntities属性非必填项，但是该属性对象如果存在，那么必须使用@Entity or @DatabaseView修饰：
+     * 但是还有一种情况，
+     * 如果@RawQuery#observedEntities属性对象不是@Entity修饰的类 && 属性对象生成的pojo对象存在表嵌入字段或表关系字段（并且这些表嵌入字段或表关系字段对象是@Entity or @DatabaseView修饰）：
+     *  即使不使用@DatabaseView修饰，也是没问题的。
      */
     fun accessedTableNames(): List<String> {
         val entityAnnotation = element.getAnnotation(androidx.room.Entity::class)

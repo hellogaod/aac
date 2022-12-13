@@ -160,6 +160,7 @@ class DaoProcessor(
             ).process()
         } ?: emptyList()
 
+        //@Transaction没有和@Insert（或@Delete或@Query或@Update或@RawQuery）一起使用，否则无效。
         val transactionMethods = allMethods.filter { member ->
             member.hasAnnotation(Transaction::class) &&
                     PROCESSED_ANNOTATIONS.none { member.hasAnnotation(it) }
@@ -210,11 +211,12 @@ class DaoProcessor(
             it.parameters.size == 1 &&
                     it.parameters[0].type.isAssignableFrom(dbType)
         }
+        //如果dao节点对象存在构造函数并且构造函数参数不为空，则报错。
+        // 除非构造函数参数有且仅有一个，并且参数类型是dao节点所在父节点类型-database节点类型；
         val constructorParamType = if (goodConstructor != null) {
             goodConstructor.parameters[0].type.typeName
         } else {
-            //如果dao节点对象存在构造函数并且构造函数参数不为空，则报错。
-            // 除非构造函数参数有且仅有一个，并且参数类型是dao节点所在父节点类型；
+
             validateEmptyConstructor(constructors)
             null
         }
@@ -247,7 +249,7 @@ class DaoProcessor(
     }
 
     private fun validateEmptyConstructor(constructors: List<XConstructorElement>) {
-        //如果dao方法返回类型 表示的节点，该节点对象存在构造函数并且构造函数参数不为空，则报错。
+        //如果dao节点对象存在构造函数并且构造函数参数不为空，则报错。
         if (constructors.isNotEmpty() && constructors.all { it.parameters.isNotEmpty() }) {
             context.logger.e(
                 element,

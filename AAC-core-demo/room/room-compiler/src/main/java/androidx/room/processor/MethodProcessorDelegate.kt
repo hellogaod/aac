@@ -221,7 +221,6 @@ class DefaultMethodProcessorDelegate(
     //返回类型匹配：com.google.common.util.concurrent.ListenableFuture,并且泛型参数类型有且仅有一个
 
     //3. InstantInsertMethodBinderProvider中匹配
-    //
     override fun findInsertMethodBinder(
         returnType: XType,
         params: List<ShortcutQueryParameter>

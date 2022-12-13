@@ -120,6 +120,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 null
             } else {
+                //database方法最好不要使用@JvmName修饰，否则警告
                 if (executable.hasAnnotation(JvmName::class)) {
                     context.logger.w(
                         Warning.JVM_NAME_ON_OVERRIDDEN_METHOD,
@@ -170,9 +171,9 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         val autoMigrationList = dbAnnotation
             .getAsAnnotationBoxArray<AutoMigration>("autoMigrations")
 
-        //@Database#autoMigrations表示迁移，如果当前属性不为空，那么
+        // @Database#autoMigrations表示迁移，如果当前属性不为空，那么
         if (autoMigrationList.isNotEmpty()) {
-            //@Database#exportSchema属性只能是true；
+            // @Database#exportSchema属性必须是true，默认就是true
             if (!dbAnnotation.value.exportSchema) {
                 context.logger.e(
                     element,
@@ -180,7 +181,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 return emptyList()
             }
-            //当前项目必须能引用`room.schemaLocation`包下的类
+            // 当前项目必须能引用`room.schemaLocation`包下的类：用于导出json文件；
             if (context.schemaOutFolderPath == null) {
                 context.logger.e(
                     element,
@@ -218,6 +219,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 val fromSchemaBundle = validatedFromSchemaFile.inputStream().use {
                     deserializeSchemaFile(it, autoMigration.from)
                 }
+                //@AutoMigratio#to必须存在，如果`@AutoMigratio#to == @Database#version`，表示迁移版本就是当前数据库版本；
                 val toSchemaBundle = if (autoMigration.to == latestDbSchema.version) {
                     latestDbSchema
                 } else {
@@ -257,7 +259,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         }
     }
 
-    //当前@Database##autoMigrations是AutoMigration注解，必须存在@AutoMigratio#from属性，当前属性会生成`$from.json`文件；
+    //当前@Database#autoMigrations是AutoMigration注解，必须存在@AutoMigratio#from属性，当前属性会生成`$from.json`文件；
     private fun getValidatedSchemaFile(version: Int, schemaFolderPath: Path): File? {
         val schemaFile = SchemaFileResolver.RESOLVER.getFile(
             schemaFolderPath.resolve("$version.json")

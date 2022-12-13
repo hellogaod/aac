@@ -28,8 +28,8 @@ class TransactionMethodProcessor(
     val containingType: XType,
     val executableElement: XMethodElement
 ) {
-
     val context = baseContext.fork(executableElement)
+
 
     fun process(): TransactionMethod {
         val delegate = MethodProcessorDelegate.createFor(context, containingType, executableElement)
@@ -44,6 +44,22 @@ class TransactionMethodProcessor(
         val returnType = delegate.extractReturnType()
         val rawReturnType = returnType.rawType
 
+        //transaction方法返回类型（如果是挂起方法，判断的是最后一个参数，该参数的第一个泛型类型）不允许是
+        // `androidx.lifecycle.LiveData、
+        // androidx.lifecycle.ComputableLiveData、
+        // io.reactivex.Flowable、
+        // io.reactivex.Observable、
+        // io.reactivex.Maybe、
+        // io.reactivex.Single、
+        // io.reactivex.Completable、
+        // io.reactivex.rxjava3.core.Flowable、
+        // io.reactivex.rxjava3.core.Observable、
+        // io.reactivex.rxjava3.core.Maybe、
+        // io.reactivex.rxjava3.core.Single、
+        // io.reactivex.rxjava3.core.Completable、
+        // com.google.common.util.concurrent.ListenableFuture、
+        // kotlinx.coroutines.flow.Flow、
+        // org.reactivestreams.Publisher`及其子类，这些表示延时或异步处理的类型；
         DEFERRED_TYPES.firstOrNull { className ->
             context.processingEnv.findType(className)?.let {
                 it.rawType.isAssignableFrom(rawReturnType)

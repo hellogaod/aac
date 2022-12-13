@@ -49,6 +49,7 @@ class UpdateMethodProcessor(
                 val missingPrimaryKeys = entity.primaryKey.fields.filter {
                     pojo.findFieldByColumnName(it.columnName) == null
                 }
+
                 context.checker.check(
                     missingPrimaryKeys.isEmpty(), executableElement,
                     ProcessorErrors.missingPrimaryKeysInPartialEntityForUpdate(

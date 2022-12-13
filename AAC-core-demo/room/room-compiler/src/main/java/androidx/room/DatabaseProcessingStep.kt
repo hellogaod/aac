@@ -61,6 +61,7 @@ class DatabaseProcessingStep : XProcessingStep {
                     context.reportMissingTypeReference(annotatedElement.qualifiedName)
                     return@mapNotNull null
                 }
+
                 val (database, logs) = context.collectLogs { subContext ->
                     //从@Datebase注解开始
                     DatabaseProcessor(

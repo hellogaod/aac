@@ -68,7 +68,7 @@ class RawQueryMethodProcessor(
                 val keyColumn = it.value.keyColumn.toString()
                 val valueColumn = it.value.valueColumn.toString()
 
-                //如果使用@MapInfo注解，不允许keyColumn和valueColumn两个属性同时唯恐
+                //如果使用@MapInfo注解，不允许keyColumn和valueColumn两个属性同时为空
                 context.checker.check(
                     keyColumn.isNotEmpty() || valueColumn.isNotEmpty(),
                     executableElement,
@@ -91,6 +91,8 @@ class RawQueryMethodProcessor(
             queryResultBinder = resultBinder
         )
         // TODO: Lift this restriction, to allow for INSERT, UPDATE and DELETE raw statements.
+        //rawQuery普通方法返回类型不允许是kotlinunit，不允许是void类型；
+        //- 如果方法是挂起方法判断的是该方法最后一个参数，该参数的第一个泛型类型作为匹配类型；
         context.checker.check(
             rawQueryMethod.returnsValue, executableElement,
             ProcessorErrors.RAW_QUERY_BAD_RETURN_TYPE

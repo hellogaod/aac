@@ -120,7 +120,7 @@ class ShortcutMethodProcessor(
     ) = params.associateBy(
         { it.name },
         { param ->
-            //dao方法的entity属性和参数类型一致
+            //dao方法的entity属性类型和参数类型一致
             if (targetEntity.type.isSameType(param.pojoType!!)) {
                 ShortcutEntity(entity = targetEntity, partialEntity = null)
             } else {
@@ -141,6 +141,7 @@ class ShortcutMethodProcessor(
                         bindingScope = FieldProcessor.BindingScope.BIND_TO_STMT,
                         parent = null
                     ).process().also { pojo ->
+                        //方法参数生成的pojo对象的表常规字段或嵌入表常规字段必须存在于Update#entity属性表中；
                         pojo.fields
                             .filter { targetEntity.findFieldByColumnName(it.columnName) == null }
                             .forEach {
@@ -153,7 +154,7 @@ class ShortcutMethodProcessor(
                                 )
                             }
 
-                        //不允许有表关联字段
+                        //不允许有表关系字段
                         if (pojo.relations.isNotEmpty()) {
                             // TODO: Support Pojos with relations.
                             context.logger.e(
@@ -161,7 +162,7 @@ class ShortcutMethodProcessor(
                                 ProcessorErrors.INVALID_RELATION_IN_PARTIAL_ENTITY
                             )
                         }
-                        //表常规字段或嵌入表常规字段不允许为空
+                        //方法参数生成的pojo对象必须存在表常规字段或嵌入表常规字段；
                         if (pojo.fields.isEmpty()) {
                             context.logger.e(
                                 executableElement,

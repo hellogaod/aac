@@ -51,8 +51,9 @@ class ShortcutParameterProcessor(
         )
     }
 
-    //当前传入的类型如果是Iterable或数组，那么返回的是Pari<xx,true>；xx表示当前item下的对象，如果该对象不是泛型类型；否则该对象如果是泛型类型，那么使用当前泛型类型（递归直到不存在泛型类型）
-    // 否则返回Pari<xx,false>，xx表示当前的对象，如果该对象不是泛型类型；否则该对象如果是泛型类型，那么使用当前泛型类型（递归直到不存在泛型类型）
+    //1. 如果typeMirror是Iterable集合（如果是集合必须是Iterable类型，否则报错）：返回的是Pari<xx,true>，xx表示当前数组item类型（如果item还是一个泛型，那么继续剥离获取第一个泛型类型，直到不存在泛型类型为止）
+    //2. 如果typeMirror是数组：返回的是Pari<xx,true>，xx表示数组item类型（如果item还是一个泛型，那么继续剥离获取第一个泛型类型，直到不存在泛型类型为止）
+    //3. 不满足条件1和2的情况下：返回的是Pari<xx,false>,xx表示参数实际对象类型（如果参数类型还是一个泛型，那么继续剥离获取第一个泛型类型，直到不存在泛型类型为止）
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private fun extractPojoType(typeMirror: XType): Pair<XType?, Boolean> {
 
@@ -71,6 +72,7 @@ class ShortcutParameterProcessor(
 
         //当前对象的非private iterator方法，该方法返回类型的第一个泛型参数类型
         fun extractPojoTypeFromIterator(iterableType: XType): XType {
+            //如果参数是集合类型，那么当前参数类型必须是Iterable类型；
             iterableType.typeElement!!.getAllNonPrivateInstanceMethods().forEach {
                 if (it.jvmName == "iterator") {
                     return it.asMemberOf(iterableType)

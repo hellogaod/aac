@@ -235,7 +235,7 @@ class SchemaDiffer(
                 )
                 val isFtsEntity = fromTable is FtsEntityBundle
                 if (isComplexChangedTable || isFtsEntity) {
-                    //@RenameTable#toTableName属性表示新命名一个表名，但是这个表名不允许存在于新版本的数据库中 - 这样表示表名重复；
+                    //如果表结构（主键、外键、索引或者本身就是fts表）发生变化，那么当前 “_new_” +@RenameTable#toTableName 不允许存在于新版数据库中
                     if (toSchemaBundle.entitiesByTableName.containsKey(toTable.newTableName)) {
                         diffError(tableWithConflictingPrefixFound(toTable.newTableName))
                     }
@@ -331,7 +331,7 @@ class SchemaDiffer(
             )
             // Make sure there are no conflicts in the new version of the table with the
             // temporary new table name
-            //还需要判断，@RenameColumn#toColumnName在新表中是否已经存在，如果存在表示表字段重复错误；
+            //新版数据库不要出现之前的表名拼接了“_new_”前缀 后的新表名，表示冲突
             if (toSchemaBundle.entitiesByTableName.containsKey(toTable.newTableName)) {
                 diffError(tableWithConflictingPrefixFound(toTable.newTableName))
             }

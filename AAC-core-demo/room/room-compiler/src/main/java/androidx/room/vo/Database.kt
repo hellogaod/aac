@@ -32,7 +32,7 @@ data class Database(
     val element: XTypeElement,//@Database修饰的节点
     val type: XType,//@Database修饰的节点类型
     val entities: List<Entity>,//@Database#entities表生成的对象；
-    val views: List<DatabaseView>,//@@Database#views视图生成的对象
+    val views: List<DatabaseView>,//@Database#views视图生成的对象
     val daoMethods: List<DaoMethod>,//@Database修饰的节点中的xxxDao方法
     val version: Int,//@Database#version
     val exportSchema: Boolean,//@Database#exportSchema,默认true

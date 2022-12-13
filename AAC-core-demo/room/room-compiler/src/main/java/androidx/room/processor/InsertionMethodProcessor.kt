@@ -61,6 +61,7 @@ class InsertionMethodProcessor(
                 val missingPrimaryKeys = entity.primaryKey.fields.any {
                     pojo.findFieldByColumnName(it.columnName) == null
                 }
+                //除非@Insert#entity中的表主键是自动生成的，否则当前主键必须存在于表常规字段中
                 context.checker.check(
                     entity.primaryKey.autoGenerateId || !missingPrimaryKeys,
                     executableElement,
@@ -77,7 +78,7 @@ class InsertionMethodProcessor(
                             pojo.findFieldByColumnName(it.columnName) == null
                 }
 
-                //entity属性对象除了主键字段，其他字段不允许是notnull属性（因为可能没有插入值而导致插入失败）；
+                //@Insert#entity中的表除了主键字段，其他表常规字段或嵌入表常规字段不允许： 默认值为null && 字段不允许null && 字段不存在于insert方法的参数生成的pojo对象表示的表常规字段或嵌入表常规字段中
                 context.checker.check(
                     missingRequiredFields.isEmpty(),
                     executableElement,

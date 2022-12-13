@@ -51,6 +51,7 @@ open class RxCallableInsertMethodBinderProvider internal constructor(
         declared: XType,
         params: List<ShortcutQueryParameter>
     ): InsertMethodBinder {
+        //获取返回类型的第一个泛型类型；
         val typeArg = extractTypeArg(declared)
         val adapter = context.typeAdapterStore.findInsertAdapter(typeArg, params)
         return createInsertBinder(typeArg, adapter) { callableImpl, _ ->

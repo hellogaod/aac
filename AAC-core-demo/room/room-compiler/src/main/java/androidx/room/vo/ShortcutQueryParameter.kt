@@ -27,11 +27,9 @@ data class ShortcutQueryParameter(
     val name: String,//当前dao方法参数名称
     //actual param type (List<Foo>, Set<Foo>, Foo, etc...)
     val type: XType, // 当前到方法参数类型，
-
-    //1.先判断当前方法参数类型是否集合或数组，如果是使用item类型；否则直接使用dao方法参数类型；
-    //2.根据1的类型，判断是否是泛型类型，如果是获取泛型类型（递归深入查询，直到不存在泛型类型），使用该泛型类型；如果不存在泛型类型，那么直接使用1中的类型
+    //方法参数中包裹的实际类型：1.如果是集合或数组，使用当前item类型（如果item是泛型，那么剥离直到不再存在泛型类型为止）；2.如果不是集合或数组，直接使用当前参数类型（同样的，剥离泛型直到不存在泛型为止）
     val pojoType: XType?, //extracted type, never a Collection
-    val isMultiple: Boolean//当前方法是否是list集合或数组
+    val isMultiple: Boolean//当前方法参数是否是Iterable类型集合或数组
 ) {
     /**
      * Method name in entity insertion or update adapter.
