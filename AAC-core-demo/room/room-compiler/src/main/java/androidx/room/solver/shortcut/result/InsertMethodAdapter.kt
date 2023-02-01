@@ -128,6 +128,16 @@ class InsertMethodAdapter private constructor(private val insertionType: Inserti
         }
     }
 
+
+    // e.g. __db.beginTransaction();
+    //        try {
+    //          __insertionAdapterOfUser.insert(user);
+    //          __db.setTransactionSuccessful();
+    //          return null;
+    //        } finally {
+    //          __db.endTransaction();
+    //        }
+    //      }
     fun createInsertionMethodBody(
         parameters: List<ShortcutQueryParameter>,
         insertionAdapters: Map<String, Pair<FieldSpec, TypeSpec>>,

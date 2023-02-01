@@ -43,6 +43,8 @@ class FieldReadWriteWriter(fieldWithIndex: FieldWithIndex) {
         /*
          * Get all parents including the ones which have grand children in this list but does not
          * have any direct children in the list.
+         *
+         * 当前字段如果是嵌入表中的字段，获取嵌入表对象
          */
         fun getAllParents(fields: List<Field>): Set<EmbeddedField> {
             val allParents = mutableSetOf<EmbeddedField>()
@@ -64,19 +66,25 @@ class FieldReadWriteWriter(fieldWithIndex: FieldWithIndex) {
          * Convert the fields with indices into a Node tree so that we can recursively process
          * them. This work is done here instead of parsing because the result may include arbitrary
          * fields.
+         *
+         * 表以及表中的嵌入对象生成树形node节点
          */
         private fun createNodeTree(
             rootVar: String,
             fieldsWithIndices: List<FieldWithIndex>,
             scope: CodeGenScope
         ): Node {
+            //当前字段如果是嵌入表字段，获取当前嵌入表对象
             val allParents = getAllParents(fieldsWithIndices.map { it.field })
+
             val rootNode = Node(rootVar, null)
             rootNode.directFields = fieldsWithIndices.filter { it.field.parent == null }
+
             val parentNodes = allParents.associate {
                 Pair(
                     it,
                     Node(
+                        //嵌入表字段生成节点，该节点名称是 "_tmp" + 嵌入表字段名称
                         varName = scope.getTmpVar("_tmp${it.field.name.capitalize(Locale.US)}"),
                         fieldParent = it
                     )
@@ -84,6 +92,7 @@ class FieldReadWriteWriter(fieldWithIndex: FieldWithIndex) {
             }
             parentNodes.values.forEach { node ->
                 val fieldParent = node.fieldParent!!
+                //祖父 = 嵌入表对象作为变量所在的嵌入表对象
                 val grandParent = fieldParent.parent
                 val grandParentNode = grandParent?.let {
                     parentNodes[it]
@@ -102,6 +111,7 @@ class FieldReadWriteWriter(fieldWithIndex: FieldWithIndex) {
             scope: CodeGenScope
         ) {
             fun visitNode(node: Node) {
+
                 fun bindWithDescendants() {
                     node.directFields.forEach {
                         FieldReadWriteWriter(it).bindToStatement(
@@ -397,6 +407,8 @@ class FieldReadWriteWriter(fieldWithIndex: FieldWithIndex) {
 
     /**
      * On demand node which is created based on the fields that were passed into this class.
+     *
+     * 字段或表作为一个节点对象存储
      */
     private class Node(
         // root for me
@@ -407,6 +419,7 @@ class FieldReadWriteWriter(fieldWithIndex: FieldWithIndex) {
         // whom do i belong
         var parentNode: Node? = null
         // these fields are my direct fields
+        //当前节点中的直接字段或者叫做常规字段
         lateinit var directFields: List<FieldWithIndex>
         // these nodes are under me
         val subNodes = mutableListOf<Node>()

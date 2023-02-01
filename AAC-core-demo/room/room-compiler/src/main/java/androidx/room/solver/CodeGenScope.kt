@@ -26,9 +26,11 @@ import com.squareup.javapoet.CodeBlock
 class CodeGenScope(val writer: ClassWriter) {
     private var tmpVarIndices = mutableMapOf<String, Int>()
     private var builder: CodeBlock.Builder? = null
+
     companion object {
         const val TMP_VAR_DEFAULT_PREFIX = "_tmp"
         const val CLASS_PROPERTY_PREFIX = "__"
+
         @VisibleForTesting
         fun _tmpVar(index: Int) = _tmpVar(TMP_VAR_DEFAULT_PREFIX, index)
         fun _tmpVar(prefix: String, index: Int) = "$prefix${if (index == 0) "" else "_$index"}"
@@ -45,6 +47,7 @@ class CodeGenScope(val writer: ClassWriter) {
         return getTmpVar(TMP_VAR_DEFAULT_PREFIX)
     }
 
+    //必须使用"_"前缀，又不可以使用"__"前缀，如果命名已经存在，在原先基础上拼接index下标
     fun getTmpVar(prefix: String): String {
         if (!prefix.startsWith("_")) {
             throw IllegalArgumentException("tmp variable prefixes should start with _")
@@ -62,6 +65,8 @@ class CodeGenScope(val writer: ClassWriter) {
 
     /**
      * copies all variable indices but excludes generated code.
+     *
+     * 复制所有变量索引，但不包括生成的代码。
      */
     fun fork(): CodeGenScope {
         val forked = CodeGenScope(writer)

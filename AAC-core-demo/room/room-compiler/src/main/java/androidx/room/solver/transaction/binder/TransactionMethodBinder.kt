@@ -25,6 +25,9 @@ import com.squareup.javapoet.FieldSpec
 /**
  * Connects a transaction method, database and a [TransactionMethodAdapter].
  *
+ * 1. transaction挂起方法：CoroutineTransactionMethodBinder
+ * 2. transaction普通方法：InstantTransactionMethodBinder
+ *
  * The default implementation is [InstantTransactionMethodBinder] that executes the transaction
  * synchronously. Other deferred transactions are unsupported expect for coroutines, for such
  * binding then [CoroutineTransactionMethodBinder] is used.

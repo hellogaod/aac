@@ -22,6 +22,8 @@ package androidx.room.vo
  * <p>
  * If we are sure that the field will be there at compile time, we set it to always Exists so that
  * the generated code does not check for -1 column indices.
+ *
+ * 当前变量，以及变量下标+1，alwaysExists = true默认
  */
 data class FieldWithIndex(val field: Field, val indexVar: String, val alwaysExists: Boolean) {
     companion object {

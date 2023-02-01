@@ -56,6 +56,7 @@ class EntityDeletionAdapterWriter private constructor(
 
     fun createAnonymous(classWriter: ClassWriter, dbParam: String): TypeSpec {
         @Suppress("RemoveSingleExpressionStringTemplate")
+        //继承 EntityDeletionOrUpdateAdapter
         return TypeSpec.anonymousClassBuilder("$L", dbParam).apply {
             superclass(
                 ParameterizedTypeName.get(

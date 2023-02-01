@@ -24,6 +24,12 @@ import androidx.room.solver.CodeGenScope
 /**
  * A column adapter that uses a type converter to do the conversion. The type converter may be
  * a composite one.
+ *
+ * （1）PrimitiveBooleanToIntConverter：系统自动转换int <-> boolean；
+ * （2）BoxedBooleanToBoxedIntConverter：系统自动转换Integer <-> Boolean；
+ *
+ * 当前字段适配通过类型转换：
+ *
  */
 class CompositeAdapter(
     out: XType,

@@ -34,16 +34,18 @@ import com.squareup.javapoet.TypeName
 import com.squareup.javapoet.TypeSpec
 import javax.lang.model.element.Modifier.PUBLIC
 
+//插入表适配
 class EntityInsertionAdapterWriter private constructor(
-    val tableName: String,
-    val pojo: Pojo,
-    val primitiveAutoGenerateColumn: String?,
-    val onConflict: String
+    val tableName: String,//表名
+    val pojo: Pojo,//表生成的pojo对象
+    val primitiveAutoGenerateColumn: String?,//如果表主键是自动生成的，并且主键字段是nonnull类型，那么当前当前表主键字段存在
+    val onConflict: String//@Insert#onConflict
 ) {
     companion object {
         fun create(entity: ShortcutEntity, onConflict: String): EntityInsertionAdapterWriter {
             // If there is an auto-increment primary key with primitive type, we consider 0 as
             // not set. For such fields, we must generate a slightly different insertion SQL.
+            //如果表主键是自动生成的，并且表主键是nonnull类型，那么使用该表主键变量
             val primitiveAutoGenerateField = if (entity.primaryKey.autoGenerateId) {
                 entity.primaryKey.fields.firstOrNull()?.let { field ->
                     field.statementBinder?.typeMirror()?.let { binderType ->
@@ -57,6 +59,7 @@ class EntityInsertionAdapterWriter private constructor(
             } else {
                 null
             }
+
             return EntityInsertionAdapterWriter(
                 tableName = entity.tableName,
                 pojo = entity.pojo,
@@ -67,7 +70,31 @@ class EntityInsertionAdapterWriter private constructor(
     }
 
     fun createAnonymous(classWriter: ClassWriter, dbParam: String): TypeSpec {
+
         @Suppress("RemoveSingleExpressionStringTemplate")
+        //生成一个匿名内部类 EntityInsertionAdapter<Insert表名>，__db作为参数
+        //生成createQuery方法，public修饰，返回String类型
+        //e.g.
+        // this.__insertionAdapterOfUser = new EntityInsertionAdapter<User>(__db) {
+        //      @Override
+        //      public String createQuery() {
+        //        return "INSERT OR REPLACE INTO `users` (`userid`,`username`) VALUES (?,?)";
+        //      }
+        //
+        //      @Override
+        //      public void bind(SupportSQLiteStatement stmt, User value) {
+        //        if (value.getId() == null) {
+        //          stmt.bindNull(1);
+        //        } else {
+        //          stmt.bindString(1, value.getId());
+        //        }
+        //        if (value.getUserName() == null) {
+        //          stmt.bindNull(2);
+        //        } else {
+        //          stmt.bindString(2, value.getUserName());
+        //        }
+        //      }
+        //    };
         return TypeSpec.anonymousClassBuilder("$L", dbParam).apply {
             superclass(ParameterizedTypeName.get(RoomTypeNames.INSERTION_ADAPTER, pojo.typeName))
             addMethod(
@@ -97,6 +124,7 @@ class EntityInsertionAdapterWriter private constructor(
                     addStatement("return $S", query)
                 }.build()
             )
+
             addMethod(
                 MethodSpec.methodBuilder("bind").apply {
                     val bindScope = CodeGenScope(classWriter)

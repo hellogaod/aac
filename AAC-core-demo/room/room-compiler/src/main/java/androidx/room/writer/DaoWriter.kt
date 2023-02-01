@@ -80,20 +80,23 @@ class DaoWriter(
         const val GET_LIST_OF_TYPE_CONVERTERS_METHOD = "getRequiredConverters"
 
         // TODO nothing prevents this from conflicting, we should fix.
+        //变量：private final RoomDatabase __db；
         val dbField: FieldSpec = FieldSpec
             .builder(RoomTypeNames.ROOM_DB, "__db", PRIVATE, FINAL)
             .build()
 
+        //一般情况下：如果操作的是表全部变量，返回当前entity类名作为变量名；如果操作的是表局部变量，返回当前局部变量对象名 + "As" + entity类名拼接
         private fun shortcutEntityFieldNamePart(shortcutEntity: ShortcutEntity): String {
-            return if (shortcutEntity.isPartialEntity) {
+
+            return if (shortcutEntity.isPartialEntity) {//表示操作的是局部变量
                 typeNameToFieldName(shortcutEntity.pojo.typeName) + "As" +
                         typeNameToFieldName(shortcutEntity.entityTypeName)
-            } else {
+            } else {//表示操作的是全部变量
                 typeNameToFieldName(shortcutEntity.entityTypeName)
             }
         }
 
-        //生成的变量名
+        //生成的变量名：如果是ClassName，直接返回；否则使用'_'替代'.'
         private fun typeNameToFieldName(typeName: TypeName?): String {
             return if (typeName is ClassName) {
                 typeName.simpleName()
@@ -105,6 +108,10 @@ class DaoWriter(
 
     override fun createTypeSpecBuilder(): TypeSpec.Builder {
 
+        //生成类名规则：一般情况下是dao节点名称 + "_impl"，并且当前生成的类和dao节点在同一个包下；
+        //
+        // - 存在特殊情况（1）如果当前dao节点在多个database中被使用，那么当前生成的类名：database节点（数据库名称冲突情况下，还会携带下标以示区别） + dao节点名称 + "_impl"；
+        // - （2）dao节点存在父级节点，一级级使用"_"拼接 + dao节点名称 + "_impl"；
         val builder = TypeSpec.classBuilder(dao.implTypeName)
 
         /**
@@ -117,18 +124,25 @@ class DaoWriter(
             .groupBy { it.parameters.any { it.queryParamAdapter?.isMultiple ?: true } }
 
         // queries that can be prepared ahead of time
-        // 可以提前准备的查询
+        // query方法，并且方法参数不是集合或数组
         val preparedQueries = groupedPreparedQueries[false] ?: emptyList()
 
         // queries that must be rebuilt every single time
-        // 每次都必须重新生成的查询
+        //query方法，并且方法参数是集合或数组
         val oneOffPreparedQueries = groupedPreparedQueries[true] ?: emptyList()
 
-        val shortcutMethods = createInsertionMethods() +
-                createDeletionMethods() + createUpdateMethods() + createTransactionMethods() +
-                createPreparedQueries(preparedQueries)
+
+        val shortcutMethods =
+            createInsertionMethods() +
+                    createDeletionMethods() +
+                    createUpdateMethods() +
+                    createTransactionMethods() +
+
+                    createPreparedQueries(preparedQueries)
+
 
         builder.apply {
+            //当前生成的dao_Impl实现类继承原先dao节点
             addOriginatingElement(dbElement)
             addModifiers(PUBLIC)
             addModifiers(FINAL)
@@ -137,16 +151,22 @@ class DaoWriter(
             } else {
                 superclass(dao.typeName)
             }
+
+            //添加__db变量
             addField(dbField)
+
+            //__db作为方法参数-其实是生成的实现类构造方法中的方法参数
             val dbParam = ParameterSpec
                 .builder(dao.constructorParamType ?: dbField.type, dbField.name).build()
 
+            //生成构造方法
             addMethod(createConstructor(dbParam, shortcutMethods, dao.constructorParamType != null))
 
             shortcutMethods.forEach {
                 addMethod(it.methodImpl)
             }
 
+            //query方法如果是select查询生成响应代码
             dao.queryMethods.filterIsInstance<ReadQueryMethod>().forEach { method ->
                 addMethod(createSelectMethod(method))
             }
@@ -198,11 +218,15 @@ class DaoWriter(
     private fun createPreparedQueries(
         preparedQueries: List<WriteQueryMethod>
     ): List<PreparedStmtQuery> {
+
         return preparedQueries.map { method ->
+            // 生成SharedSQLiteStatement变量
             val fieldSpec = getOrCreateField(PreparedStatementField(method))
+
             val queryWriter = QueryWriter(method)
             val fieldImpl = PreparedStatementWriter(queryWriter)
                 .createAnonymous(this@DaoWriter, dbField)
+
             val methodBody =
                 createPreparedQueryMethodBody(method, fieldSpec, queryWriter)
             PreparedStmtQuery(
@@ -243,6 +267,7 @@ class DaoWriter(
     }
 
     private fun createTransactionMethods(): List<PreparedStmtQuery> {
+
         return dao.transactionMethods.map {
             PreparedStmtQuery(emptyMap(), createTransactionMethodBody(it))
         }
@@ -271,10 +296,16 @@ class DaoWriter(
         return MethodSpec.constructorBuilder().apply {
             addParameter(dbParam)
             addModifiers(PUBLIC)
+
+            //如果原先的dao节点中存在构造方法
             if (callSuper) {
                 addStatement("super($N)", dbParam)
             }
+
+            //__db赋值
             addStatement("this.$N = $N", dbField, dbParam)
+
+            //e.g. this.__insertionAdapterOfUser = xxx;
             shortcutMethods.asSequence().filterNot {
                 it.fields.isEmpty()
             }.map {
@@ -364,7 +395,9 @@ class DaoWriter(
      * Groups all insertion methods based on the insert statement they will use then creates all
      * field specs, EntityInsertionAdapterWriter and actual insert methods.
      *
-     * 根据插入语句对所有插入方法进行分组，然后创建所有字段规范、EntityInsertionAdapterWriter和实际插入方法。
+     * UserDao_Impl 为例：
+     * 1. 生成 EntityInsertionAdapter<User> __insertionAdapterOfUser变量 并且它的实现方法；
+     * 2. 生成 insertUser方法
      */
     private fun createInsertionMethods(): List<PreparedStmtQuery> {
 
@@ -374,8 +407,14 @@ class DaoWriter(
                 val onConflict = OnConflictProcessor.onConflictText(insertionMethod.onConflict)
                 val entities = insertionMethod.entities
 
+                //EntityInsertionAdapter __insertionAdapterOfXXX变量
                 val fields = entities.mapValues {
-                    val spec = getOrCreateField(InsertionMethodField(it.value, onConflict))
+
+                    val spec = getOrCreateField(//创建并获取变量
+                        //insert方法生成的变量
+                        InsertionMethodField(it.value, onConflict)
+                    )
+
                     val impl = EntityInsertionAdapterWriter.create(it.value, onConflict)
                         .createAnonymous(this@DaoWriter, dbField.name)
                     spec to impl
@@ -387,10 +426,12 @@ class DaoWriter(
                 ).apply {
                     addCode(createInsertionMethodBody(insertionMethod, fields))
                 }.build()
+
                 PreparedStmtQuery(fields, methodImpl)
             }
     }
 
+    ////e.g. UserDao_Impl类中的insertUser方法
     private fun createInsertionMethodBody(
         method: InsertionMethod,
         insertionAdapters: Map<String, Pair<FieldSpec, TypeSpec>>
@@ -412,8 +453,13 @@ class DaoWriter(
 
     /**
      * Creates EntityUpdateAdapter for each deletion method.
+     *
+     * 所有的delete方法都会生成EntityDeletionOrUpdateAdapter
+     *
+     * 和insert方法雷同。
      */
     private fun createDeletionMethods(): List<PreparedStmtQuery> {
+
         return createShortcutMethods(dao.deletionMethods, "deletion") { _, entity ->
             EntityDeletionAdapterWriter.create(entity)
                 .createAnonymous(this@DaoWriter, dbField.name)
@@ -424,6 +470,7 @@ class DaoWriter(
      * Creates EntityUpdateAdapter for each @Update method.
      */
     private fun createUpdateMethods(): List<PreparedStmtQuery> {
+
         return createShortcutMethods(dao.updateMethods, "update") { update, entity ->
             val onConflict = OnConflictProcessor.onConflictText(update.onConflictStrategy)
             EntityUpdateAdapterWriter.create(entity, onConflict)
@@ -447,12 +494,14 @@ class DaoWriter(
                     ""
                 }
                 val fields = entities.mapValues {
+                    //变量名会在前面拼接"__"
                     val spec = getOrCreateField(
                         DeleteOrUpdateAdapterField(it.value, methodPrefix, onConflict)
                     )
                     val impl = implCallback(method, it.value)
                     spec to impl
                 }
+
                 val methodSpec = overrideWithoutAnnotations(method.element, declaredDao).apply {
                     addCode(createDeleteOrUpdateMethodBody(method, fields))
                 }.build()
@@ -579,12 +628,17 @@ class DaoWriter(
         }
     }
 
+    // 生成变量，做了三件事情：
+    // 1. 变量名：一般情况下生成的变量名："insertionAdapterOf" + entity类名
+    // 2. 变量类型：EntityInsertionAdapter<entity类名>
+    // 3. 修饰符 private final
     private class InsertionMethodField(
         val shortcutEntity: ShortcutEntity,
         val onConflictText: String
     ) : SharedFieldSpec(
+        //插入表生成的变量名：一般情况下生成的变量名："insertionAdapterOf" + entity类名
         baseName = "insertionAdapterOf${shortcutEntityFieldNamePart(shortcutEntity)}",
-        //EntityInsertionAdapter
+        //插入表生成的变量类型：EntityInsertionAdapter<entity类名>
         type = ParameterizedTypeName.get(
             RoomTypeNames.INSERTION_ADAPTER, shortcutEntity.pojo.typeName
         )
@@ -593,6 +647,7 @@ class DaoWriter(
             return "${shortcutEntity.pojo.typeName}-${shortcutEntity.entityTypeName}$onConflictText"
         }
 
+        //private final
         override fun prepare(writer: ClassWriter, builder: FieldSpec.Builder) {
             builder.addModifiers(FINAL, PRIVATE)
         }

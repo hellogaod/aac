@@ -108,12 +108,16 @@ abstract class ClassWriter(private val className: ClassName) {
     }
 
     private fun makeUnique(set: MutableSet<String>, value: String): String {
+        //如果没有使用"__"前缀，那么加上这个前缀
         if (!value.startsWith(CLASS_PROPERTY_PREFIX)) {
             return makeUnique(set, "$CLASS_PROPERTY_PREFIX$value")
         }
+
         if (set.add(value)) {
             return value
         }
+
+        //如果当前变量名已存在，那么拼接"_"+重命名次数
         var index = 1
         while (true) {
             if (set.add("${value}_$index")) {

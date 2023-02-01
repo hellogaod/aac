@@ -126,10 +126,14 @@ object MethodSpecHelper {
         resolvedType: XMethodType = executableElement.executableType,
         vararg paramModifiers: Modifier
     ): MethodSpec.Builder {
+
         return MethodSpec.methodBuilder(executableElement.jvmName).apply {
+            //方法添加泛型类型
             addTypeVariables(
                 resolvedType.typeVariableNames
             )
+
+            //方法参数遍历
             resolvedType.parameterTypes.forEachIndexed { index, paramType ->
                 addParameter(
                     ParameterSpec.builder(

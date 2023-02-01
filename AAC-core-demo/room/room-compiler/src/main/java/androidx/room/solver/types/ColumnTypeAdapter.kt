@@ -22,6 +22,14 @@ import com.squareup.javapoet.TypeName
 
 /**
  * A code generator that can read a field from Cursor and write a field to a Statement
+ *
+ * 表字段类型适配：
+ * （1）PrimitiveColumnTypeAdapter：7种基本类型
+ * （2）BoxedPrimitiveColumnTypeAdapter：7种基本类型转换成包装类
+ * （3）StringColumnTypeAdapter：String类型字段适配
+ * （4）ByteArrayColumnTypeAdapter：byte数组类型字段适配
+ * （5）ByteBufferColumnTypeAdapter：ByteBuffer类型字段适配
+ * （6）
  */
 abstract class ColumnTypeAdapter(val out: XType, val typeAffinity: SQLTypeAffinity) :
     StatementValueBinder, CursorValueReader {

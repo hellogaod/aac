@@ -54,6 +54,8 @@ sealed class QueryMethod(
 
 /**
  * A query method who's query is a SELECT statement.
+ *
+ * 如果@Query是select查询
  */
 class ReadQueryMethod(
     element: XMethodElement,//query方法节点
@@ -66,6 +68,8 @@ class ReadQueryMethod(
 
 /**
  * A query method who's query is a INSERT, UPDATE or DELETE statement.
+ *
+ * 如果@Query是 insert，update或delete sql类型
  */
 class WriteQueryMethod(
     element: XMethodElement,//Dao方法节点

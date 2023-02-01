@@ -240,6 +240,19 @@ fun TypeName.defaultValue(): String {
     }
 }
 
+//e.g.new Callable<Void>() {
+//      @Override
+//      public Void call() throws Exception {
+//        __db.beginTransaction();
+//        try {
+//          __insertionAdapterOfUser.insert(user);
+//          __db.setTransactionSuccessful();
+//          return null;
+//        } finally {
+//          __db.endTransaction();
+//        }
+//      }
+//    }
 fun CallableTypeSpecBuilder(
     parameterTypeName: TypeName,
     callBody: MethodSpec.Builder.() -> Unit

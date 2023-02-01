@@ -28,6 +28,10 @@ import com.squareup.javapoet.TypeSpec
  * The default implementation is [InstantInsertMethodBinder] that executes the insert synchronously.
  * If the insert is deferred, rather than synchronously, alternatives implementations can be
  * implemented using this interface (e.g. RxJava, coroutines etc).
+ *
+ * 1. RxCallableInsertMethodBinderProvider 中匹配 -> CallableInsertMethodBinder
+ * 2. GuavaListenableFutureInsertMethodBinderProvider 中匹配 -> CallableInsertMethodBinder
+ * 3. InstantInsertMethodBinderProvider 中匹配 -> InstantInsertMethodBinder
  */
 abstract class InsertMethodBinder(val adapter: InsertMethodAdapter?) {
 

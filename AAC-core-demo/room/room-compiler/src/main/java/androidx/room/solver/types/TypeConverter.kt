@@ -25,7 +25,10 @@ import androidx.room.solver.CodeGenScope
 /**
  * A code generator that can convert from 1 type to another
  *
- * 自定义类型转换器
+ * 自定义类型转换器:
+ * （1）SingleStatementTypeConverter:简单的类型转换，比如int<->boolean转换；
+ * （2）NoOpConverter：输入类型和输出类型相同；
+ * （3）
  */
 abstract class TypeConverter(
     val from: XType,

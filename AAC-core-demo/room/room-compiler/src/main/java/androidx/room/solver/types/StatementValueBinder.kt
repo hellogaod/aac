@@ -22,7 +22,10 @@ import androidx.room.solver.CodeGenScope
 /**
  * Binds a value into a statement
  *
- * see: CursorValueReader
+ * 绑定值呈现类型：
+ *
+ *
+ * see: 去看 CursorValueReader， QueryParameterAdapter ，ColumnTypeAdapter
  */
 interface StatementValueBinder {
     fun typeMirror(): XType

@@ -21,7 +21,10 @@ import androidx.room.solver.CodeGenScope
 /**
  * Knows how to convert a query parameter into query arguments.
  *
- * 了解如何将查询参数转换为参数
+ * query方法参数适配：
+ * （1）如果是collection集合，使用CollectionQueryParameterAdapter子类；
+ * （2）如果是数组，使用ArrayQueryParameterAdapter子类；
+ * （3）如果是正常对象，使用BasicQueryParameterAdapter子类
  */
 abstract class QueryParameterAdapter(val isMultiple: Boolean) {
     /**

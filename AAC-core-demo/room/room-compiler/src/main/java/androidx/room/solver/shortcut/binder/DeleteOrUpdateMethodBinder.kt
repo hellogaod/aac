@@ -29,6 +29,10 @@ import com.squareup.javapoet.TypeSpec
  * synchronously.
  * If the delete/update is deferred, rather than synchronously, alternatives implementations can be
  * implemented using this interface (e.g. RxJava, coroutines etc).
+ *
+ * 1. RxCallableDeleteOrUpdateMethodBinderProvider 去匹配 CallableDeleteOrUpdateMethodBinder；
+ * 2. GuavaListenableFutureDeleteOrUpdateMethodBinderProvider 去匹配 CallableDeleteOrUpdateMethodBinder；
+ * 3. InstantDeleteOrUpdateMethodBinderProvider 去匹配 InstantDeleteOrUpdateMethodBinder
  */
 abstract class DeleteOrUpdateMethodBinder(val adapter: DeleteOrUpdateMethodAdapter?) {
 

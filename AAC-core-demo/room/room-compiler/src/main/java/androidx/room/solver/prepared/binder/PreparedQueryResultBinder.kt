@@ -23,6 +23,12 @@ import com.squareup.javapoet.FieldSpec
 /**
  * Connects a prepared query (INSERT, DELETE or UPDATE), db and ResultAdapter.
  *
+ * 1. RxPreparedQueryResultBinderProvider -> CallablePreparedQueryResultBinder
+ * 2. GuavaListenableFuturePreparedQueryResultBinderProvider -> CallablePreparedQueryResultBinder
+ * 3. InstantPreparedQueryResultBinderProvider -> InstantPreparedQueryResultBinder
+ *
+ * 4. 挂起方法 CallablePreparedQueryResultBinder -> PreparedQueryResultAdapter
+ *
  * Default implementation is [InstantPreparedQueryResultBinder]. If the query is deferred rather
  * than executed directly then alternative implementations can be implement using this interface
  * (e.g. Rx, ListenableFuture).

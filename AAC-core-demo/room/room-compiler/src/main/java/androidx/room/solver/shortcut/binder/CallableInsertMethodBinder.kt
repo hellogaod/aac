@@ -54,12 +54,14 @@ class CallableInsertMethodBinder(
     ) {
         val adapterScope = scope.fork()
         val callableImpl = CallableTypeSpecBuilder(typeArg.typeName) {
+
             adapter?.createInsertionMethodBody(
                 parameters = parameters,
                 insertionAdapters = insertionAdapters,
                 dbField = dbField,
                 scope = adapterScope
             )
+
             addCode(adapterScope.generate())
         }.build()
 
