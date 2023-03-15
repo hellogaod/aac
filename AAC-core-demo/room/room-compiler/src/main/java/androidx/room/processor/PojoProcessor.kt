@@ -78,7 +78,7 @@ class PojoProcessor private constructor(
             parent: EmbeddedField?,
             referenceStack: LinkedHashSet<String> = LinkedHashSet()
         ): PojoProcessor {
-            //如果当前entity节点又使用了@AutoValue修饰，处理的节点是AutoValue_原先类名
+            //如果pojo节点又使用了@AutoValue修饰，处理的节点是AutoValue_原先类名
             val (pojoElement, delegate) = if (element.hasAnnotation(AutoValue::class)) {
                 val processingEnv = context.processingEnv
                 val autoValueGeneratedTypeName =
@@ -97,7 +97,7 @@ class PojoProcessor private constructor(
 
             return PojoProcessor(
                 baseContext = context,
-                element = pojoElement,//如果当前entity节点使用了@AutoValue修饰，当前节点是 ： AutoValue_原先类名，并且delete使用AutoValuePojoProcessorDelegate；
+                element = pojoElement,//如果pojo节点使用了@AutoValue修饰，当前节点是 ： AutoValue_原先类名，并且delete使用AutoValuePojoProcessorDelegate；
                 bindingScope = bindingScope,
                 parent = parent,
                 referenceStack = referenceStack,
@@ -131,12 +131,15 @@ class PojoProcessor private constructor(
         }
         delegate.onPreProcess(element)
 
+
         val declaredType = element.type
         // TODO handle conflicts with super: b/35568142
         //所有字段，包括父类私有字段
         val allFields = element.getAllFieldsIncludingPrivateSupers()
             .filter {
-                //有效字段：没有使用@Ignore注解 && 没有使用static修饰 && （没有使用transient修饰 || 使用@ColumnInfo、@Embedded或@Relation修饰）
+                //有效字段：没有使用@Ignore注解 &&
+                // 没有使用static修饰 &&
+                // （没有使用transient修饰 || 使用@ColumnInfo、@Embedded或@Relation修饰）
                 !it.hasAnnotation(Ignore::class) &&
                         !it.isStatic() &&
                         (
@@ -209,10 +212,10 @@ class PojoProcessor private constructor(
         val embeddedFields =
             unfilteredEmbeddedFields.filterNot { ignoredColumns.contains(it.field.columnName) }
 
-        //@Embedded修饰的有效字段类型里面的所有有效字段
+        //@Embedded类中的表字段
         val subFields = embeddedFields.flatMap { it.pojo.fields }
 
-        //表常规字段和嵌入表常规字段
+        //表字段 = 当前表字段 + 内嵌表字段
         val fields = myFields + subFields
 
         val unfilteredCombinedFields =
@@ -222,9 +225,7 @@ class PojoProcessor private constructor(
             unfilteredCombinedFields.any { it.columnName == ignoredColumn }
         }
 
-        // @Entity#ignoredColumns属性表示被忽略的字段，被忽略的字段必须存在于：
-        // ① 表常规字段
-        // ② 表嵌入字段
+        // `@Entity#ignoredColumns`属性值只能是当前表字段 或当前表`@Embedded`嵌入字段
         context.checker.check(
             missingIgnoredColumns.isEmpty(), element,
             ProcessorErrors.missingIgnoredColumns(missingIgnoredColumns)
@@ -233,7 +234,7 @@ class PojoProcessor private constructor(
         val myRelationsList = allFields[Relation::class]
             ?.mapNotNull {
                 processRelationField(
-                    fields, //表常规字段 + 嵌入表常规字段（不包括当前表嵌入字段）
+                    fields, //表常规字段 + 嵌入表常规字段
                     declaredType, //字段所在类
                     it//使用@Relation修饰的有效字段
                 )
@@ -266,7 +267,7 @@ class PojoProcessor private constructor(
         val methods = element.getAllNonPrivateInstanceMethods()
             .asSequence()
             .filter {
-                //筛选出非抽象 && 没有使用@Ignore修饰 的方法
+                //筛选出非抽象 && 没有使用@Ignore修饰的方法
                 !it.isAbstract() && !it.hasAnnotation(Ignore::class)
             }.map {
                 PojoMethodProcessor(
@@ -275,6 +276,7 @@ class PojoProcessor private constructor(
                     owner = declaredType//@Entity修饰的类
                 ).process()
             }.toList()
+
 
         //获取getter方法：无参，返回类型不是void
         val getterCandidates = methods.filter {
@@ -287,10 +289,11 @@ class PojoProcessor private constructor(
         }
 
         // don't try to find a constructor for binding to statement.
-        val constructor = if (bindingScope == FieldProcessor.BindingScope.BIND_TO_STMT) {
+        val constructor = if (bindingScope == FieldProcessor.BindingScope.BIND_TO_STMT) {//如果是存入
             // we don't need to construct this POJO.
             null
         } else {
+            //如果当前pojo对象表示的是从room中查询时
             chooseConstructor(
                 myFields,//没有被忽略掉的表常规字段
                 embeddedFields,//没有被忽略掉的表嵌入字段
@@ -301,7 +304,6 @@ class PojoProcessor private constructor(
         //校验get和set方法
         assignGetters(myFields, getterCandidates)
         assignSetters(myFields, setterCandidates, constructor)
-
 
         embeddedFields.forEach {
             assignGetter(it.field, getterCandidates)
@@ -366,7 +368,10 @@ class PojoProcessor private constructor(
                     }
                 }
 
-                //当前构造函数参数 存在于 表常规字段中
+                //构造函数中的参数根据以下顺序匹配（**一般不需要设置构造函数，或者不会存在过于麻烦的构造函数**）：
+                // - ① 参数名和当前`pojo`表某个常规字段或`pojo`对象的内嵌对象常规字段一致；参数类型可以是字段类型子类；
+                // - ② 参数名和当前`pojo`表某个内嵌对象一致；参数类型可以是字段类型子类；；
+                // - ③ 参数名和当前`pojo`对象表某个关联对象一致；参数类型可以是字段类型子类；
                 val exactFieldMatch = fieldMap[paramName]
                 if (matches(exactFieldMatch)) {
                     return@param Constructor.Param.FieldParam(exactFieldMatch!!)
@@ -384,6 +389,13 @@ class PojoProcessor private constructor(
                     return@param Constructor.Param.RelationParam(exactRelationMatch!!)
                 }
 
+                //以上条件满足，则不往下校验，否则继续往下校验：
+                //
+                // - ④ 参数名去掉`_或m或is或has`后把首字母置为小写字母匹配上当前`pojo`表某个常规字段或`pojo`对象的内嵌对象常规字段；参数类型可以是字段类型子类；
+                // - ⑤ 参数名去掉`_或m或is或has`后把首字母置为小写字母匹配上当前`pojo`表某个内嵌字段；参数类型可以是字段类型子类；
+                // - ⑥ 参数名去掉`_或m或is或has`后把首字母置为小写字母匹配上当前`pojo`表某个关联字段；参数类型可以是字段类型子类；
+                // - 如果参数匹配 ④⑤⑥ 超过1个，直接报错，当前参数必须明确匹配哪一个字段。
+
                 val matchingFields = myFields.filter {
                     matches(it)
                 }
@@ -394,10 +406,6 @@ class PojoProcessor private constructor(
                     matches(it.field)
                 }
 
-                //如果该构造函数参数没有匹配到表常规字段、表嵌入字段和表关系字段，那么：
-                // - ① 要么表常规字段、表嵌入字段和表关系字段都不存在；
-                // - ② 要么有且仅有一个表字段（常规、关系或嵌入中的一个）；
-                // - ③要么直接报错；
                 when (matchingFields.size + embeddedMatches.size + relationMatches.size) {
                     0 -> null
                     1 -> when {
@@ -434,9 +442,10 @@ class PojoProcessor private constructor(
         }.filterNotNull()
 
         when {
-            //正确构造函数必须存在；错误构造函数不允许存在：
-            // - （1）最好的一种情况是存在一个正确构造函数，并且该构造函数有参数；
-            // - （2）正确构造函数如果有多个，则使用主构造函数（kotlin语言），并且返回；如果不存在主构造函数，那么存在参数为空的构造函数情况下，将会报警告，并且返回；否则直接报错；
+            //构造函数参数如果没有匹配到当前`pojo`对象中的任何字段，表示当前构造函数是失败构造函数；否则都是成功构造函数；
+            // - ① 不存在成功构造函数，但是却存在失败构造函数则报错；
+            // - ② 存在一个成功构造函数，直接使用当前成功构造函数，失败构造函数不用管；
+            // - ③ 成功构造函数超过一个，是kotlin则返回主构造函数；否则返回不带参的成功构造函数，否则直接报错，不允许存在两个都带参成功构造函数。
             goodConstructors.isEmpty() -> {
                 if (failedConstructors.isNotEmpty()) {
                     val failureMsg = failedConstructors.joinToString("\n") { entry ->
@@ -493,7 +502,7 @@ class PojoProcessor private constructor(
     ): EmbeddedField? {
         val asMemberType = variableElement.asMemberOf(declaredType)
         val asTypeElement = asMemberType.typeElement
-        //@Embedded修饰的有效字段类型必须是类或接口
+        //@Embedded修饰的字段类型必须是类或接口
         if (asTypeElement == null) {
             context.logger.e(
                 variableElement,
@@ -524,7 +533,7 @@ class PojoProcessor private constructor(
             parent = parent
         )
 
-        //对当前@Embedded修饰的类或接口生成Pojo对象（@Embedded修饰的节点类型不一定要使用@Entity修饰，但是和其用法一致）
+        //对当前@Embedded修饰的类或接口生成Pojo对象
         subParent.pojo = createFor(
             context = context.fork(variableElement),
             element = asTypeElement,//@Embedded修饰的节点
@@ -544,7 +553,7 @@ class PojoProcessor private constructor(
     ): androidx.room.vo.Relation? {
         val annotation = relationElement.getAnnotation(Relation::class)!!
 
-        //@Relation#parentColumn的属性值必须存在，而且必须包含在当前表常规字段或当前表的嵌入表常规字段中
+        //`@Relation#parentColumn`的属性值必须存在，并且存在于`@Relation`修饰字段所在类的表字段或内嵌对象表字段中；
         val parentField = myFields.firstOrNull {
             it.columnName == annotation.value.parentColumn
         }
@@ -569,8 +578,7 @@ class PojoProcessor private constructor(
         } else {
             asMember
         }
-        //@Relation修饰的有效节点类型，必须是类或接口或（List和Set）集合，并且集合中的泛型类型可以是<T>或<? extends T>，这里的T必须是类或接口实体类型；
-        //如果是边界，只能是上边界<? extends T>，而不能使用下边界<? super T>
+        //`@Relation`修饰的必须是类或接口;如果是集合，只允许是`List< T>或Set< T>`集合,T必须是类或接口；
         val typeElement = asType.typeElement
         if (typeElement == null) {
             context.logger.e(
@@ -589,7 +597,7 @@ class PojoProcessor private constructor(
         } else {
             entityClassInput!!.typeElement
         }
-        // @Relation#entity中的属性必须是类或接口；如果当前@Relation#entity属性不存在，使用当前@Relation修饰的有效节点类型
+        // `@Relation#entity`属性值表示关联对象，必须是类或接口；默认为空，使用`@Relation`修饰类表示（如果修饰类是集合，使用集合中T表示）；
         if (entityElement == null) {
             // this should not happen as we check for declared above but for compile time
             // null safety, it is still good to have this additional check here.
@@ -608,7 +616,7 @@ class PojoProcessor private constructor(
         val entity = EntityOrViewProcessor(context, entityElement, referenceStack).process()
 
         // now find the field in the entity.
-        //@Relation#entityColumn必须存在，并且该字段存在于Relation关联Entity类型中的所有有效字段中
+        //`@Relation#entityColumn`属性值必须存在，并且存在于当前关联对象表字段或其内嵌对象表字段中；
         val entityField = entity.findFieldByColumnName(annotation.value.entityColumn)
         if (entityField == null) {
             context.logger.e(
@@ -628,7 +636,7 @@ class PojoProcessor private constructor(
 
         val junctionClassInput = junctionAnnotation.getAsType("value")
 
-        //@Relation#associateBy的属性@Junction，@Junction#value的属性值类型必须是@Entity 或 @DatabaseView修饰
+        //@Relation#associateBy的属性@Junction注解，@Junction#value的属性值类型必须是@Entity 或 @DatabaseView修饰
         val junctionElement: XTypeElement? = if (junctionClassInput != null &&
             !junctionClassInput.isTypeOf(Any::class)
         ) {
@@ -645,14 +653,15 @@ class PojoProcessor private constructor(
         }
 
         val junction = junctionElement?.let {
+
             val entityOrView = EntityOrViewProcessor(context, it, referenceStack).process()
 
-            //fun内嵌fun用法：表示当前方法的内部方法，不对外使用
+
             fun findAndValidateJunctionColumn(
                 columnName: String,
                 onMissingField: () -> Unit
             ): Field? {
-                //字段必须存在于@Junction#value属性类型的表常规字段中
+                //关联父表字段必须存在于多对多连接对象中
                 val field = entityOrView.findFieldByColumnName(columnName)
                 if (field == null) {
                     onMissingField()
@@ -678,7 +687,7 @@ class PojoProcessor private constructor(
                 return field
             }
 
-            //连接父级表的列属性：在@Relation#associateBy属性中，如果@Junction#parentColumn存在，使用当前字段作为连接父级表的列属性；否则使用@Relation#parentColunm
+            // `@Relation#associateBy`属性中，如果`@Junction#parentColumn`存在，使用该属性多对多关联父表；可以不设置，直接使用`@Relation#parentColunm`属性值多对多关联父表
             val junctionParentColumn = if (junctionAnnotation.value.parentColumn.isNotEmpty()) {
                 junctionAnnotation.value.parentColumn
             } else {
@@ -699,7 +708,7 @@ class PojoProcessor private constructor(
                 }
             )
 
-            //连接实体表的列属性：在@Relation#associateBy属性中，如果@Junction#entityColumn存在，使用当前字段作为连接实体表的列属性；否则使用@Relation#entityColumn
+            //在`@Relation#associateBy`属性中，如果`@Junction#entityColumn`存在，使用当前字段作为**多对多关联子表字段**；可以不设置，直接使用`@Relation#entityColumn`作为多对多关联子表字段；
             val junctionEntityColumn = if (junctionAnnotation.value.entityColumn.isNotEmpty()) {
                 junctionAnnotation.value.entityColumn
             } else {
@@ -738,20 +747,19 @@ class PojoProcessor private constructor(
             parent = parent
         )
 
-
         val projection = if (annotation.value.projection.isEmpty()) {
             // we need to infer the projection from inputs.
             //@Relation#projection为空
             createRelationshipProjection(
                 inferEntity,//@Relation#entity不存在或者里面的对象是any类型，则为true
                 asType,//关联对象类型
-                entity,//关联对象生成的EntityOrView对象
+                entity,//关联对象
                 entityField,//@Relation#entityColumn
                 typeElement//关联对象节点
             )
         } else {
             // make sure projection makes sense
-            //@Relation#projection如果存在，那么里面的名称必须存在于@Relation#entity属性（如果不存在，使用当前@Relation修饰的有效节点类型生成的EntityOrView对象）的所有有效字段表示的列属性中
+            //@Relation#projection如果存在，必须存在于关联对象中；
             validateRelationshipProjection(
                 annotation.value.projection,
                 entity,
@@ -1037,7 +1045,7 @@ class PojoProcessor private constructor(
             return !field.element.isPrivate()
         }
         // first try public ones, then try non-public
-        //有效字段存在getter（最多只能一个）或setter方法（最多只能一个）；
+        //常规字段最多只允许存在一个public修饰的set方法，也只允许存在一个public修饰的get方法
         val match = verifyAndChooseOneFrom(matching[true], reportAmbiguity)
             ?: verifyAndChooseOneFrom(matching[false], reportAmbiguity)
         if (match == null) {
@@ -1086,7 +1094,7 @@ class PojoProcessor private constructor(
         override fun onPreProcess(element: XTypeElement) {
             // Check that certain Room annotations with @Target(METHOD) are not used in the POJO
             // since it is not annotated with AutoValue.
-            // pojo节点的所有方法不允许使用@PrimaryKey, @ColumnInfo,@Embedded, @Relation修饰
+            // pojo节点中的所有方法不允许使用@PrimaryKey, @ColumnInfo,@Embedded, @Relation修饰
             element.getAllMethods()
                 .filter { it.hasAnyAnnotation(*TARGET_METHOD_ANNOTATIONS) }
                 .forEach { method ->

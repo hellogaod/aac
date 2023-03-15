@@ -116,6 +116,8 @@ class SchemaDiffer(
         //存储新版本数据库 表 -> 表字段 信息
         val processedTablesAndColumnsInNewVersion = mutableMapOf<String, List<String>>()
 
+
+
         // Check going from the original version of the schema to the new version for changed and
         // deleted columns/tables
         fromSchemaBundle.entitiesByTableName.values.forEach { fromTable ->
@@ -139,12 +141,14 @@ class SchemaDiffer(
                 //当前表的表字段是否更改
                 val fromColumns = fromTable.fieldsByColumnName
                 val processedColumnsInNewVersion = fromColumns.values.mapNotNull { fromColumn ->
+
                     detectColumnLevelChanges(
                         fromTable,
                         toTable,
                         fromColumn
                     )
                 }
+
                 processedTablesAndColumnsInNewVersion[toTable.tableName] =
                     processedColumnsInNewVersion
             }
@@ -226,13 +230,15 @@ class SchemaDiffer(
         val renamedTable = isTableRenamed(fromTable.tableName)
 
         if (renamedTable != null) {
-            //@RenameTable#toTableName表示新命名的表，当前新表名必须存在于新版数据库中；
+            //修改后的表名一定存在于新版数据库中；
             val toTable = toSchemaBundle.entitiesByTableName[renamedTable.newTableName]
             if (toTable != null) {
+
                 val isComplexChangedTable = tableContainsComplexChanges(
                     fromTable,
                     toTable
                 )
+                //如果表结构发生了变化 || 旧表是fts表
                 val isFtsEntity = fromTable is FtsEntityBundle
                 if (isComplexChangedTable || isFtsEntity) {
                     //如果表结构（主键、外键、索引或者本身就是fts表）发生变化，那么当前 “_new_” +@RenameTable#toTableName 不允许存在于新版数据库中
@@ -266,10 +272,10 @@ class SchemaDiffer(
             return toTable
         }
 
-        //如果旧数据库中的表在@RenameTable不存在，表示没有对当前数据库中修改；当前表在新数据库中被沿用，那么不允许出现在@DeleteTable#tableName中（表示表被删除了，肯定报错）；
         val toTable = toSchemaBundle.entitiesByTableName[fromTable.tableName]
         val isDeletedTable = deletedTables.contains(fromTable.tableName)
         if (toTable != null) {
+            //被删除的表不允许存在于新数据库中
             if (isDeletedTable) {
                 diffError(
                     deletedOrRenamedTableFound(className, toTable.tableName)
@@ -325,13 +331,14 @@ class SchemaDiffer(
         // Check if this column was renamed. If so, no need to check further, we can mark this
         // table as a complex change and include the renamed column.
         val renamedToColumn = isColumnRenamed(fromColumn.columnName, fromTable.tableName)
+
         if (renamedToColumn != null) {
             val renamedColumnsMap = mutableMapOf(
                 renamedToColumn.newColumnName to fromColumn.columnName
             )
             // Make sure there are no conflicts in the new version of the table with the
             // temporary new table name
-            //新版数据库不要出现之前的表名拼接了“_new_”前缀 后的新表名，表示冲突
+            //如果表结构或表名或表字段或表字段结构发生变化：新表名 =`"_new_"+ 新表`，所以我们命名是不要使用"_new"前缀，防止冲突；
             if (toSchemaBundle.entitiesByTableName.containsKey(toTable.newTableName)) {
                 diffError(tableWithConflictingPrefixFound(toTable.newTableName))
             }
@@ -349,13 +356,12 @@ class SchemaDiffer(
                 )
             return renamedToColumn.newColumnName
         }
+
         // The column was not renamed. So we check if the column was deleted, and
         // if not, we check for column level complex changes.
-        //当前表字段不存在于修改表字段注解中（@RenameColumn），存在于新表中，表示沿用；
         val match = toTable.fieldsByColumnName[fromColumn.columnName]
         if (match != null) {
             val columnChanged = !match.isSchemaEqual(fromColumn)
-            //如果表字段改变了，并且当前 改变表集合中不存在该表信息
             if (columnChanged && !complexChangedTables.containsKey(fromTable.tableName)) {
                 // Make sure there are no conflicts in the new version of the table with the
                 // temporary new table name
@@ -379,7 +385,6 @@ class SchemaDiffer(
             it.tableName == fromTable.tableName && it.columnName == fromColumn.columnName
         }
 
-        //旧数据库中的表字段，如果没有更改表字段名称（使用@RenameColumn注解）并且当前表字段在新数据库中的表中不存在，那么该表字段必须存在于@DeleteColumn注解中，@DeleteColumn#tableName表示表名，@DeleteColumn#columnName表示被删除的表字段；
         if (!isColumnDeleted) {
             // We have encountered an ambiguous scenario, need more input from the user.
             diffError(
@@ -410,6 +415,7 @@ class SchemaDiffer(
         fromTable: EntityBundle,
         toTable: EntityBundle
     ): Boolean {
+        //旧表和新表都是fts表，并且新表对象更改了；
         // If we have an FTS table, check if options have changed
         if (fromTable is FtsEntityBundle &&
             toTable is FtsEntityBundle &&
@@ -417,6 +423,7 @@ class SchemaDiffer(
         ) {
             return true
         }
+        //旧表和新表一个是fts表，另外一个不是fts表；
         // Check if the to table or the from table is an FTS table while the other is not.
         if (fromTable is FtsEntityBundle && toTable !is FtsEntityBundle ||
             toTable is FtsEntityBundle && fromTable !is FtsEntityBundle
@@ -424,18 +431,20 @@ class SchemaDiffer(
             return true
         }
 
+        //旧表和新表外键不一致；
         if (!isForeignKeyBundlesListEqual(fromTable.foreignKeys, toTable.foreignKeys)) {
             return true
         }
+        //旧表和新表索引不一致；
         if (!isIndexBundlesListEqual(fromTable.indices, toTable.indices)) {
             return true
         }
-
+        //旧表和新表主键不一致；
         if (!fromTable.primaryKey.isSchemaEqual(toTable.primaryKey)) {
             return true
         }
         // Check if any foreign keys are referencing a renamed table.
-        //当前外键是否引用新命名的表
+        //旧数据库表外键指向新数据库表；
         return fromTable.foreignKeys.any { foreignKey ->
             renameTableEntries.any {
                 it.originalTableName == foreignKey.table
@@ -561,7 +570,7 @@ class SchemaDiffer(
         }
 
         // Make sure there aren't multiple renames on the same column
-        //@RenameColumn注解可以有多个，如果出现@RenameColumn#tableName相同表示操作同一个表，那么这种情况下@RenameColumn#fromColumnName不允许相同，这样表示同一个表重命名同一个表字段，是不被允许的；
+        //`@RenameColumn`注解可以有多个，但是不允许对同一个表的同一个字段名多次修改；
         if (renamedColumnAnnotations.size > 1) {
             diffError(
                 conflictingRenameColumnAnnotationsFound(renamedColumnAnnotations.joinToString(","))

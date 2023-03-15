@@ -49,7 +49,7 @@ class AutoMigrationProcessor(
 
         val (specElement, isSpecProvided) = if (!spec.isTypeOf(Any::class)) {
             val typeElement = spec.typeElement
-            //@AutoMigratio#spec如果不是Any类型（默认是Any类型），那么必须是一个类
+            //`@AutoMigratio#spec`默认是`Any`类型，如果我们使用，那么必须是非`abstract`类
             if (typeElement == null) {
                 context.logger.e(AUTOMIGRATION_SPEC_MUST_BE_CLASS)
                 return null
@@ -60,7 +60,7 @@ class AutoMigrationProcessor(
                 return null
             }
 
-            //@AutoMigratio#spec属性中的类如果没有使用@ProvidedAutoMigrationSpec修饰，那么当前类如果存在构造函数，构造函数不允许存在参数；
+            //`@AutoMigratio#spec`属性值类如果没有使用`@ProvidedAutoMigrationSpec`修饰，则不允许出现有参构造函数；
             val isSpecProvided = typeElement.hasAnnotation(ProvidedAutoMigrationSpec::class)
             if (!isSpecProvided) {
                 val constructors = typeElement.getConstructors()
@@ -71,14 +71,14 @@ class AutoMigrationProcessor(
                 )
             }
 
-            //@AutoMigratio#spec属性中的类如果是内部类，必须是static修饰的静态内部类；
+            //`@AutoMigratio#spec`属性值类如果是内部类，必须是static修饰的静态内部类；
             context.checker.check(
                 typeElement.enclosingTypeElement == null || typeElement.isStatic(),
                 typeElement,
                 INNER_CLASS_AUTOMIGRATION_SPEC_MUST_BE_STATIC
             )
 
-            //@AutoMigratio#spec属性中的类必须继承`androidx.room.migration.AutoMigrationSpec`
+            //`@AutoMigratio#spec`属性值类必须继承`androidx.room.migration.AutoMigrationSpec`
             val implementsMigrationSpec =
                 context.processingEnv.requireType(RoomTypeNames.AUTO_MIGRATION_SPEC)
                     .isAssignableFrom(spec)
@@ -94,6 +94,7 @@ class AutoMigrationProcessor(
             null to false
         }
 
+        //`@AutoMigratio#to`属性值一定要大于`@AutoMigratio#from`属性值
         if (toSchemaBundle.version <= fromSchemaBundle.version) {
             context.logger.e(
                 autoMigrationToVersionMustBeGreaterThanFrom(

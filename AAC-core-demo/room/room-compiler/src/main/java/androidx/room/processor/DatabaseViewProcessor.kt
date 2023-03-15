@@ -37,7 +37,7 @@ class DatabaseViewProcessor(
         )
         val annotationBox = element.getAnnotation(androidx.room.DatabaseView::class)
 
-        //@DatabaseView表示视图；如果@DatabaseView#viewName存在，该属性表示视图名称，否则使用@DatabaseView修饰的类型的SimpleName作为视图名称；
+        //视图名称，果`@DatabaseView#viewName`存在，该属性表示视图名称；否则使用`@DatabaseView`修饰的类名作为视图名称
         val viewName: String = if (annotationBox != null) {
             extractViewName(element, annotationBox.value)
         } else {
@@ -79,7 +79,7 @@ class DatabaseViewProcessor(
         val pojo = PojoProcessor.createFor(
             context = context,
             element = element,
-            bindingScope = FieldProcessor.BindingScope.READ_FROM_CURSOR,
+            bindingScope = FieldProcessor.BindingScope.READ_FROM_CURSOR,//只允许对字段的读取
             parent = null,
             referenceStack = referenceStack
         ).process()

@@ -53,6 +53,7 @@ class FtsTableEntityProcessor internal constructor(
     }
 
     private fun doProcess(): FtsEntity {
+
         //该类必须使用@Entity注解修饰
         context.checker.hasAnnotation(
             element, androidx.room.Entity::class,
@@ -85,6 +86,7 @@ class FtsTableEntityProcessor internal constructor(
             referenceStack = referenceStack
         ).process()
 
+        //不允许使用`@Relation`关系字段
         context.checker.check(pojo.relations.isEmpty(), element, ProcessorErrors.RELATION_IN_ENTITY)
 
 
@@ -94,7 +96,7 @@ class FtsTableEntityProcessor internal constructor(
             FtsVersion.FTS4 to getFts4Options(element.getAnnotation(Fts4::class)!!)
         }
 
-        //@Fts3使用tablename拼接 "${tableName}_content"；@Fts4使用#contentEntity属性的表名
+        // fts类映射表名:（1）如果是fts4类并且存在`@Fts4##contentEntity`，那么就是用当前该属性值中的表名；（2）如果fts4不存在该属性值或者当前是fts3类，则使用: 表名 + "_content";
         val shadowTableName = if (ftsOptions.contentEntity != null) {
             // In 'external content' mode the FTS table content is in another table.
             // See: https://www.sqlite.org/fts3.html#_external_content_fts4_tables_
@@ -109,14 +111,14 @@ class FtsTableEntityProcessor internal constructor(
 
         findAndValidateLanguageId(pojo.fields, ftsOptions.languageIdColumnName)
 
-        //该表字段必须存在于fts表常规字段或嵌入表常规字段中
+        //fts表目的是检索，@Fts4#notIndexed属性表示不被索引字段，该字段必须存在于fts表中
         val missingNotIndexed = ftsOptions.notIndexedColumns - pojo.columnNames
         context.checker.check(
             missingNotIndexed.isEmpty(), element,
             ProcessorErrors.missingNotIndexedField(missingNotIndexed)
         )
 
-        //@Fts4#prefix必须大于0
+        //@Fts4#prefix属性值如果存在，必须大于0
         context.checker.check(
             ftsOptions.prefixSizes.all { it > 0 },
             element, ProcessorErrors.INVALID_FTS_ENTITY_PREFIX_SIZES
@@ -194,7 +196,6 @@ class FtsTableEntityProcessor internal constructor(
         return EntityProcessor(context, contentEntityElement, referenceStack).process()
     }
 
-    //fts表必须存在主键是rowid的表字段，并且当前字段类型是int；主键有且仅有一个，（原则上主键可以有多个字段，但是必须保证第一个是rowid）；
     private fun findAndValidatePrimaryKey(
         entityAnnotation: XAnnotationBox<androidx.room.Entity>?,
         fields: List<Field>
@@ -229,6 +230,7 @@ class FtsTableEntityProcessor internal constructor(
                 null
             }
         }
+        //如果当前fts类没有设置主键，那么不允许存在rowid字段，因为rowid必须是主键字段
         val primaryKeys = keysFromEntityAnnotation + keysFromPrimaryKeyAnnotations
         if (primaryKeys.isEmpty()) {
             fields.firstOrNull { it.columnName == "rowid" }?.let {
@@ -239,10 +241,12 @@ class FtsTableEntityProcessor internal constructor(
             }
             return PrimaryKey.MISSING
         }
+        //最多只允许存在一个主键，但是可以是多个字段组成
         context.checker.check(
             primaryKeys.size == 1, element,
             ProcessorErrors.TOO_MANY_PRIMARY_KEYS_IN_FTS_ENTITY
         )
+        //如果存在主键，那么主键中的第一个字段必须是rowid，类型是SQLTypeAffinity.INTEGER
         val primaryKey = primaryKeys.first()
         context.checker.check(
             primaryKey.columnNames.first() == "rowid",
@@ -264,7 +268,7 @@ class FtsTableEntityProcessor internal constructor(
         }
 
         // Verify external content columns are a superset of those defined in the FtsEntity
-        //fts表中除了rowid主键和languageId（@Fts4#languageId）字段，其他字段必须存在于@Fts4#contentEntity中属性对象生成的表常规字段或嵌入表常规字段中
+        //` @Fts4#contentEntity`属性表示fts表的映射表，如果存在：fts表除了rowid字段和`@Fts4#languageId`属性字段，其他字段必须都存在于映射表中；
         ftsEntity.nonHiddenFields.filterNot {
             contentEntity.fields.any { contentField -> contentField.columnName == it.columnName }
         }.forEach {
@@ -286,14 +290,14 @@ class FtsTableEntityProcessor internal constructor(
             return LanguageId.MISSING
         }
 
-        // languageid字段必须存在于@Fts4和@Entity修饰的类生成的表的常规字段或嵌入表常规字段中；
+        // `@Fts4#languageId`如果设置，属性值必须是当前`@Entity`类中的字段，
+        // 并且字段类型必须`SQLTypeAffinity.INTEGER`类型 ↔`int/Integer、shor/Short、byte/Byte、long/Long、char/Char`  `SQLTypeAffinity.INTEGER`；
         val languageIdField = fields.firstOrNull { it.columnName == languageIdColumnName }
         if (languageIdField == null) {
             context.logger.e(element, ProcessorErrors.missingLanguageIdField(languageIdColumnName))
             return LanguageId.MISSING
         }
 
-        // languageid字段必须是int类型
         context.checker.check(
             languageIdField.affinity == SQLTypeAffinity.INTEGER,
             languageIdField.element, ProcessorErrors.INVALID_FTS_ENTITY_LANGUAGE_ID_AFFINITY

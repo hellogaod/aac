@@ -28,7 +28,9 @@ import androidx.room.solver.CodeGenScope
  * 自定义类型转换器:
  * （1）SingleStatementTypeConverter:简单的类型转换，比如int<->boolean转换；
  * （2）NoOpConverter：输入类型和输出类型相同；
- * （3）
+ * （3）CustomTypeConverterWrapper：自定义转换器
+ * （4）CompositeTypeConverter 超过1次转换，先通过转换方法转换成一种类型，在将这种类型转换成数据库支持类型；
+ *
  */
 abstract class TypeConverter(
     val from: XType,

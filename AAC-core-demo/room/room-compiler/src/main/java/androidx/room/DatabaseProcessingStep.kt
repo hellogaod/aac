@@ -70,6 +70,8 @@ class DatabaseProcessingStep : XProcessingStep {
                     ).process()
                 }
 
+                从这里继续
+
                 if (logs.hasMissingTypeErrors()) {
                     if (isLastRound) {
                         // Processing is done yet there are still missing type errors, only report

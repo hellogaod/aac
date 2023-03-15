@@ -25,8 +25,8 @@ import androidx.room.migration.bundle.ForeignKeyBundle
  */
 data class ForeignKey(
     val parentTable: String,//外键指向的表（外键表）名
-    val parentColumns: List<String>,//外键表常规字段
-    val childFields: List<Field>,//@ForeignKey#childColumns属性
+    val parentColumns: List<String>,//外键表主键字段
+    val childFields: List<Field>,//当前表外键字段：@ForeignKey#childColumns属性
     val onDelete: ForeignKeyAction,
     val onUpdate: ForeignKeyAction,
     val deferred: Boolean//@ForeignKey#deferred属性

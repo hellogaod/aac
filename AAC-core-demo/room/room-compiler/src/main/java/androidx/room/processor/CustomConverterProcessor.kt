@@ -62,7 +62,7 @@ class CustomConverterProcessor(
             val annotation = element.requireAnnotation(TypeConverters::class)
             val classes = annotation.getAsTypeList("value").mapTo(LinkedHashSet()) { it }
             val converters = classes.flatMap {
-                val typeElement = it.typeElement//@TypeConverters注解的value属性中的类型必须是一个类（或接口）节点
+                val typeElement = it.typeElement//@TypeConverters注解的value属性中的类型必须是一个类
                 if (typeElement == null) {
                     context.logger.e(
                         element,
@@ -87,12 +87,12 @@ class CustomConverterProcessor(
 
             return ProcessResult(
                 classes = classes,//@TypeConverters#values
-                converters = converters.map(::CustomTypeConverterWrapper),//@TypeConverters#values中的item类被@TypeConverter修饰的方法
+                converters = converters.map(::CustomTypeConverterWrapper),//@TypeConverters#values中的item类
                 builtInConverterFlags = builtInStates//@TypeConverters#builtInTypeConverters
             )
         }
 
-        //@TypeConverters#value中的typeConverters对象可以有多个，这些对象的所有typeConverter方法不允许出现方法返回类型和方法参数类型都一致的情况，表示重复的类型转换
+        //转换类中不允许存在方法返回类型和方法参数类型都一致的`@ProvidedTypeConverter`方法；
         private fun reportDuplicates(context: Context, converters: List<CustomTypeConverter>) {
             converters
                 .groupBy { it.from.typeName to it.to.typeName }

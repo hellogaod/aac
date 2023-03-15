@@ -24,6 +24,7 @@ import androidx.room.parser.SQLTypeAffinity
 import androidx.room.vo.EmbeddedField
 import androidx.room.vo.Field
 import java.util.Locale
+
 //pojo节点生成的变量处理
 class FieldProcessor(
     baseContext: Context,
@@ -41,14 +42,17 @@ class FieldProcessor(
         val columnInfo = element.getAnnotation(ColumnInfo::class)?.value
         val name = element.name
 
+        //字段名称：如果设置了`@ColumnInfo#name`使用该属性；否则，直接使用属性名称；
         val rawCName = if (columnInfo != null && columnInfo.name != ColumnInfo.INHERIT_FIELD_NAME) {
             columnInfo.name
         } else {
             name
         }
-        // 如果是嵌入表中的常规字段，将该字段加前缀
+
+        // 如果当前字段存在于`@Embedded`修饰的类中，字段名称 = `@Embedded#prefix` + 字段名称
         val columnName = (fieldParent?.prefix ?: "") + rawCName
 
+        //字段类型：`@ColumnInfo#typeAffinity`，一般情况下不需要设置，会自动匹配
         val affinity = try {
             SQLTypeAffinity.fromAnnotationValue(columnInfo?.typeAffinity)
         } catch (ex: NumberFormatException) {
@@ -59,7 +63,8 @@ class FieldProcessor(
             columnName, element,
             ProcessorErrors.COLUMN_NAME_CANNOT_BE_EMPTY
         )
-        //有效变量支持泛型，但是泛型中的类型必须是实体类型（例如List<T>肯定不行，必须使用List<String>）
+
+        //字段类型支持泛型，但是不能使用未绑定泛型类型，例如List<T>不行，List<String>可以；
         context.checker.notUnbound(
             type, element,
             ProcessorErrors.CANNOT_USE_UNBOUND_GENERICS_IN_ENTITY_FIELDS
@@ -101,13 +106,15 @@ class FieldProcessor(
                 }
             }
             BindingScope.BIND_TO_STMT -> {
-                field.statementBinder = context.typeAdapterStore.findStatementValueBinder(field.type, field.affinity)
+                field.statementBinder =
+                    context.typeAdapterStore.findStatementValueBinder(field.type, field.affinity)
                 if (field.statementBinder == null) {
                     onBindingError(field, ProcessorErrors.CANNOT_FIND_STMT_BINDER)
                 }
             }
             BindingScope.READ_FROM_CURSOR -> {
-                field.cursorValueReader = context.typeAdapterStore.findCursorValueReader(field.type, field.affinity)
+                field.cursorValueReader =
+                    context.typeAdapterStore.findCursorValueReader(field.type, field.affinity)
                 if (field.cursorValueReader == null) {
                     onBindingError(field, ProcessorErrors.CANNOT_FIND_CURSOR_READER)
                 }
@@ -117,6 +124,10 @@ class FieldProcessor(
         return field
     }
 
+    //`@ColumnInfo#defaultValue`表示设置字段默认值，要注意两点：
+    //
+    // - ① 字段默认值一定要和字段类型匹配；
+    // - ② 如果字段不允许null值，那么当前默认值不允许设置为null；
     private fun extractDefaultValue(
         value: String?,
         affinity: SQLTypeAffinity?,
@@ -152,8 +163,8 @@ class FieldProcessor(
      */
     enum class BindingScope {
         TWO_WAY, // both bind and read.
-        BIND_TO_STMT, // just value to statement
-        READ_FROM_CURSOR // just cursor to value
+        BIND_TO_STMT, // just value to statement 存入字段
+        READ_FROM_CURSOR // just cursor to value 读取字段
     }
 }
 

@@ -33,7 +33,7 @@ class FtsEntity(
     embeddedFields: List<EmbeddedField>,
     primaryKey: PrimaryKey,
     constructor: Constructor?,
-    shadowTableName: String?,//影子表名称
+    shadowTableName: String?,//映射表名称
     val ftsVersion: FtsVersion,
     val ftsOptions: FtsOptions
 ) : Entity(

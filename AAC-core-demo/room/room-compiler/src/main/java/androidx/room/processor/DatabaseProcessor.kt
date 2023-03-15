@@ -81,7 +81,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
 
         validateExternalContentFts(element, entities)
 
-        //@Database修饰的类必须继承`androidx.room.RoomDatabase`类；
+        //`@Database`类必须继承`androidx.room.RoomDatabase`；
         val extendsRoomDb = roomDatabaseType.isAssignableFrom(element.type)
         context.checker.check(extendsRoomDb, element, ProcessorErrors.DB_MUST_EXTEND_ROOM_DB)
 
@@ -99,7 +99,8 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             verifyDatabaseViews(viewsMap, dbVerifier)
         }
 
-        //一定要确保每个数据库文件中的@Database#entities和@Database#views中的表和视图名称不重复
+        //`@Database`类下的数据库表和视图名称一定不可以重复；
+        // - 不区分大小写的，e.g.entUser表存在，那么一定不允许存在entuser表；
         validateUniqueTableAndViewNames(element, entities, views)
 
         val declaredType = element.type
@@ -113,6 +114,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             // to change
             val daoType = executable.returnType
             val daoElement = daoType.typeElement
+            //`@Database`类中必须存在`abstract`方法（返回类型是@Dao修饰的类型），否则报错；
             if (daoElement == null) {
                 context.logger.e(
                     executable,
@@ -120,7 +122,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 null
             } else {
-                //database方法最好不要使用@JvmName修饰，否则警告
+                //d`@Database`类中的`abstract`方法最好不要使用@JvmName修饰，否则警告；
                 if (executable.hasAnnotation(JvmName::class)) {
                     context.logger.w(
                         Warning.JVM_NAME_ON_OVERRIDDEN_METHOD,
@@ -142,7 +144,6 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             }
         }.toList()
 
-
         validateUniqueDaoClasses(element, daoMethods, entities)
         validateUniqueIndices(element, entities)
 
@@ -158,6 +159,9 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             exportSchema = dbAnnotation.value.exportSchema,
             enableForeignKeys = hasForeignKeys
         )
+
+
+
         database.autoMigrations = processAutoMigrations(element, database.bundle)
         return database
     }
@@ -166,12 +170,13 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         element: XTypeElement,
         latestDbSchema: DatabaseBundle
     ): List<androidx.room.vo.AutoMigration> {
+
         val dbAnnotation = element.getAnnotation(androidx.room.Database::class)!!
 
         val autoMigrationList = dbAnnotation
             .getAsAnnotationBoxArray<AutoMigration>("autoMigrations")
 
-        // @Database#autoMigrations表示迁移，如果当前属性不为空，那么
+        // `@Database#autoMigrations`属性不为空，表示当前数据库需要迁移；
         if (autoMigrationList.isNotEmpty()) {
             // @Database#exportSchema属性必须是true，默认就是true
             if (!dbAnnotation.value.exportSchema) {
@@ -181,7 +186,8 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 )
                 return emptyList()
             }
-            // 当前项目必须能引用`room.schemaLocation`包下的类：用于导出json文件；
+            // 在项目中`gradle`中通过 `annotationProcessorOptions` 注解，为`room.schemaLocation`指定`schemas`的子文件夹。
+            // (当执行项目后，在Android Studio 的Project视图下，查看项目，会发现`< Module>`生成了一个`schemas`的文件夹，文件夹和`src`同级)
             if (context.schemaOutFolderPath == null) {
                 context.logger.e(
                     element,
@@ -191,13 +197,15 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
             }
         }
 
+
+
         return autoMigrationList.mapNotNull {
             //room.schemaLocation
             val databaseSchemaFolderPath = Path.of(
                 context.schemaOutFolderPath!!,
                 element.className.canonicalName()
             )
-
+            //`@AutoMigratio#from`和`@AutoMigratio#to`属性值必须存在，两个属性值表示版本。会分别生成两个`json`文件，根据属性值命名
             val autoMigration = it.value
             val validatedFromSchemaFile = getValidatedSchemaFile(
                 autoMigration.from,
@@ -215,11 +223,12 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                 }
             }
 
+
             if (validatedFromSchemaFile != null) {
                 val fromSchemaBundle = validatedFromSchemaFile.inputStream().use {
                     deserializeSchemaFile(it, autoMigration.from)
                 }
-                //@AutoMigratio#to必须存在，如果`@AutoMigratio#to == @Database#version`，表示迁移版本就是当前数据库版本；
+                //如果`@AutoMigratio#to == @Database#version`，表示迁移版本就是当前数据库版本；
                 val toSchemaBundle = if (autoMigration.to == latestDbSchema.version) {
                     latestDbSchema
                 } else {
@@ -235,6 +244,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
                         return@mapNotNull null
                     }
                 }
+
                 //无法自动生成迁移
                 if (fromSchemaBundle !is DatabaseBundle || toSchemaBundle !is DatabaseBundle) {
                     context.logger.e(
@@ -259,7 +269,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         }
     }
 
-    //当前@Database#autoMigrations是AutoMigration注解，必须存在@AutoMigratio#from属性，当前属性会生成`$from.json`文件；
+    //项目的`< Module>`生成了一个`schemas`的文件夹,该文件夹中会生成`$version.json`文件。如下`@AutoMigratio#from`属性是1，所以生成`1.json`文件
     private fun getValidatedSchemaFile(version: Int, schemaFolderPath: Path): File? {
         val schemaFile = SchemaFileResolver.RESOLVER.getFile(
             schemaFolderPath.resolve("$version.json")
@@ -343,7 +353,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
         }
     }
 
-    //@Database#entities属性中的所有表创建的索引，索引名不允许重复；
+    //`@Database`类中的所有索引名不允许重复
     private fun validateUniqueIndices(element: XTypeElement, entities: List<Entity>) {
         entities
             .flatMap { entity ->
@@ -373,7 +383,7 @@ class DatabaseProcessor(baseContext: Context, val element: XTypeElement) {
     ) {
         val entityTypeNames = entities.map { it.typeName }.toSet()
 
-        //同一个database节点中不允许相同返回对象的方法，表示重复dao操作；
+        //`@Database`类中的`abstract`方法返回类型一定是`@Dao`修饰的类，`@Database`类中不允许出现返回类型相同的`abstract`方法；
         daoMethods.groupBy { it.dao.typeName }
             .forEach {
                 if (it.value.size > 1) {

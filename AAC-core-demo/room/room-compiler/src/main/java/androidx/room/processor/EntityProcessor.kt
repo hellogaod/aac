@@ -73,7 +73,9 @@ interface EntityProcessor : EntityOrViewProcessor {
                     if (parent != null) {
                         ForeignKeyInput(
                             parent = parent,
+                            //当前指向表的主键
                             parentColumns = foreignKey.parentColumns.asList(),
+                            //当前表的外键 - 关联指向表主键
                             childColumns = foreignKey.childColumns.asList(),
                             onDelete = ForeignKeyAction.fromAnnotationValue(foreignKey.onDelete),
                             onUpdate = ForeignKeyAction.fromAnnotationValue(foreignKey.onUpdate),
@@ -106,8 +108,8 @@ data class IndexInput(
  */
 data class ForeignKeyInput(
     val parent: XType,//当前表的外键指引的表
-    val parentColumns: List<String>,//外键指引的表中的字段
-    val childColumns: List<String>,//当前表中的字段
+    val parentColumns: List<String>,//外键指引的表中的主键字段
+    val childColumns: List<String>,//当前表中的外键字段
     val onDelete: ForeignKeyAction?,//外键所在父级表中的表字段被删除，当前外键的行为
     val onUpdate: ForeignKeyAction?,//外键所在父级表中的表字段被修改，当前外键的行为
     val deferred: Boolean//外键约束是否根据事务延时处理

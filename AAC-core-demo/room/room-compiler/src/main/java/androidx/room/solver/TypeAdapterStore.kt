@@ -146,7 +146,7 @@ class TypeAdapterStore private constructor(
         fun create(
             context: Context,
             builtInConverterFlags: BuiltInConverterFlags,
-            vararg extras: Any
+            vararg extras: Any//这个值表示所有的自定义类型转换
         ): TypeAdapterStore {
             val adapters = arrayListOf<ColumnTypeAdapter>()
             val converters = arrayListOf<TypeConverter>()
@@ -372,7 +372,6 @@ class TypeAdapterStore private constructor(
             return adapter
         }
 
-
         fun findTypeConverterAdapter(): ColumnTypeAdapter? {
             val targetTypes = affinity?.getTypeMirrors(context.processingEnv)
             val intoStatement = typeConverterStore.findConverterIntoStatement(
@@ -380,6 +379,7 @@ class TypeAdapterStore private constructor(
                 columnTypes = targetTypes
             ) ?: return null
             // ok found a converter, try the reverse now
+            //类型转换方法一定是成对出现的：一个表示转入，一个表示转出
             val fromCursor = typeConverterStore.reverse(intoStatement)
                 ?: typeConverterStore.findTypeConverter(intoStatement.to, out) ?: return null
             return CompositeAdapter(

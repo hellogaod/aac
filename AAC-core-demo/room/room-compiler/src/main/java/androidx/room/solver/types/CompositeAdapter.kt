@@ -32,10 +32,10 @@ import androidx.room.solver.CodeGenScope
  *
  */
 class CompositeAdapter(
-    out: XType,
-    val columnTypeAdapter: ColumnTypeAdapter,
-    val intoStatementConverter: TypeConverter?,
-    val fromCursorConverter: TypeConverter?
+    out: XType,//需要做类型转换的类型
+    val columnTypeAdapter: ColumnTypeAdapter,//类型转换适配的数据库字段
+    val intoStatementConverter: TypeConverter?,//类型转入Room
+    val fromCursorConverter: TypeConverter?//类型转出Room
 ) :
     ColumnTypeAdapter(out, columnTypeAdapter.typeAffinity) {
     override fun readFromCursor(

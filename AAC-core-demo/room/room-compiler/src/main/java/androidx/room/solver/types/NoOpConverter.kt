@@ -22,6 +22,8 @@ import androidx.room.solver.CodeGenScope
 
 /**
  * Yes, we need this when user input is the same as the desired output.
+ *
+ * 对象字段类型是表字段支持的类型，则无需转换
  * <p>
  * Each query parameter receives an adapter that converts it into a String (or String[]). This
  * TypeAdapter basically serves as a wrapper for converting String parameter into the String[] of

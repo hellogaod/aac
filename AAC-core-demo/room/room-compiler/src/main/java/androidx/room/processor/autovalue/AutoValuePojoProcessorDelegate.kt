@@ -47,7 +47,7 @@ class AutoValuePojoProcessorDelegate(
         val allMethods = autoValueElement.getAllMethods()
         val autoValueAbstractGetters = allMethods
             .filter { it.isAbstract() && it.parameters.size == 0 }
-        //pojo节点同时使用了@AutoValue修饰，当前pojo节点的方法如果使用了androidx.room包下的注解，那么该方法最好使用@CopyAnnotations注解，否则会提示警告
+        //pojo节点同时使用@AutoValue修饰，pojo节点中的abstract无参方法如果使用了`androidx.room`包下的注解，该方法最好同时使用@CopyAnnotations注解，否则会提示警告
         // Warn about missing @AutoValue.CopyAnnotations in the property getters.
         autoValueAbstractGetters.forEach {
             val hasRoomAnnotation = it.hasAnnotationWithPackage("androidx.room")
@@ -61,7 +61,7 @@ class AutoValuePojoProcessorDelegate(
 
         // Check that certain Room annotations with @Target(METHOD) are not used in methods other
         // than the auto value abstract getters.
-        //pojo节点只允许存在无参abstract修饰的方法
+        //pojo节点同时使用`@AutoValue`修饰情况下，只允许**abstract修饰的无参方法**使用 `@PrimaryKey、 @ColumnInfo、@Embedded、 @Relation`；
         (allMethods - autoValueAbstractGetters)
             .filter { it.hasAnyAnnotation(*TARGET_METHOD_ANNOTATIONS) }
             .forEach { method ->

@@ -29,7 +29,8 @@ import com.squareup.javapoet.TypeName
  * （3）StringColumnTypeAdapter：String类型字段适配
  * （4）ByteArrayColumnTypeAdapter：byte数组类型字段适配
  * （5）ByteBufferColumnTypeAdapter：ByteBuffer类型字段适配
- * （6）
+ * （6）EnumColumnTypeAdapter：枚举类型，排在类型转换之后；
+ *  (7)UuidColumnTypeAdapter:UUID类型，排在类型转换之后。
  */
 abstract class ColumnTypeAdapter(val out: XType, val typeAffinity: SQLTypeAffinity) :
     StatementValueBinder, CursorValueReader {

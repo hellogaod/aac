@@ -21,6 +21,6 @@ package androidx.room.vo
  */
 data class Junction(
     val entity: EntityOrView,//@Relation#associateBy的属性@Junction，@Junction#value的属性值类型必须是@Entity 或 @DatabaseView修饰
-    val parentField: Field,//连接父级表的列属性：在@Relation#associateBy属性中，如果@Junction#parentColumn存在，使用当前字段作为连接父级表的列属性；否则使用@Relation#parentColunm
-    val entityField: Field//连接实体表的列属性：在@Relation#associateBy属性中，如果@Junction#entityColumn存在，使用当前字段作为连接实体表的列属性；否则使用@Relation#entityColumn
+    val parentField: Field,//连接父级表的列属性：在@Relation#associateBy属性中，如果@Junction#parentColumn存在；否则使用@Relation#parentColunm
+    val entityField: Field//连接实体表的列属性：在@Relation#associateBy属性中，如果@Junction#entityColumn存在；否则使用@Relation#entityColumn
 )

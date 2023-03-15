@@ -161,13 +161,17 @@ class Context private constructor(
         val subBuiltInConverterFlags = typeConverters.builtInConverterFlags.withNext(
             processConvertersResult.builtInConverterFlags
         )
-        //@TypeConverter#builtInTypeConverters属性值是@BuiltInTypeConverters注解，如果BuiltInTypeConverters#enums = State.ENABLED && BuiltInTypeConverters#uuid = State.ENABLED（默认这两个值都是State.INHERITED）
+
         val canReUseAdapterStore =
-            subBuiltInConverterFlags == typeConverters.builtInConverterFlags &&
-                    processConvertersResult.classes.isEmpty()
+            //`@TypeConverters#builtInTypeConverters`使用的是默认值
+            (subBuiltInConverterFlags == typeConverters.builtInConverterFlags)
+
+                    //当前没有使用强制转换
+                    && processConvertersResult.classes.isEmpty()
 
         // order here is important since the sub context should give priority to new converters.
-        //顺序非常重要
+        //1. 如果下一级或者下下级中没有使用`@TypeConverters`类型转换，那么直接沿用上一级或者上上级`@TypeConverters`类型转换；
+        //2. 如果下一级有自己的`@TypeConverters`类型转换，首先当当前类型转换去匹配，匹配不成功情况下才会去上一级`@TypeConverters`中匹配；
         val subTypeConverters = if (canReUseAdapterStore) {
             this.typeConverters
         } else {

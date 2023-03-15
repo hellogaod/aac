@@ -49,9 +49,9 @@ data class Field(
 ) : HasSchemaIdentity {
     lateinit var getter: FieldGetter
     lateinit var setter: FieldSetter
-    // binds the field into a statement
+    // binds the field into a statement 存入字段
     var statementBinder: StatementValueBinder? = null
-    // reads this field from a cursor column
+    // reads this field from a cursor column 读取字段
     var cursorValueReader: CursorValueReader? = null
     val typeName: TypeName by lazy { type.typeName }
 

@@ -75,6 +75,7 @@ class TypeConverterStoreImpl(
         if (inputs.isEmpty()) {
             return null
         }
+        //如果对象字段类型是表字段支持的类型，则无需转换
         inputs.forEach { input ->
             if (outputs.any { output -> input.isSameType(output) }) {
                 return NoOpConverter(input)
@@ -103,17 +104,23 @@ class TypeConverterStoreImpl(
             }
             return assignableMatchFallback
         }
+
         inputs.forEach { input ->
+            //先通过from（强制方法参数）匹配input，优先级顺序，匹配Room基础类型优先级高，匹配Room基础类型的子类优先级低
             val candidates = getAllTypeConverters(input, excludes)
+            //在通过to（强转方法返回类型）匹配room数据支持的基础类型；
             val match = candidates.findMatchingConverter()
             if (match != null) {
                 return match
             }
+            //表示转换方法参数匹配上input类型了，但是转换方法返回类型没有匹配上output类型
             candidates.forEach {
                 excludes.add(it.to)
                 queue.add(it)
             }
         }
+
+
         excludes.addAll(inputs)
         while (queue.isNotEmpty()) {
             val prev = queue.pop()
@@ -121,6 +128,7 @@ class TypeConverterStoreImpl(
             val candidates = getAllTypeConverters(from, excludes)
             val match = candidates.findMatchingConverter()
             if (match != null) {
+                //表示转换方法先转换成一种类型（非Room支持的基础数据类型），再对这种类型转换成Room支持的数据库类型；
                 return CompositeTypeConverter(prev, match)
             }
             candidates.forEach {
